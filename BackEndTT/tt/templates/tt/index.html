@@ -1,0 +1,92 @@
+{% load static %}
+
+{% include "tt/base.html" %}
+<link rel="stylesheet" type="text/css" href="{% static 'tt/css/styles.css' %}">
+<title>TT - UDI</title>
+<style>
+
+    .loader {
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    opacity: .8;
+    }
+    #loader2{
+    background: url("{% static 'tt/img/loader2.gif' %}") 50% 50% no-repeat rgb(249,249,249);
+    }
+
+
+
+
+</style>
+<body>
+<div class="loader" id="loader2"><p align="center"
+                                    style="position: relative; top: 50%; transform: translateY(-50%); z-index:10000; font-size:24px;">
+    Cargando...</p></div>
+<div id="menus">{% include "menus.html" %}</div>
+
+
+<div class="ui modal" id="regform">
+
+    <form class="ui form" style="padding:15px;" id="registro" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h4 class="ui dividing header">Registrate</h4>
+        <div class="field">
+            <label>{{ form.idEmpleado.label_tag }}</label>
+            {{ form.idEmpleado }}
+        </div>
+        <div class="field">
+            <label>{{ form.email.label_tag }}</label>
+            {{ form.email }}
+        </div>
+        <div class="field">
+            <label>{{ form.departamento.label_tag }}</label>
+            {{ form.departamento }}
+        </div>
+        <div class="field">
+            <label>{{ form.contra.label_tag }}</label>
+            {{ form.contra }}
+        </div>
+        <div class="field">
+            <label>Nombre</label>
+            <div class="three fields">
+                <div class="field">
+                    {{form.nombre}}
+                </div>
+                <div class="field">
+                    {{form.ap}}
+                </div>
+                <div class="field">
+                    {{form.am}}
+                </div>
+            </div>
+        </div>
+
+        <div class="ui success message" id="okreg" style="display:none;">
+            <div class="header">Registro Completado</div>
+            <p>Espera a que el administrador valide el registro, se te enviara un correo cuando suceda.</p>
+        </div>
+
+        <div class="ui error message" id="badreg" style="display:none;">
+            <div class="header">Registro incompleto</div>
+            <p>Error al registrar, intenta de nuevo más tarde</p>
+        </div>
+
+        <h4 class="ui dividing header"></h4>
+        <input class="ui inverted green button" type="submit" value="Registrar"/>
+    </form>
+</div>
+</body>
+</html>
+
+<script>
+    $(".loader").hide();
+    {% include "index.js" %}
+
+
+
+
+</script>

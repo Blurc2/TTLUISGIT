@@ -1,0 +1,43 @@
+{% load static %}
+{% load app_filters %}
+{% include "gepp/base.html" %}
+<title>Go-Sharp - GeppV3.0</title>
+
+
+<body >
+<img src="{% static 'gepp/img/fondo.jpg'  %}" class="background" style="z-index:-1; position:absolute; width:100%; height:100%; left:0px; top:0px; ">
+<div class="ui four column grid" style="padding-left:10%; padding-top:10%;">
+    <div class="two column row" >
+        <div class="ui segment" >
+            <div class="row">
+                <img src="{% static 'gepp/img/logo_gosharp.svg'  %}">
+            </div>
+            <div class="row">
+                <div class="ui form">
+                    <form class="ui form"id="in" action="{% url 'gepp:IniciarSesion' 2017|getyear%}" method="post">
+                        {% csrf_token %}
+                        {%for field in form %}
+                        <div class="column">
+                            <div class="field">
+                            <label>{{field.label_tag}}</label>
+                            {{field}}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <div class="row" style="padding-top:20px;">
+                            <center><button class="ui teal button" type="submit" ><i class="fas fa-sign-in-alt"></i> Iniciar sesión</button></center>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!--<div style="position:absolute; bottom:0px; right:0px;">
+    <img class="imglogotipo" height="150" alt="logotipo go-sharp" src="{% static 'gepp/img/logo_gosharp.png' %}" onclick="move()"  />
+</div>-->
+{%if error%} <h1>{{ error }} </h1> {% endif %}
+
+</body>
+</html>
