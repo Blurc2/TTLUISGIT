@@ -17,15 +17,62 @@
         <img src="{% static 'tt/img/logoescom.png' %}">
     </div>
     <a href="{% url 'tt:Index'%}" class="item"><i class="home icon"></i>Inicio</a>
+    <!--ADMINISTRADOR-->
+    <a class="item itemadmin" onclick="showTec()" style="display:none;"><i class="fas fa-users"></i>&nbsp;Técnicos</a>
+    <a class="item itemadmin" onclick="" style="display:none;"><i class="fas fa-file-invoice"></i>&nbsp;Ordenes</a>
+    <a class="item itemadmin" onclick="" style="display:none;"><i class="fas fa-tv"></i>&nbsp;Mobiliario</a>
+    <!--DOCENTE-->
+    <a class="item itemdocente" onclick="" style="display:none;"><i class="fas fa-file-signature"></i>&nbsp;Levantar solicitud</a>
+    <!--TECNICO-->
+    <a class="item itemtecnico" onclick="" style="display:none;"><i class="fas fa-briefcase"></i>&nbsp;Ver trabajos</a>
     <div class="right menu">
-        {% if not NombreUser %}
-        <a class="item">Iniciar Sesión</a>
-        <a class="item" onclick="showRegisterModal()">Registrarse</a>
 
-        {% else %}
-        <a class="item ">Cerrar Sesión</a>
-        {% endif %}
-    </div>
+            <a class="ui dropdown icon item sesionforms" style="display:none;">
+
+                <div class="menu">
+                    <div class="item">
+
+                        <form class="ui form" id="login" action="{% url 'tt:IniciarSesion'%}" method="post"
+                              enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <h4 class="ui dividing header">Ingresa tus datos</h4>
+                            <div class="field">
+                                <label>{{ forml.correo.label_tag }}</label>
+                                {{ forml.correo }}
+                            </div>
+                            <div class="field">
+                                <label>{{ forml.passs.label_tag }}</label>
+                                {{ forml.passs }}
+                            </div>
+
+                            <h4 class="ui dividing header"></h4>
+                            <center><input class="ui inverted green button" type="submit" value="Iniciar Sesión"/>
+                            </center>
+                        </form>
+
+                    </div>
+
+                </div>
+                <i class="fas fa-sign-in-alt"></i>&nbsp;Iniciar Sesión
+            </a>
+
+            <a class="item sesionforms" onclick="showRegisterModal()" style="display:none;"><i class="fas fa-user-plus"></i>&nbsp;Registrarse</a>
+            <div class="item sesion" style="display:none;">
+                <i class="user circle icon"></i><p id="username"></p>
+            </div>
+            <a class="item sesion" onclick="cerrarSesion()" style="display:none;"><i class="fas fa-sign-out-alt"></i>&nbsp;Cerrar Sesión</a>
 </div>
 
 
+<script>
+//dropdown
+$(document).ready(function(){
+$('.ui.dropdown')
+ .dropdown({
+    action: 'nothing'
+  });
+});
+
+
+
+</script>
