@@ -97,7 +97,7 @@ class Empleado(models.Model):
 	email=models.CharField(max_length=60)
 	password=models.CharField(max_length=60)
 	tipo=models.ForeignKey(TipoUsuario, on_delete=models.CASCADE)
-	trabajos = models.ManyToManyField(TipoTrabajo, blank=True)
+	trabajos = models.ForeignKey(TipoTrabajo, on_delete=models.CASCADE)
 	ordenes = models.ManyToManyField(Orden, blank=True)
 	def __str__(self):
 		return self.nombre

@@ -28,7 +28,7 @@
     Cargando...</p></div>
 <div id="menus">{% include "menus.html" %}</div>
 
-<div id="contenido" class="ui grid" style="padding:20px;">
+<div id="contenido" class="ui grid" style=" padding:20px;">
 
 </div>
 
@@ -37,7 +37,7 @@
 
     <form class="ui form" style="padding:15px;" id="registro" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <h4 class="ui dividing header">Registrate</h4>
+        <h4 class="ui dividing header" id="headerFormReg">Registrate</h4>
         <div class="field">
             <label>{{ form.idEmpleado.label_tag }}</label>
             {{ form.idEmpleado }}
@@ -46,9 +46,13 @@
             <label>{{ form.email.label_tag }}</label>
             {{ form.email }}
         </div>
-        <div class="field">
-            <label>{{ form.departamento.label_tag }}</label>
-            {{ form.departamento }}
+        <!--<div class="field" id="department">-->
+            <!--<label>{{ form.departamento.label_tag }}</label>-->
+            <!--{{ form.departamento }}-->
+        <!--</div>-->
+        <div class="field" id="typetec" style="display:none;">
+            <label>{{ form.tipotecnico.label_tag }}</label>
+            {{ form.tipotecnico }}
         </div>
         <div class="field">
             <label>{{ form.contra.label_tag }}</label>
@@ -71,16 +75,45 @@
 
         <div class="ui success message" id="okreg" style="display:none;">
             <div class="header">Registro Completado</div>
-            <p>Espera a que el administrador valide el registro, se te enviara un correo cuando suceda.</p>
+            <p id="okregmsg">Espera a que el administrador valide el registro, se te enviara un correo cuando suceda.</p>
         </div>
 
         <div class="ui error message" id="badreg" style="display:none;">
             <div class="header">Registro incompleto</div>
-            <p id="registererror">Error al registrar, intenta de nuevo más tarde</p>
+            <p id="registererror">Error, intenta de nuevo más tarde</p>
         </div>
 
         <h4 class="ui dividing header"></h4>
-        <input class="ui inverted green button" type="submit" value="Registrar"/>
+        <input class="ui inverted green button" id="btnRegistrar" type="submit" value="Registrar"/>
+    </form>
+</div>
+
+<div class="ui modal" id="DepartmentMod">
+
+    <form class="ui form" style="padding:15px;" id="DepartmentForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h4 class="ui dividing header" id="DepartmentHeader">Añadir Departamento</h4>
+        <div class="field">
+            <label>{{ formdep.laboratorio.label_tag }}</label>
+            {{ formdep.laboratorio }}
+        </div>
+        <div class="field">
+            <label>{{ formdep.nombredep.label_tag }}</label>
+            {{ formdep.nombredep }}
+        </div>
+
+        <div class="ui success message" id="okregdep" style="display:none;">
+            <div class="header">Registro Completado</div>
+            <p id="okregdepmsg">Espera a que el administrador valide el registro, se te enviara un correo cuando suceda.</p>
+        </div>
+
+        <div class="ui error message" id="badregdep" style="display:none;">
+            <div class="header">Registro incompleto</div>
+            <p id="registererrordep">Error, intenta de nuevo más tarde</p>
+        </div>
+
+        <h4 class="ui dividing header"></h4>
+        <input class="ui inverted green button" id="DepartmentBtn" type="submit" value="Añadir departamento"/>
     </form>
 </div>
 </body>

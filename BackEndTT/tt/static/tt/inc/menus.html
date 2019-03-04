@@ -1,7 +1,7 @@
 {% load static %}
 {% load app_filters %}
 
-<section class="ui grid">
+<div class="ui grid">
     <div class="sixteen wide column">
         <div>
             <img src="{% static 'tt/img/udibanner.jpg' %}" style="width: 100%; height: 150px;">
@@ -10,7 +10,7 @@
     </div>
 
     <!--{% static 'tt/img/udi.jpg' %}-->
-</section>
+</div>
 
 <div class="ui stackable menu">
     <div class="item active">
@@ -19,6 +19,8 @@
     <a href="{% url 'tt:Index'%}" class="item"><i class="home icon"></i>Inicio</a>
     <!--ADMINISTRADOR-->
     <a class="item itemadmin" onclick="showTec()" style="display:none;"><i class="fas fa-users"></i>&nbsp;Técnicos</a>
+    <a class="item itemadmin" onclick="showDep()" style="display:none;"><i class="fas fa-file-invoice"></i>&nbsp;Departamentos</a>
+    <a class="item itemadmin" onclick="" style="display:none;"><i class="fas fa-file-invoice"></i>&nbsp;Equipo</a>
     <a class="item itemadmin" onclick="" style="display:none;"><i class="fas fa-file-invoice"></i>&nbsp;Ordenes</a>
     <a class="item itemadmin" onclick="" style="display:none;"><i class="fas fa-tv"></i>&nbsp;Mobiliario</a>
     <!--DOCENTE-->
@@ -61,6 +63,7 @@
                 <i class="user circle icon"></i><p id="username"></p>
             </div>
             <a class="item sesion" onclick="cerrarSesion()" style="display:none;"><i class="fas fa-sign-out-alt"></i>&nbsp;Cerrar Sesión</a>
+</div>
 </div>
 
 
