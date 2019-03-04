@@ -77,6 +77,7 @@ def AddDepartment(request):
         if form.is_valid():
             # print(tipousuario.objects.get(nombre='Docente'))
             print(form.cleaned_data['option'])
+            print(form.cleaned_data['pkdep'])
             try:
 
                 if(form.cleaned_data['option']=="create"):
@@ -86,7 +87,7 @@ def AddDepartment(request):
                                                   nombre=form.cleaned_data['nombredep'])
                     dep.save()
                 elif(form.cleaned_data['option']=="update"):
-                    dep = Departamento.objects.filter(laboratorio=form.cleaned_data['laboratorio']).update(
+                    dep = Departamento.objects.filter(pk=form.cleaned_data['pkdep']).update(
                         nombre=form.cleaned_data['nombredep'])
 
                 return JsonResponse({"code": 1}, content_type="application/json", safe=False)

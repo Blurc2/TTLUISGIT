@@ -9,6 +9,7 @@ class formDepartamento(forms.Form):
     laboratorio = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Ingresa el laboratorio'}),label="Laboratorio", max_length=100,required=True)
     nombredep = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Ingresa el nombre'}), label="Nombre", max_length=100,required=True)
     option = forms.CharField(label="option", max_length=60,required=False)
+    pkdep = forms.IntegerField(label="pkdep",required=False)
 
 class formregistro(forms.Form):
     TypeTec = (

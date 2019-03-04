@@ -1,5 +1,6 @@
 {% load static %}
 var update = false
+var idDepartamento = -1
 
 function showRegisterModal()
 {
@@ -46,6 +47,7 @@ var formData = new FormData(this);
 if($("#DepartmentHeader").text()=="Añadir Departamento")
 {
         formData.append('option', 'create')
+        formData.append('pkdep', -1);
         $("form#DepartmentForm").addClass( "loading" )
         $("#badregdep").hide();
         $("#okregdep").hide();
@@ -82,6 +84,7 @@ if($("#DepartmentHeader").text()=="Añadir Departamento")
 else
 {
 formData.append('option', "update");
+formData.append('pkdep', idDepartamento);
         $("form#DepartmentForm").addClass( "loading" )
         $("#badregdep").hide();
         $("#okregdep").hide();
@@ -491,6 +494,7 @@ function showDep()
                 $("#DepartmentBtn").val("Actualizar departamento")
                 $("#id_laboratorio").val(element['fields']['laboratorio'])
                 $("#id_nombredep").val(element['fields']['nombre'])
+                idDepartamento = element['pk']
 
                 $('#DepartmentMod').modal('show')
               });
