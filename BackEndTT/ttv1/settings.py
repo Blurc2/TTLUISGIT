@@ -28,6 +28,12 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'udiescom2019@gmail.com'
+EMAIL_HOST_PASSWORD = 'rinnegan'
+EMAIL_PORT = 587
+
 # Application definition
 
 INSTALLED_APPS = [

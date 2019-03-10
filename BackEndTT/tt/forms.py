@@ -6,8 +6,10 @@ class formlogin(forms.Form):
     passs = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Ingresa tu contraseña'}), label="Contraseña", max_length=100,required=True)
 
 class formDepartamento(forms.Form):
-    laboratorio = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Ingresa el laboratorio'}),label="Laboratorio", max_length=100,required=True)
     nombredep = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Ingresa el nombre'}), label="Nombre", max_length=100,required=True)
+    edificio = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Ubicación : Edificio'}), label="Edificio",required=True)
+    piso = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Ubicación : Piso'}), label="Piso",required=True)
+    sala = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Ubicación : Sala'}), label="Sala",required=True)
     option = forms.CharField(label="option", max_length=60,required=False)
     pkdep = forms.IntegerField(label="pkdep",required=False)
 
@@ -23,5 +25,7 @@ class formregistro(forms.Form):
     nombre = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Usuario'}), label="Nombre", max_length=60,required=True)
     ap = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Apellido Paterno'}), label="Apellido Paterno", max_length=60,required=True)
     am = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Apellido Materno'}), label="Apellido Materno", max_length=60,required=True)
+    telefono = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Teléfono'}), label="Teléfono",required=True)
+    extension = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Extensión'}), label="Extensión",required=False)
     tipoEmpleado = forms.CharField(label="tipoEmpleado", max_length=60,required=False)
     tipotecnico = forms.ChoiceField(choices=TypeTec, label="Tipo de técnico")

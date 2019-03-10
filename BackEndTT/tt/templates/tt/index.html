@@ -59,6 +59,14 @@
             {{ form.contra }}
         </div>
         <div class="field">
+            <label>{{ form.telefono.label_tag }}</label>
+            {{ form.telefono }}
+        </div>
+        <div class="field">
+            <label>{{ form.extension.label_tag }}</label>
+            {{ form.extension }}
+        </div>
+        <div class="field">
             <label>Nombre</label>
             <div class="three fields">
                 <div class="field">
@@ -94,14 +102,21 @@
         {% csrf_token %}
         <h4 class="ui dividing header" id="DepartmentHeader">Añadir Departamento</h4>
         <div class="field">
-            <label>{{ formdep.laboratorio.label_tag }}</label>
-            {{ formdep.laboratorio }}
-        </div>
-        <div class="field">
             <label>{{ formdep.nombredep.label_tag }}</label>
             {{ formdep.nombredep }}
         </div>
-
+        <div class="field">
+            <label>{{ formdep.edificio.label_tag }}</label>
+            {{ formdep.edificio }}
+        </div>
+        <div class="field">
+            <label>{{ formdep.piso.label_tag }}</label>
+            {{ formdep.piso }}
+        </div>
+        <div class="field">
+            <label>{{ formdep.sala.label_tag }}</label>
+            {{ formdep.sala }}
+        </div>
         <div class="ui success message" id="okregdep" style="display:none;">
             <div class="header">Registro Completado</div>
             <p id="okregdepmsg">Espera a que el administrador valide el registro, se te enviara un correo cuando suceda.</p>

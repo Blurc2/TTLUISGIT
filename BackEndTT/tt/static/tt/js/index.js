@@ -29,6 +29,8 @@ $(document).ready(function()
             showTec()
         else if(sessionStorage.getItem("menuItem") == "DEPARTAMENTOS")
             showDep()
+        else if(sessionStorage.getItem("menuItem") == "REGISTROS")
+            showRegisters()
     {% elif usertype == "Docente" %}
         $(".itemdocente").show('slow')
     {% elif usertype == "Tecnico" %}
@@ -290,6 +292,19 @@ var formData = new FormData(this);
                     msg: "No se encontro el usuario"
                     });
                     }
+    else if(data.logincode == -1)
+        {
+        Lobibox.notify('error', {
+                    size: 'normal',
+                    rounded: true,
+                    delayIndicator: true,
+                    icon: true,
+                    title:"<center>USUARIO NO VALIDADO</center>",
+                    iconSource:"fontAwesome",
+                    sound:false,
+                    msg: "Esta cuenta esta en proceso de validación, cuando sea validada se te enviara un correo a la dirección registrada."
+                    });
+                    }
     },
     cache: false,
     contentType: false,
@@ -435,7 +450,7 @@ function createTecTable(json)
   '<thead>'+
   '  <tr><th>Técnico</th>'+
   '  <th>Correo</th>'+
-  '  <th>Opciones</th>'+
+  '  <th style="text-align: center;">Opciones</th>'+
   '</tr></thead>'+
   '<tbody>';
   if($.isEmptyObject(json))
@@ -486,7 +501,7 @@ function showDep()
 
         json.forEach(function(element) {
 
-              $(("#"+(element['fields']['laboratorio']+element['fields']['nombre']+"update")).replace(/\s+/g, '')).on('click',function()
+              $(("#"+(element['pk']+element['fields']['nombre']+"update")).replace(/\s+/g, '')).on('click',function()
               {
                 $("#DepartmentHeader").text("Modificar Departamento")
                 $("#badregdep").hide()
@@ -499,7 +514,7 @@ function showDep()
                 $('#DepartmentMod').modal('show')
               });
 
-              $(("#"+(element['fields']['laboratorio']+element['fields']['nombre']+"delete")).replace(/\s+/g, '')).on('click',function()
+              $(("#"+(element['pk']+element['fields']['nombre']+"delete")).replace(/\s+/g, '')).on('click',function()
               {
                 $.ajax({
                     url : "{% url "tt:DelDepartment" %}",
@@ -555,11 +570,10 @@ $("#agregardep").on('click',function(){
 
 function createDepTable(json)
 {
-    var html ='<table id="tabledepart" style="display:none;" class="ui red celled table">'+
+    var html ='<table id="tabledepart" style="display:none;" class="ui purple celled table">'+
   '<thead>'+
-  '  <tr><th>Nombre</th>'+
-  '  <th>Laboratorio</th>'+
-  '  <th>Opciones</th>'+
+  '  <tr><th colspan="2">Nombre</th>'+
+  '  <th colspan="1" style="text-align: center;">Opciones</th>'+
   '</tr></thead>'+
   '<tbody>';
   if($.isEmptyObject(json))
@@ -567,24 +581,157 @@ function createDepTable(json)
     html+='<tr><td class="collapsing"></td><td></td><td></td></tr>'
   }
   json.forEach(function(element) {
-      html +='<tr><td class="collapsing"><i class="user icon"></i>'+
-        element['fields']['nombre']+
-        '</td><td>'+element['fields']['laboratorio']+'</td>';
-        html+='<td class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['fields']['laboratorio']+element['fields']['nombre']+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
+      html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+element['fields']['nombre']+"infoDepto").replace(/\s+/g, '')+'"><i class="user icon"></i>'+
+        element['fields']['nombre']
+        html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+element['fields']['nombre']+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
           '<div class="or" data-text="o"></div>'+
-          '<button class="ui positive button" id="'+(element['fields']['laboratorio']+element['fields']['nombre']+"update").replace(/\s+/g, '')+'">Editar</button></div></td></tr>';
+          '<button class="ui positive button" id="'+(element['pk']+element['fields']['nombre']+"update").replace(/\s+/g, '')+'">Editar</button></div></td></tr>';
     });
 
   html +='<tfoot class="full-width">'+
     '<tr>'+
-      '<th></th>'+
-      '<th colspan="4">'+
+
+      '<th colspan="3">'+
       '  <div class="ui right floated small primary labeled icon button" id="agregardep">'+
      '     <i class="user icon"></i> Agregar Departamento'+
     '    </div>'+
    '   </th>'+
   '  </tr>'+
  ' </tfoot>'+
+'  </tbody>'+
+'</table>';
+
+return html;
+
+}
+
+function showRegisters()
+{
+    $("#contenido").empty()
+    sessionStorage.setItem("menuItem", "REGISTROS");
+    $.ajax({
+    url: "{% url 'tt:ShowRegisters' %}",
+    type: 'POST',
+    data: {x:""},
+    success: function (data) {
+    var json = JSON.parse(data)
+    console.log(json)
+    $("#contenido").append(createRegistersTable(json))
+    $("#tableregisters").fadeIn('slow')
+    if(!$.isEmptyObject(json))
+    {
+
+        json.forEach(function(element) {
+
+              $(("#"+(element['pk']+element['fields']['nombre']+"validate")).replace(/\s+/g, '')).on('click',function()
+              {
+
+                $.ajax({
+                url: "{% url 'tt:ValidarDocente' %}",
+                type: 'GET',
+                data: {action:"OK",idEmp:element['pk'],correo:element['fields']['email']},
+                success: function (data) {
+                    if(data.code == 0)
+                    {
+                    Lobibox.notify('success', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Enviando correo</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "Enviado correo de validación a: "+element['fields']['email']
+                                });
+                    setTimeout(function(){location.reload();},2500)
+                    }
+                    else
+                    {
+                    Lobibox.notify('error', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Error al validar</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "No se pudo validar o enviar el correo, intenta de nuevo más tarde"
+                                });
+                    }
+
+                }
+                });
+              });
+
+              $(("#"+(element['pk']+element['fields']['nombre']+"invalidate")).replace(/\s+/g, '')).on('click',function()
+              {
+
+                $.ajax({
+                url: "{% url 'tt:ValidarDocente' %}",
+                type: 'GET',
+                data: {'action':"ERROR",'idEmp':element['pk'],'correo':element['fields']['email']},
+                success: function (data) {
+                    if(data.code == 0)
+                    {
+                    Lobibox.notify('success', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Enviando correo</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "Enviado correo de validación a: "+element['fields']['email']
+                                });
+                    setTimeout(function(){location.reload();},2500)
+                    }
+                    else
+                    {
+                    Lobibox.notify('error', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Error al validar</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "No se pudo validar o enviar el correo, intenta de nuevo más tarde"
+                                });
+                    }
+                }
+                });
+              });
+        });
+        }
+    }
+    });
+}
+
+function createRegistersTable(json)
+{
+    var html ='<table id="tableregisters" style="display:none;" class="ui blue celled table">'+
+  '<thead>'+
+  '  <tr><th colspan="1">Id Empleado</th>'+
+  '  <th colspan="2">Nombre</th>'+
+  '  <th colspan="3">Correo</th>'+
+  '  <th colspan="1" style="text-align: center;">Opciones</th>'+
+  '</tr></thead>'+
+  '<tbody>';
+  if($.isEmptyObject(json))
+  {
+    html+='<tr><td class="collapsing"></td><td></td><td></td></tr>'
+  }
+  json.forEach(function(element) {
+      html +='<tr><td colspan="1" class="collapsing"><i class="user icon"></i>'+
+        element['pk']+
+        '</td><td colspan="2">'+element['fields']['nombre']+'</td>'+
+        '</td><td colspan="3">'+element['fields']['email']+'</td>';
+        html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+element['fields']['nombre']+"invalidate").replace(/\s+/g, '')+'">Invalidar</button>'+
+          '<div class="or" data-text="o"></div>'+
+          '<button class="ui positive button" id="'+(element['pk']+element['fields']['nombre']+"validate").replace(/\s+/g, '')+'">Validar</button></div></td></tr>';
+    });
+
+  html +=
 '  </tbody>'+
 '</table>';
 
