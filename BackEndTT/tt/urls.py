@@ -11,9 +11,13 @@ urlpatterns=[
     url(r'^ajax/CerrarSesion/$', views.CerrarSesion, name='CerrarSesion'),
     url(r'^ajax/ShowTecnicos/$', views.ShowTecnicos, name='ShowTecnicos'),
     url(r'^ajax/ShowDepartments/$', views.ShowDepartments, name='ShowDepartments'),
+    url(r'^ajax/ShowSubDepartments/$', views.ShowSubDepartments, name='ShowSubDepartments'),
     url(r'^ajax/ShowRegisters/$', views.ShowRegisters, name='ShowRegisters'),
+    url(r'^ajax/ShowEquipment/$', views.ShowEquipment, name='ShowEquipment'),
     url(r'^ajax/DelTecnicos/$', views.DelTecnicos, name='DelTecnicos'),
     url(r'^ajax/AddDepartment/$', views.AddDepartment, name='AddDepartment'),
+    url(r'^ajax/AddEquip/$', views.AddEquip, name='AddEquip'),
     url(r'^ajax/DelDepartment/$', views.DelDepartment, name='DelDepartment'),
+    url(r'^ajax/DelSubDepartment/$', views.DelSubDepartment, name='DelSubDepartment'),
     url(r'^ajax/ValidarDocente/$', views.ValidarDocente, name='ValidarDocente'),
 ]

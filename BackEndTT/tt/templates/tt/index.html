@@ -131,6 +131,112 @@
         <input class="ui inverted green button" id="DepartmentBtn" type="submit" value="Añadir departamento"/>
     </form>
 </div>
+
+<div class="ui modal" id="EquipoMod">
+
+    <form class="ui form" style="padding:15px;" id="EquipoForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h4 class="ui dividing header" id="EquipoHeader">Añadir Equipo</h4>
+        <div class="field">
+            <label>{{ formequipo.tipoequipo.label_tag }}</label>
+            {{ formequipo.tipoequipo }}
+        </div>
+        <div class="field">
+            <label>{{ formequipo.idequipo.label_tag }}</label>
+            {{ formequipo.idequipo }}
+        </div>
+        <div class="field">
+            <label>Datos generales</label>
+            <div class="two fields">
+                <div class="field">
+                    {{formequipo.fmodelo}}
+                </div>
+                <div class="field">
+                    {{formequipo.fmarca}}
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <label>Datos del equipo</label>
+            <div class="three fields">
+                <div class="field">
+                    {{formequipo.fmac}}
+                </div>
+                <div class="field">
+                    {{formequipo.fns}}
+                </div>
+                <div class="field">
+                    {{formequipo.fip}}
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <label>Caracteristicas de hardware</label>
+            <div class="four fields">
+                <div class="field">
+                    {{formequipo.fprocesador}}
+                </div>
+                <div class="field">
+                    {{formequipo.fnum_puertos}}
+                </div>
+                <div class="field">
+                    {{formequipo.fmemoria_ram}}
+                </div>
+                <div class="field">
+                    {{formequipo.fdisco_duro}}
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <label>Otros datos</label>
+            <div class="three fields">
+                <div class="field">
+                    {{formequipo.fcambs}}
+                </div>
+                <div class="field">
+                    {{formequipo.fsistema_operativo}}
+                </div>
+                <div class="field">
+                    {{formequipo.fidf}}
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <label>Ubicación</label>
+            <div class="two fields">
+                <div class="field">
+                    {{formequipo.departamento}}
+                </div>
+                <div class="field">
+                    {{formequipo.empleados}}
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <label>Comentarios del equipo</label>
+            <div class="two fields">
+                <div class="field">
+                    {{formequipo.fcaracteristicas}}
+                </div>
+                <div class="field">
+                    {{formequipo.fobservaciones}}
+                </div>
+            </div>
+        </div>
+        <div class="ui success message" id="okregequipo" style="display:none;">
+            <div class="header">Registro Completado</div>
+            <p id="okregmsgequipo">Equipo registrado exitosamente.</p>
+        </div>
+
+        <div class="ui error message" id="badregequipo" style="display:none;">
+            <div class="header">Registro incompleto</div>
+            <p id="registererrorequipo">Error, intenta de nuevo más tarde</p>
+        </div>
+
+        <h4 class="ui dividing header"></h4>
+        <input class="ui inverted green button" id="EquipoBtn" type="submit" value="Añadir Equipo"/>
+    </form>
+</div>
 </body>
 </html>
 

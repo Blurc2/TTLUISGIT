@@ -30,12 +30,15 @@ class Ubicacion(models.Model):
     edificio = models.IntegerField()
     piso = models.IntegerField()
     sala = models.IntegerField()
+
+    def __str__(self):
+        return "Edificio "+str(self.edificio)+" Piso "+str(self.piso)+" sala "+str(self.sala)
     # depto = models.ForeignKey(Departamento, on_delete=models.CASCADE,blank = True,null=True)
     # depto = models.ForeignKey(SubDepartamento, on_delete=models.CASCADE,blank = True,null=True)
 
 class Departamento(models.Model):
     nombre = models.CharField(max_length=60)
-    grupoTrabajo = models.ManyToManyField(GruposTrabajo)
+    grupoTrabajo = models.ManyToManyField(GruposTrabajo,blank=True,null=True)
     ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -44,10 +47,7 @@ class Departamento(models.Model):
 class SubDepartamento(models.Model):
     nombre = models.CharField(max_length=60)
     depto = models.ForeignKey(Departamento, on_delete=models.CASCADE)
-    ubicacion = models.OneToOneField(
-        Ubicacion,
-        on_delete=models.CASCADE,
-    )
+    ubicacion = models.ForeignKey(Ubicacion, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.nombre
@@ -61,31 +61,6 @@ class SubDepartamento(models.Model):
 #
 #     def __str__(self):
 #         return self.nombre
-
-class Equipo(models.Model):
-    idEquipo = models.IntegerField(primary_key=True)
-    modelo = models.CharField(max_length=60)
-    mac = models.CharField(max_length=60)
-    ns = models.CharField(max_length=60)
-    ip = models.CharField(max_length=60)
-    cambs = models.CharField(max_length=60)
-    sistema_operativo = models.CharField(max_length=60)
-    procesador = models.CharField(max_length=60)
-    num_puertos = models.CharField(max_length=60)
-    memoria_ram = models.CharField(max_length=60)
-    disco_duro = models.CharField(max_length=60)
-    idf = models.CharField(max_length=60)
-    caracteristicas = models.CharField(max_length=200)
-    observaciones = models.CharField(max_length=200)
-    tipo_equipo = models.ForeignKey(TipoEquipo, on_delete=models.CASCADE)
-    depto = models.ForeignKey(Departamento, on_delete=models.CASCADE,blank = True,null=True)
-    subdepto = models.ForeignKey(SubDepartamento, on_delete=models.CASCADE,blank = True,null=True)
-
-
-class Marca(models.Model):
-    nombre = models.CharField(max_length=60)
-    equipo = models.ForeignKey(Equipo, on_delete=models.CASCADE)
-
 
 class InstalacionSoft(models.Model):
     nombre = models.CharField(max_length=60)
@@ -102,7 +77,6 @@ class Satisfaccion(models.Model):
     seguridad = models.IntegerField()
     infrayservicios = models.IntegerField()
 
-
 class Orden(models.Model):
     nofolio = models.CharField(max_length=30, primary_key=True)
     estado = models.IntegerField()
@@ -117,7 +91,7 @@ class Orden(models.Model):
         Satisfaccion,
         on_delete=models.CASCADE,
     )
-    equipo = models.ForeignKey(Equipo, on_delete=models.CASCADE)
+    equipo = models.ForeignKey('Equipo', on_delete=models.CASCADE)
 
 
 class Empleado(models.Model):
@@ -135,4 +109,35 @@ class Empleado(models.Model):
     ordenes = models.ManyToManyField(Orden, blank=True)
 
     def __str__(self):
+        return "Tipo: "+self.tipo.nombre+", Nombre: "+self.nombre
+
+class Marca(models.Model):
+    nombre = models.CharField(max_length=60)
+
+    def __str__(self):
         return self.nombre
+
+class Equipo(models.Model):
+    idEquipo = models.IntegerField(primary_key=True)
+    modelo = models.CharField(max_length=60,blank = True,null=True)
+    mac = models.CharField(max_length=60,blank = True,null=True)
+    ns = models.CharField(max_length=60)
+    ip = models.CharField(max_length=60,blank = True,null=True)
+    cambs = models.CharField(max_length=60,blank = True,null=True)
+    sistema_operativo = models.CharField(max_length=60,blank = True,null=True)
+    procesador = models.CharField(max_length=60,blank = True,null=True)
+    num_puertos = models.CharField(max_length=60,blank = True,null=True)
+    memoria_ram = models.CharField(max_length=60,blank = True,null=True)
+    disco_duro = models.CharField(max_length=60,blank = True,null=True)
+    idf = models.CharField(max_length=60,blank = True,null=True)
+    caracteristicas = models.CharField(max_length=200,blank = True,null=True)
+    observaciones = models.CharField(max_length=200,blank = True,null=True)
+    tipo_equipo = models.ForeignKey(TipoEquipo, on_delete=models.CASCADE)
+    depto = models.ForeignKey(Departamento, on_delete=models.CASCADE,blank = True,null=True)
+    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE,blank = True,null=True)
+    marca = models.ForeignKey(Marca, on_delete=models.CASCADE,blank = True,null=True)
+
+    def __str__(self):
+        return "Tipo: "+self.tipo_equipo.nombre+", Numero de serie: "+self.ns
+
+

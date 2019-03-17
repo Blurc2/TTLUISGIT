@@ -1,4 +1,5 @@
 from django.core import serializers
+from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, render_to_response
 from django.views.decorators.csrf import csrf_exempt
@@ -14,13 +15,28 @@ def Index(request):
     forml = formlogin()
     form2 = formDepartamento()
     form = formregistro()
+
+    deplist = []
+    emplist = []
+    deplist.append(("Selecciona a que departamento pertenece", "Selecciona a que departamento pertenece"))
+    emplist.append(("Selecciona a que empleado pertenece", "Selecciona a que empleado pertenece"))
+    for dep in Departamento.objects.all().values('nombre'):
+        print(dep)
+        deplist.append((dep['nombre'], dep['nombre']))
+    for emp in Empleado.objects.all().values('nombre', 'pk'):
+        emplist.append(("Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre'],
+                        "Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre']))
+    formequipo = formEquipo(deplist, emplist)
+    # formequipo.fields['departamento'].choices = deplist
+    # formequipo.fields['empleados'].choices = emplist
     if 'NombreUser' in request.session:  # Validamos si es que existe una sesión activa en el navegador
-        return render(request, 'tt/index.html', {'form': form, 'forml': forml, 'formdep': form2,
-                                                 'userName': request.session['NombreUser']['tipo'] + " : " +
-                                                             request.session['NombreUser']['nombre'] + " " +
-                                                             request.session['NombreUser']['ap'] + " " +
-                                                             request.session['NombreUser']['am'],
-                                                 'usertype': request.session['NombreUser']['tipo']})
+        return render(request, 'tt/index.html',
+                      {'form': form, 'forml': forml, 'formdep': form2, 'formequipo': formequipo,
+                       'userName': request.session['NombreUser']['tipo'] + " : " +
+                                   request.session['NombreUser']['nombre'] + " " +
+                                   request.session['NombreUser']['ap'] + " " +
+                                   request.session['NombreUser']['am'],
+                       'usertype': request.session['NombreUser']['tipo']})
     else:
         return render(request, 'tt/index.html', {'form': form, 'forml': forml, 'formdep': form2})
 
@@ -170,6 +186,190 @@ def AddDepartment(request):
                             nombre=form.cleaned_data['nombredep'],
                             ubicacion=ubi)
 
+                elif (form.cleaned_data['option'] == "createsub"):
+                    if (SubDepartamento.objects.filter(nombre=form.cleaned_data['nombredep']).exists()):
+                        return JsonResponse({"code": 2}, content_type="application/json", safe=False)
+                    print(form.cleaned_data['depname'])
+                    if (
+                            Ubicacion.objects.filter(edificio=form.cleaned_data['edificio'],
+                                                     piso=form.cleaned_data['piso'],
+                                                     sala=form.cleaned_data['sala']).exists()):
+                        dep = SubDepartamento.objects.create(nombre=form.cleaned_data['nombredep'],
+                                                             depto=Departamento.objects.get(
+                                                                 nombre=form.cleaned_data['depname']),
+                                                             ubicacion=Ubicacion.objects.get(
+                                                                 edificio=form.cleaned_data['edificio'],
+                                                                 piso=form.cleaned_data['piso'],
+                                                                 sala=form.cleaned_data['sala']))
+                    else:
+                        ubi = Ubicacion.objects.create(
+                            edificio=form.cleaned_data['edificio'],
+                            piso=form.cleaned_data['piso'],
+                            sala=form.cleaned_data['sala'])
+                        ubi.save()
+
+                        dep = SubDepartamento.objects.create(nombre=form.cleaned_data['nombredep'],
+                                                             ubicacion=ubi)
+                    dep.save()
+                elif (form.cleaned_data['option'] == "updatesub"):
+                    if (
+                            Ubicacion.objects.filter(edificio=form.cleaned_data['edificio'],
+                                                     piso=form.cleaned_data['piso'],
+                                                     sala=form.cleaned_data['sala']).exists()):
+                        dep = SubDepartamento.objects.filter(pk=form.cleaned_data['pkdep']).update(
+                            nombre=form.cleaned_data['nombredep'],
+                            ubicacion=Ubicacion.objects.get(
+                                edificio=form.cleaned_data['edificio'],
+                                piso=form.cleaned_data['piso'],
+                                sala=form.cleaned_data['sala'])
+                        )
+                    else:
+                        ubi = Ubicacion.objects.create(
+                            edificio=form.cleaned_data['edificio'],
+                            piso=form.cleaned_data['piso'],
+                            sala=form.cleaned_data['sala'])
+                        ubi.save()
+
+                        dep = SubDepartamento.objects.filter(pk=form.cleaned_data['pkdep']).update(
+                            nombre=form.cleaned_data['nombredep'],
+                            ubicacion=ubi)
+
+                return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+            except Exception as e:
+                print(e)
+                return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+
+    return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+
+
+@csrf_exempt
+def AddEquip(request):
+    if request.method == 'POST':
+        deplist = []
+        emplist = []
+        deplist.append(("Selecciona a que departamento pertenece", "Selecciona a que departamento pertenece"))
+        emplist.append(("Selecciona a que empleado pertenece", "Selecciona a que empleado pertenece"))
+        for dep in Departamento.objects.all().values('nombre'):
+            print(dep)
+            deplist.append((dep['nombre'], dep['nombre']))
+        for emp in Empleado.objects.all().values('nombre', 'pk'):
+            emplist.append(("Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre'],
+                            "Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre']))
+        form = formEquipo(deplist, emplist, request.POST)
+
+        if form.is_valid():
+            # print(tipousuario.objects.get(nombre='Docente'))
+            print(form.cleaned_data['option'])
+            print(form.cleaned_data['fmarca'])
+            try:
+
+                if form.cleaned_data['option'] == "create":
+                    if Equipo.objects.filter(ns=form.cleaned_data['fns']).exists():
+                        return JsonResponse({"code": 2}, content_type="application/json", safe=False)
+                    else:
+                        if Marca.objects.filter(nombre=form.cleaned_data['fmarca']).exists():
+
+                            equipo = Equipo.objects.create(idEquipo=form.cleaned_data['idequipo'],
+                                                           modelo=form.cleaned_data['fmodelo'],
+                                                           mac=form.cleaned_data['fmac'],
+                                                           ns=form.cleaned_data['fns'],
+                                                           ip=form.cleaned_data['fip'],
+                                                           cambs=form.cleaned_data['fcambs'],
+                                                           sistema_operativo=form.cleaned_data['fsistema_operativo'],
+                                                           procesador=form.cleaned_data['fprocesador'],
+                                                           num_puertos=form.cleaned_data['fnum_puertos'],
+                                                           memoria_ram=form.cleaned_data['fmemoria_ram'],
+                                                           disco_duro=form.cleaned_data['fdisco_duro'],
+                                                           idf=form.cleaned_data['fidf'],
+                                                           caracteristicas=form.cleaned_data['fcaracteristicas'],
+                                                           observaciones=form.cleaned_data['fobservaciones'],
+                                                           marca=Marca.objects.get(nombre=form.cleaned_data['fmarca']),
+                                                           depto=Departamento.objects.get(
+                                                               nombre=form.cleaned_data['departamento']),
+                                                           empleado=Empleado.objects.get(
+                                                               pk=form.cleaned_data['empleados'][13:14]),
+                                                           tipo_equipo=TipoEquipo.objects.get(
+                                                               nombre=form.cleaned_data['tipoequipo'])
+                                                           )
+                            equipo.save()
+                        else:
+                            marca = Marca.objects.create(
+                                nombre=form.cleaned_data['fmarca'])
+                            marca.save()
+                            equipo = Equipo.objects.create(modelo=form.cleaned_data['fmodelo'],
+                                                           mac=form.cleaned_data['fmac'],
+                                                           ns=form.cleaned_data['fns'],
+                                                           ip=form.cleaned_data['fip'],
+                                                           cambs=form.cleaned_data['fcambs'],
+                                                           sistema_operativo=form.cleaned_data['fsistema_operativo'],
+                                                           procesador=form.cleaned_data['fprocesador'],
+                                                           num_puertos=form.cleaned_data['fnum_puertos'],
+                                                           memoria_ram=form.cleaned_data['fmemoria_ram'],
+                                                           disco_duro=form.cleaned_data['fdisco_duro'],
+                                                           idf=form.cleaned_data['fidf'],
+                                                           caracteristicas=form.cleaned_data['fcaracteristicas'],
+                                                           observaciones=form.cleaned_data['fobservaciones'],
+                                                           marca=marca,
+                                                           depto=Departamento.objects.get(
+                                                               nombre=form.cleaned_data['departamento']),
+                                                           empleado=Empleado.objects.get(
+                                                               pk=form.cleaned_data['empleados'][13:14]),
+                                                           tipo_equipo=TipoEquipo.objects.get(
+                                                               nombre=form.cleaned_data['tipoequipo']))
+                            equipo.save()
+                elif form.cleaned_data['option'] == "update":
+                    if Marca.objects.filter(nombre=form.cleaned_data['fmarca']).exists():
+
+                        equipo = Equipo.objects.filter(pk=form.cleaned_data['idequipo']).update(
+                            modelo=form.cleaned_data['fmodelo'],
+                            mac=form.cleaned_data['fmac'],
+                            ns=form.cleaned_data['fns'],
+                            ip=form.cleaned_data['fip'],
+                            cambs=form.cleaned_data['fcambs'],
+                            sistema_operativo=form.cleaned_data['fsistema_operativo'],
+                            procesador=form.cleaned_data['fprocesador'],
+                            num_puertos=form.cleaned_data['fnum_puertos'],
+                            memoria_ram=form.cleaned_data['fmemoria_ram'],
+                            disco_duro=form.cleaned_data['fdisco_duro'],
+                            idf=form.cleaned_data['fidf'],
+                            caracteristicas=form.cleaned_data['fcaracteristicas'],
+                            observaciones=form.cleaned_data['fobservaciones'],
+                            marca=Marca.objects.get(nombre=form.cleaned_data['fmarca']),
+                            depto=Departamento.objects.get(
+                                nombre=form.cleaned_data['departamento']),
+                            empleado=Empleado.objects.get(
+                                pk=form.cleaned_data['empleados'][13:14]),
+                            tipo_equipo=TipoEquipo.objects.get(
+                                nombre=form.cleaned_data['tipoequipo'])
+                        )
+                    else:
+                        marca = Marca.objects.create(
+                            nombre=form.cleaned_data['fmarca'])
+                        marca.save()
+                        equipo = Equipo.objects.filter(pk=form.cleaned_data['idequipo']).update(
+                            modelo=form.cleaned_data['fmodelo'],
+                            mac=form.cleaned_data['fmac'],
+                            ns=form.cleaned_data['fns'],
+                            ip=form.cleaned_data['fip'],
+                            cambs=form.cleaned_data['fcambs'],
+                            sistema_operativo=form.cleaned_data['fsistema_operativo'],
+                            procesador=form.cleaned_data['fprocesador'],
+                            num_puertos=form.cleaned_data['fnum_puertos'],
+                            memoria_ram=form.cleaned_data['fmemoria_ram'],
+                            disco_duro=form.cleaned_data['fdisco_duro'],
+                            idf=form.cleaned_data['fidf'],
+                            caracteristicas=form.cleaned_data['fcaracteristicas'],
+                            observaciones=form.cleaned_data['fobservaciones'],
+                            marca=marca,
+                            depto=Departamento.objects.get(
+                                nombre=form.cleaned_data['departamento']),
+                            empleado=Empleado.objects.get(
+                                pk=form.cleaned_data['empleados'][13:14]),
+                            tipo_equipo=TipoEquipo.objects.get(
+                                nombre=form.cleaned_data['tipoequipo'])
+                        )
+
+
                 return JsonResponse({"code": 1}, content_type="application/json", safe=False)
             except Exception as e:
                 print(e)
@@ -185,6 +385,8 @@ def IniciarSesion(request):
         if form.is_valid():  # Validamos que los datos esten en un formato correcto
             email = form.cleaned_data['correo']  # Almacenamos usuario y contraseña en variables
             passs = form.cleaned_data['passs']
+            print(email)
+            print(passs)
             if Empleado.objects.filter(email=email, password=passs).exists():
                 us = Empleado.objects.get(email=email, password=passs)
                 if (us.estado == False):
@@ -231,8 +433,57 @@ def ShowRegisters(request):
 
 @csrf_exempt
 def ShowDepartments(request):
-    return JsonResponse(serializers.serialize('json', Departamento.objects.all()), content_type="application/json",
-                        safe=False)
+    query = Departamento.objects.all().values('nombre', 'pk', 'ubicacion__edificio', 'ubicacion__piso',
+                                              'ubicacion__sala')
+    return HttpResponse(json.dumps(list(query), cls=DjangoJSONEncoder), content_type="application/json")
+    # return JsonResponse(serializers.serialize('json', Departamento.objects.all().values('nombre')), content_type="application/json",
+    #                     safe=False)
+
+
+@csrf_exempt
+def ShowSubDepartments(request):
+    print(request.GET.get('nombreDep', None))
+    query = SubDepartamento.objects.filter(
+        depto=Departamento.objects.get(nombre=request.GET.get('nombreDep', None))).values('nombre', 'pk',
+                                                                                          'ubicacion__edificio',
+                                                                                          'ubicacion__piso',
+                                                                                          'ubicacion__sala')
+    return HttpResponse(json.dumps(list(query), cls=DjangoJSONEncoder), content_type="application/json")
+    # return JsonResponse(
+    #     serializers.serialize('json', SubDepartamento.objects.filter(
+    #         depto=Departamento.objects.get(nombre=request.GET.get('nombreDep', None)))),
+    #     content_type="application/json", safe=False)
+
+
+@csrf_exempt
+def ShowEquipment(request):
+    print(request.GET.get('nombreDep', None))
+    query = Equipo.objects.all().values('modelo', 'pk',
+                                        'mac',
+                                        'ns',
+                                        'ip',
+                                        'cambs',
+                                        'sistema_operativo',
+                                        'procesador',
+                                        'num_puertos',
+                                        'memoria_ram',
+                                        'disco_duro',
+                                        'idf',
+                                        'caracteristicas',
+                                        'observaciones',
+                                        'tipo_equipo__nombre',
+                                        'depto__nombre',
+                                        'empleado__pk',
+                                        'empleado__nombre',
+                                        'marca__nombre')
+    return HttpResponse(json.dumps(list(query), cls=DjangoJSONEncoder), content_type="application/json")
+
+    # return JsonResponse(
+    #     serializers.serialize('json', Equipo.objects.all().values('nombre', 'pk',
+    #                                                               'ubicacion__edificio',
+    #                                                               'ubicacion__piso',
+    #                                                               'ubicacion__sala')),
+    #     content_type="application/json", safe=False)
 
 
 @csrf_exempt
@@ -250,7 +501,20 @@ def DelTecnicos(request):
 def DelDepartment(request):
     try:
         print(request.GET.get('nombre', None))
+
         Departamento.objects.get(nombre=request.GET.get('nombre', None)).delete()
+        return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+    except Exception as e:
+        print(e)
+        return JsonResponse({"code": 2}, content_type="application/json", safe=False) \
+ \
+               @ csrf_exempt
+
+
+def DelSubDepartment(request):
+    try:
+        print(request.GET.get('nombre', None))
+        SubDepartamento.objects.get(nombre=request.GET.get('nombre', None)).delete()
         return JsonResponse({"code": 1}, content_type="application/json", safe=False)
     except Exception as e:
         print(e)

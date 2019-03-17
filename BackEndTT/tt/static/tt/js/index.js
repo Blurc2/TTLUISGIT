@@ -1,6 +1,7 @@
 {% load static %}
 var update = false
 var idDepartamento = -1
+var deptoName = ""
 
 function showRegisterModal()
 {
@@ -13,6 +14,7 @@ function showRegisterModal()
     $('#id_idEmpleado').attr('readonly', false);
 //    $("#department").show()
     $('#regform').modal('show')
+    $('#registro').trigger("reset");
 
 }
 
@@ -31,6 +33,10 @@ $(document).ready(function()
             showDep()
         else if(sessionStorage.getItem("menuItem") == "REGISTROS")
             showRegisters()
+        else if(sessionStorage.getItem("menuItem") == "EQUIPO")
+            showEquipment()
+//        else if(sessionStorage.getItem("menuItem") == "SUBDEPTO")
+//            showSubDepartments(deptoName)
     {% elif usertype == "Docente" %}
         $(".itemdocente").show('slow')
     {% elif usertype == "Tecnico" %}
@@ -83,10 +89,11 @@ if($("#DepartmentHeader").text()=="Añadir Departamento")
         processData: false
         });
 }
-else
+else if ($("#DepartmentHeader").text()=="Modificar Departamento")
 {
 formData.append('option', "update");
 formData.append('pkdep', idDepartamento);
+
         $("form#DepartmentForm").addClass( "loading" )
         $("#badregdep").hide();
         $("#okregdep").hide();
@@ -111,6 +118,159 @@ formData.append('pkdep', idDepartamento);
             {
                 $("#okregdepmsg").text("Departamento registrado exitosamente")
                 $("#okregdep").fadeIn("slow");
+                setTimeout(function(){location.reload();},2500)
+            }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+        });
+}
+else if($("#DepartmentHeader").text()=="Añadir SubDepartamento")
+{
+        formData.append('option', 'createsub')
+        formData.append('pkdep', -1);
+        formData.append('depname', deptoName);
+        $("form#DepartmentForm").addClass( "loading" )
+        $("#badregdep").hide();
+        $("#okregdep").hide();
+
+        $.ajax({
+        url: "{% url 'tt:AddDepartment' %}",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+        console.log(data.code)
+        $("form#DepartmentForm").removeClass( "loading" )
+        if(data.code == 0)
+        {
+            $("#registererrordep").text("Error, intenta más tarde.")
+            $("#badregdep").fadeIn("slow");
+        }
+        else if(data.code == 2)
+        {
+            $("#registererrordep").text("Este Subdepartamento ya se encuentra registrado en el sistema")
+            $("#badregdep").fadeIn("slow");
+        }
+        else
+            {
+                $("#okregdepmsg").text("SubDepartamento registrado exitosamente")
+                $("#okregdep").fadeIn("slow");
+                setTimeout(function(){location.reload();},2500)
+            }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+        });
+}
+else if ($("#DepartmentHeader").text()=="Modificar SubDepartamento")
+{
+formData.append('option', "updatesub");
+formData.append('pkdep', idDepartamento);
+formData.append('depname', deptoName);
+        $("form#DepartmentForm").addClass( "loading" )
+        $("#badregdep").hide();
+        $("#okregdep").hide();
+        $.ajax({
+        url: "{% url 'tt:AddDepartment' %}",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+        console.log(data.code)
+        $("form#DepartmentForm").removeClass( "loading" )
+        if(data.code == 0)
+            {
+                $("#registererrordep").text("Error, intenta más tarde.")
+                $("#badregdep").fadeIn("slow");
+            }
+        else if(data.code == 2)
+        {
+            $("#registererrordep").text("Error al intentar actualizar el subdepartamento, intenta de nuevo más tarde")
+            $("#badregdep").fadeIn("slow");
+        }
+        else
+            {
+                $("#okregdepmsg").text("SubDepartamento registrado exitosamente")
+                $("#okregdep").fadeIn("slow");
+                setTimeout(function(){location.reload();},2500)
+            }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+        });
+}
+});
+
+$("form#EquipoForm").submit(function(e){
+e.preventDefault();
+var formData = new FormData(this);
+
+if($("#EquipoHeader").text()=="Añadir Equipo")
+{
+        formData.append('option', 'create')
+        $("form#EquipoForm").addClass( "loading" )
+        $("#badregequipo").hide();
+        $("#okregequipo").hide();
+
+        $.ajax({
+        url: "{% url 'tt:AddEquip' %}",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+        console.log(data.code)
+        $("form#EquipoForm").removeClass( "loading" )
+        if(data.code == 0)
+        {
+            $("#registererrorequipo").text("Error, intenta más tarde.")
+            $("#badregequipo").fadeIn("slow");
+        }
+        else if(data.code == 2)
+        {
+            $("#registererrorequipo").text("Este equipo ya se encuentra registrado en el sistema")
+            $("#badregequipo").fadeIn("slow");
+        }
+        else
+            {
+                $("#okregmsgequipo").text("Equipo registrado exitosamente")
+                $("#okregequipo").fadeIn("slow");
+                setTimeout(function(){location.reload();},2500)
+            }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+        });
+}
+else if ($("#EquipoHeader").text()=="Modificar Equipo")
+{
+formData.append('option', "update");
+
+        $("form#EquipoForm").addClass( "loading" )
+        $("#badregequipo").hide();
+        $("#okregequipo").hide();
+        $.ajax({
+        url: "{% url 'tt:AddEquip' %}",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+        console.log(data.code)
+        $("form#EquipoForm").removeClass( "loading" )
+        if(data.code == 0)
+            {
+                $("#registererrorequipo").text("Error, intenta más tarde.")
+                $("#badregequipo").fadeIn("slow");
+            }
+        else if(data.code == 2)
+        {
+            $("#registererrorequipo").text("Error al intentar actualizar el equipo, intenta de nuevo más tarde")
+            $("#badregequipo").fadeIn("slow");
+        }
+        else
+            {
+                $("#okregmsgequipo").text("Equipo registrado exitosamente")
+                $("#okregequipo").fadeIn("slow");
                 setTimeout(function(){location.reload();},2500)
             }
         },
@@ -384,6 +544,8 @@ function showTec()
                 $("#id_nombre").val(element['fields']['nombre'])
                 $("#id_ap").val(element['fields']['ap'])
                 $("#id_am").val(element['fields']['am'])
+                $("#id_telefono").val(element['fields']['numero'])
+                $("#id_extension").val(element['fields']['ext'])
                 $('#regform').modal('show')
               });
 
@@ -439,6 +601,7 @@ function showTec()
             $("#btnRegistrar").val("Registrar")
 //            $("#department").hide()
             $('#regform').modal('show')
+            $('#registro').trigger("reset");
         });
     }
 });
@@ -492,7 +655,7 @@ function showDep()
     type: 'POST',
     data: {x:""},
     success: function (data) {
-    var json = JSON.parse(data)
+    var json = data
     console.log(json)
     $("#contenido").append(createDepTable(json))
     $("#tabledepart").fadeIn('slow')
@@ -501,24 +664,26 @@ function showDep()
 
         json.forEach(function(element) {
 
-              $(("#"+(element['pk']+element['fields']['nombre']+"update")).replace(/\s+/g, '')).on('click',function()
+              $(("#"+(element['pk']+element['nombre']+"update")).replace(/\s+/g, '')).on('click',function()
               {
                 $("#DepartmentHeader").text("Modificar Departamento")
                 $("#badregdep").hide()
                 $("#okregdep").hide()
                 $("#DepartmentBtn").val("Actualizar departamento")
-                $("#id_laboratorio").val(element['fields']['laboratorio'])
-                $("#id_nombredep").val(element['fields']['nombre'])
+                $("#id_nombredep").val(element['nombre'])
+                $("#id_edificio").val(element['ubicacion__edificio'])
+                $("#id_piso").val(element['ubicacion__piso'])
+                $("#id_sala").val(element['ubicacion__sala'])
                 idDepartamento = element['pk']
 
                 $('#DepartmentMod').modal('show')
               });
 
-              $(("#"+(element['pk']+element['fields']['nombre']+"delete")).replace(/\s+/g, '')).on('click',function()
+              $(("#"+(element['pk']+element['nombre']+"delete")).replace(/\s+/g, '')).on('click',function()
               {
                 $.ajax({
                     url : "{% url "tt:DelDepartment" %}",
-                    data : {'nombre':element['fields']['nombre']},
+                    data : {'nombre':element['nombre']},
                     dataType : 'json',
                     success : function(data) {
                         console.log(data);
@@ -552,6 +717,13 @@ function showDep()
                     },
                 });
               });
+
+              $("#"+(element['pk']+element['nombre']+"infoDepto").replace(/\s+/g, '')).on('click',function()
+              {
+                deptoName = element['nombre']
+                showSubDepartments(element['nombre'])
+              });
+
         });
 
 
@@ -563,6 +735,7 @@ $("#agregardep").on('click',function(){
             $("#okregdep").hide()
             $("#DepartmentBtn").val("Añadir departamento")
             $('#DepartmentMod').modal('show')
+            $('#DepartmentForm').trigger("reset");
         });
     }
 });
@@ -581,11 +754,11 @@ function createDepTable(json)
     html+='<tr><td class="collapsing"></td><td></td><td></td></tr>'
   }
   json.forEach(function(element) {
-      html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+element['fields']['nombre']+"infoDepto").replace(/\s+/g, '')+'"><i class="user icon"></i>'+
-        element['fields']['nombre']
-        html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+element['fields']['nombre']+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
+      html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+element['nombre']+"infoDepto").replace(/\s+/g, '')+'"><i class="fas fa-building"></i>'+
+        element['nombre']
+        html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+element['nombre']+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
           '<div class="or" data-text="o"></div>'+
-          '<button class="ui positive button" id="'+(element['pk']+element['fields']['nombre']+"update").replace(/\s+/g, '')+'">Editar</button></div></td></tr>';
+          '<button class="ui positive button" id="'+(element['pk']+element['nombre']+"update").replace(/\s+/g, '')+'">Editar</button></div></td></tr>';
     });
 
   html +='<tfoot class="full-width">'+
@@ -593,7 +766,157 @@ function createDepTable(json)
 
       '<th colspan="3">'+
       '  <div class="ui right floated small primary labeled icon button" id="agregardep">'+
-     '     <i class="user icon"></i> Agregar Departamento'+
+     '     <i class="fas fa-clinic-medical"></i> Agregar Departamento'+
+    '    </div>'+
+   '   </th>'+
+  '  </tr>'+
+ ' </tfoot>'+
+'  </tbody>'+
+'</table>';
+
+return html;
+
+}
+
+function showEquipment()
+{
+    $("#contenido").empty()
+    sessionStorage.setItem("menuItem", "EQUIPO");
+    $.ajax({
+    url: "{% url 'tt:ShowEquipment' %}",
+    type: 'POST',
+    data: {x:""},
+    success: function (data) {
+    var json = data
+    console.log(json)
+    $("#contenido").append(createEquipmentTable(json))
+    $("#tableequip").fadeIn('slow')
+    if(!$.isEmptyObject(json))
+    {
+
+        json.forEach(function(element) {
+
+              $(("#"+(element['pk']+element['ns']+"update")).replace(/\s+/g, '')).on('click',function()
+              {
+                $("#EquipoHeader").text("Modificar Equipo")
+                $("#badregequipo").hide()
+                $("#okregequipo").hide()
+                $("#EquipoBtn").val("Actualizar Equipo")
+                $("#id_idequipo").val(element['pk'])
+                $('#id_idequipo').attr('readonly', true)
+                $("#id_fmodelo").val(element['modelo'])
+                $("#id_fmac").val(element['mac'])
+                $("#id_fns").val(element['ns'])
+                $("#id_fip").val(element['ip'])
+                $("#id_fcambs").val(element['cambs'])
+                $("#id_fsistema_operativo").val(element['sistema_operativo'])
+                $("#id_fprocesador").val(element['procesador'])
+                $("#id_fnum_puertos").val(element['num_puertos'])
+                $("#id_fmemoria_ram").val(element['memoria_ram'])
+                $("#id_fdisco_duro").val(element['disco_duro'])
+                $("#id_fidf").val(element['idf'])
+                $("#id_fcaracteristicas").val(element['caracteristicas'])
+                $("#id_fobservaciones").val(element['observaciones'])
+                $("#id_tipoequipo").val(element['tipo_equipo__nombre'])
+                $("#id_departamento").val(element['depto__nombre'])
+                $("#id_empleados").val("Id Empleado: "+element['empleado__pk']+", Nombre: "+element['empleado__nombre'])
+                $("#id_fmarca").val(element['marca__nombre'])
+                // idDepartamento = element['pk']
+
+                $('#EquipoMod').modal('show')
+              });
+
+              $(("#"+(element['pk']+element['ns']+"delete")).replace(/\s+/g, '')).on('click',function()
+              {
+                $.ajax({
+                    url : "{% url "tt:DelDepartment" %}",
+                    data : {'nombre':element['nombre']},
+                    dataType : 'json',
+                    success : function(data) {
+                        console.log(data);
+                        if(data.code == 1)
+                            {Lobibox.notify('success', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Borrado exitoso</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "Departamento eliminado exitosamente"
+                                });
+                                setTimeout(function(){location.reload();},2500)
+                            }
+                        else if(data.code == 2)
+                            Lobibox.notify('error', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Error al borrar</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "No se pudo eliminar el departamento, intenta de nuevo más tarde"
+                                });
+                    },
+                    error : function(xhr, status) {
+                        console.log("error ");
+                    },
+                });
+              });
+
+              $("#"+(element['pk']+element['ns']+"infoDepto").replace(/\s+/g, '')).on('click',function()
+              {
+                deptoName = element['nombre']
+                showSubDepartments(element['nombre'])
+              });
+
+        });
+
+
+    }
+
+$("#agregarequipo").on('click',function(){
+        $("#EquipoHeader").text("Añadir Equipo")
+            $("#badregequipo").hide()
+            $("#okregequipo").hide()
+            $("#EquipoBtn").val("Añadir Equipo")
+            $('#EquipoMod').modal('show')
+            $('#EquipoForm').trigger("reset");
+        });
+    }
+});
+}
+
+function createEquipmentTable(json)
+{
+    var html ='<table id="tableequip" style="display:none;" class="ui orange celled table">'+
+  '<thead>'+
+  '  <tr><th colspan="2">Número de serie</th>'+
+    '  <th colspan="2">Tipo de Equipo</th>'+
+  '  <th colspan="1" style="text-align: center;">Opciones</th>'+
+  '</tr></thead>'+
+  '<tbody>';
+  if($.isEmptyObject(json))
+  {
+    html+='<tr><td class="collapsing"></td><td></td><td></td></tr>'
+  }
+  json.forEach(function(element) {
+      html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+element['ns']+"infoequipo").replace(/\s+/g, '')+'"><i class="fas fa-desktop"></i>'+
+        element['ns']+
+          '<td colspan="2">'+
+        element['tipo_equipo__nombre']+'</td>'
+        html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+element['ns']+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
+          '<div class="or" data-text="o"></div>'+
+          '<button class="ui positive button" id="'+(element['pk']+element['ns']+"update").replace(/\s+/g, '')+'">Editar</button></div></td></tr>';
+    });
+
+  html +='<tfoot class="full-width">'+
+    '<tr>'+
+
+      '<th colspan="5">'+
+      '  <div class="ui right floated small primary labeled icon button" id="agregarequipo">'+
+     '     <i class="fas fa-laptop"></i> Agregar Equipo'+
     '    </div>'+
    '   </th>'+
   '  </tr>'+
@@ -734,6 +1057,134 @@ function createRegistersTable(json)
   html +=
 '  </tbody>'+
 '</table>';
+
+return html;
+
+}
+
+function showSubDepartments(deptoName)
+{
+
+$("#contenido").empty()
+    sessionStorage.setItem("menuItem", "DEPARTAMENTOS");
+    $.ajax({
+    url: "{% url 'tt:ShowSubDepartments' %}",
+    type: 'GET',
+    data: {"nombreDep":deptoName},
+    success: function (data) {
+    var json = data
+    console.log(json)
+    $("#contenido").append(createSubDepTable(json,deptoName))
+    $("#tablesupDep").fadeIn('slow')
+    if(!$.isEmptyObject(json))
+    {
+
+        json.forEach(function(element) {
+
+              $(("#"+(element['pk']+element['nombre']+"update")).replace(/\s+/g, '')).on('click',function()
+              {
+                $("#DepartmentHeader").text("Modificar SubDepartamento")
+                $("#badregdep").hide()
+                $("#okregdep").hide()
+                $("#DepartmentBtn").val("Actualizar SubDepartamento")
+                $("#id_nombredep").val(element['nombre'])
+                $("#id_edificio").val(element['ubicacion__edificio'])
+                $("#id_piso").val(element['ubicacion__piso'])
+                $("#id_sala").val(element['ubicacion__sala'])
+                idDepartamento = element['pk']
+
+                $('#DepartmentMod').modal('show')
+              });
+
+              $(("#"+(element['pk']+element['nombre']+"delete")).replace(/\s+/g, '')).on('click',function()
+              {
+                    $.ajax({
+                    url : "{% url "tt:DelSubDepartment" %}",
+                    data : {'nombre':element['nombre']},
+                    dataType : 'json',
+                    success : function(data) {
+                        console.log(data);
+                        if(data.code == 1)
+                            {Lobibox.notify('success', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Borrado exitoso</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "SubDepartamento eliminado exitosamente"
+                                });
+                                setTimeout(function(){location.reload();},2500)
+                            }
+                        else if(data.code == 2)
+                            Lobibox.notify('error', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Error al borrar</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "No se pudo eliminar el subdepartamento, intenta de nuevo más tarde"
+                                });
+                    },
+                    error : function(xhr, status) {
+                        console.log("error ");
+                    },
+                });
+              });
+        });
+        }
+
+        $("#agregarSubDep").on('click',function(){
+        $("#DepartmentHeader").text("Añadir SubDepartamento")
+            $("#badregdep").hide()
+            $("#okregdep").hide()
+            $("#DepartmentBtn").val("Añadir SubDepartamento")
+            $('#DepartmentMod').modal('show')
+            $('#DepartmentForm').trigger("reset");
+        });
+    }
+    });
+}
+
+function createSubDepTable(json,depto)
+{
+    var html ='<div class="sixteen wide column"><div class="ui placeholder segment"><center>'+
+  '<div class="ui icon header"><i class="warehouse icon"></i>'+
+   'Departamento: '+depto+
+  '</div></center><br>'+
+    '<table id="tablesupDep" style="display:none;" class="ui green celled table">'+
+  '<thead>'+
+  '  <tr><th colspan="2">Nombre</th>'+
+  '  <th colspan="1" style="text-align: center;">Opciones</th>'+
+  '</tr></thead>'+
+  '<tbody>';
+  if($.isEmptyObject(json))
+  {
+    html+='<tr><td class="collapsing"></td><td></td><td></td></tr>'
+  }
+  json.forEach(function(element) {
+      html +='<tr><td colspan="2" class="collapsing" id="'+(element['pk']+element['nombre']+"infoDepto").replace(/\s+/g, '')+'"><i class="fas fa-building"></i>'+
+        element['nombre']
+        html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+element['nombre']+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
+          '<div class="or" data-text="o"></div>'+
+          '<button class="ui positive button" id="'+(element['pk']+element['nombre']+"update").replace(/\s+/g, '')+'">Editar</button></div></td></tr>';
+    });
+
+  html +='<tfoot class="full-width">'+
+    '<tr>'+
+
+      '<th colspan="3">'+
+      '  <div class="ui right floated small primary labeled icon button" id="agregarSubDep">'+
+     '     <i class="fas fa-clinic-medical"></i> Agregar SubDepartamento'+
+    '    </div>'+
+   '   </th>'+
+  '  </tr>'+
+ ' </tfoot>'+
+'  </tbody>'+
+'</table></div></div>';
 
 return html;
 
