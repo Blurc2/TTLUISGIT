@@ -106,6 +106,8 @@ class Empleado(models.Model):
     estado = models.BooleanField()
     tipo = models.ForeignKey(TipoUsuario, on_delete=models.CASCADE)
     trabajos = models.ForeignKey(TipoTrabajo, on_delete=models.CASCADE, null=True, blank=True)
+    departamento = models.ForeignKey(Departamento, on_delete=models.CASCADE, null=True, blank=True)
+    subdepartamento = models.ForeignKey(SubDepartamento, on_delete=models.CASCADE, null=True, blank=True)
     ordenes = models.ManyToManyField(Orden, blank=True)
 
     def __str__(self):

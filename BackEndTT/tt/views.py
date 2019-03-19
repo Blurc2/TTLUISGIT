@@ -1,3 +1,5 @@
+import datetime
+
 from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse, HttpResponse
@@ -14,37 +16,56 @@ from .models import *
 def Index(request):
     forml = formlogin()
     form2 = formDepartamento()
-    form = formregistro()
 
     deplist = []
     emplist = []
-    deplist.append(("Selecciona a que departamento pertenece", "Selecciona a que departamento pertenece"))
+    typeequipolist = []
+    typeworklist = []
     emplist.append(("Selecciona a que empleado pertenece", "Selecciona a que empleado pertenece"))
     for dep in Departamento.objects.all().values('nombre'):
-        print(dep)
         deplist.append((dep['nombre'], dep['nombre']))
+    for typework in TipoTrabajo.objects.all().values('nombre'):
+        typeworklist.append((typework['nombre'], typework['nombre']))
     for emp in Empleado.objects.all().values('nombre', 'pk'):
         emplist.append(("Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre'],
                         "Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre']))
-    formequipo = formEquipo(deplist, emplist)
+    for typeequipo in TipoEquipo.objects.all().values('nombre'):
+        typeequipolist.append((typeequipo['nombre'],
+                               typeequipo['nombre']))
+    formequipo = formEquipo(deplist, emplist, typeequipolist)
+    form = formregistro(deplist, (), typeworklist)
+
+    formorden = formOrden(typeworklist)
     # formequipo.fields['departamento'].choices = deplist
     # formequipo.fields['empleados'].choices = emplist
     if 'NombreUser' in request.session:  # Validamos si es que existe una sesión activa en el navegador
         return render(request, 'tt/index.html',
-                      {'form': form, 'forml': forml, 'formdep': form2, 'formequipo': formequipo,
+                      {'form': form, 'forml': forml, 'formdep': form2, 'formequipo': formequipo, 'formorden': formorden,
                        'userName': request.session['NombreUser']['tipo'] + " : " +
                                    request.session['NombreUser']['nombre'] + " " +
                                    request.session['NombreUser']['ap'] + " " +
                                    request.session['NombreUser']['am'],
                        'usertype': request.session['NombreUser']['tipo']})
     else:
-        return render(request, 'tt/index.html', {'form': form, 'forml': forml, 'formdep': form2})
+        return render(request, 'tt/index.html',
+                      {'form': form, 'forml': forml, 'formdep': form2, 'formequipo': formequipo,
+                       'formorden': formorden})
 
 
 @csrf_exempt
 def Registrar(request):
     if request.method == 'POST':
-        form = formregistro(request.POST)
+        deplist = []
+        subdeplist = []
+        typeworklist = []
+        for dep in Departamento.objects.all().values('nombre'):
+            deplist.append((dep['nombre'], dep['nombre']))
+        for subdep in SubDepartamento.objects.all().values('nombre'):
+            subdeplist.append((subdep['nombre'], subdep['nombre']))
+        for typework in TipoTrabajo.objects.all().values('nombre'):
+            typeworklist.append((typework['nombre'], typework['nombre']))
+        subdeplist.append(("Ninguno", "Ninguno"))
+        form = formregistro(deplist, subdeplist, typeworklist, request.POST)
 
         if form.is_valid():
             # print(tipousuario.objects.get(nombre='Docente'))
@@ -53,7 +74,8 @@ def Registrar(request):
             try:
 
                 if (form.cleaned_data['tipoEmpleado'] == "DOCENTE"):
-                    if (Empleado.objects.filter(email=form.cleaned_data['email']).exists()):
+                    if (Empleado.objects.filter(email=form.cleaned_data['email']).exists() or Empleado.objects.filter(
+                            pk=form.cleaned_data['idEmpleado']).exists()):
                         return JsonResponse({"code": 2}, content_type="application/json", safe=False)
                     emp = Empleado.objects.create(idEmpleado=form.cleaned_data['idEmpleado'],
                                                   nombre=form.cleaned_data['nombre'],
@@ -64,10 +86,16 @@ def Registrar(request):
                                                   numero=form.cleaned_data['telefono'],
                                                   ext=form.cleaned_data['extension'],
                                                   estado=False,
+                                                  departamento=Departamento.objects.get(
+                                                      nombre=form.cleaned_data['depto']),
+                                                  subdepartamento=None if (form.cleaned_data[
+                                                                               'subdepto'] == "Ninguno") else SubDepartamento.objects.get(
+                                                      nombre=form.cleaned_data['subdepto']),
                                                   tipo=TipoUsuario.objects.get(nombre='Docente'))
                     emp.save()
                 elif (form.cleaned_data['tipoEmpleado'] == "TECNICO"):
-                    if (Empleado.objects.filter(email=form.cleaned_data['email']).exists()):
+                    if (Empleado.objects.filter(email=form.cleaned_data['email']).exists() or Empleado.objects.filter(
+                            pk=form.cleaned_data['idEmpleado']).exists()):
                         return JsonResponse({"code": 2}, content_type="application/json", safe=False)
                     print(form.cleaned_data['tipotecnico'])
                     emp = Empleado.objects.create(idEmpleado=form.cleaned_data['idEmpleado'],
@@ -80,6 +108,8 @@ def Registrar(request):
                                                   ext=form.cleaned_data['extension'],
                                                   tipo=TipoUsuario.objects.get(nombre='Tecnico'),
                                                   estado=True,
+                                                  departamento=None,
+                                                  subdepartamento=None,
                                                   trabajos=TipoTrabajo.objects.get(
                                                       nombre=form.cleaned_data['tipotecnico'])
                                                   )
@@ -93,6 +123,8 @@ def Registrar(request):
                         password=form.cleaned_data['contra'],
                         numero=form.cleaned_data['telefono'],
                         ext=form.cleaned_data['extension'],
+                        departamento=None,
+                        subdepartamento=None,
                         trabajos=TipoTrabajo.objects.get(nombre=form.cleaned_data['tipotecnico'])
                     )
 
@@ -247,6 +279,7 @@ def AddEquip(request):
     if request.method == 'POST':
         deplist = []
         emplist = []
+        typeequipolist = []
         deplist.append(("Selecciona a que departamento pertenece", "Selecciona a que departamento pertenece"))
         emplist.append(("Selecciona a que empleado pertenece", "Selecciona a que empleado pertenece"))
         for dep in Departamento.objects.all().values('nombre'):
@@ -255,7 +288,10 @@ def AddEquip(request):
         for emp in Empleado.objects.all().values('nombre', 'pk'):
             emplist.append(("Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre'],
                             "Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre']))
-        form = formEquipo(deplist, emplist, request.POST)
+        for typeequipo in TipoEquipo.objects.all().values('nombre'):
+            typeequipolist.append((typeequipo['nombre'],
+                                   typeequipo['nombre']))
+        form = formEquipo(deplist, emplist, typeequipolist, request.POST)
 
         if form.is_valid():
             # print(tipousuario.objects.get(nombre='Docente'))
@@ -369,7 +405,6 @@ def AddEquip(request):
                                 nombre=form.cleaned_data['tipoequipo'])
                         )
 
-
                 return JsonResponse({"code": 1}, content_type="application/json", safe=False)
             except Exception as e:
                 print(e)
@@ -393,7 +428,8 @@ def IniciarSesion(request):
                     return JsonResponse({'logincode': -1}, content_type="application/json", safe=False)
                 request.session['NombreUser'] = {'email': us.email, 'pass': us.password,
                                                  'nombre': us.nombre, 'ap': us.ap, 'am': us.am
-                    , 'tipo': us.tipo.nombre}  # Creamos una sesión asociada al usuario
+                    , 'tipo': us.tipo.nombre,
+                                                 'pk': us.idEmpleado}  # Creamos una sesión asociada al usuario
                 return JsonResponse(
                     {'logincode': 0, 'userName': us.tipo.nombre + " : " + us.nombre + " " + us.ap + " " + us.am,
                      'usertype': us.tipo.nombre}, content_type="application/json", safe=False)
@@ -498,6 +534,17 @@ def DelTecnicos(request):
 
 
 @csrf_exempt
+def DelEquipment(request):
+    try:
+        print(request.GET.get('idEmp', None))
+        Equipo.objects.get(pk=request.GET.get('idEquipo', None)).delete()
+        return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+    except Exception as e:
+        print(e)
+        return JsonResponse({"code": 2}, content_type="application/json", safe=False)
+
+
+@csrf_exempt
 def DelDepartment(request):
     try:
         print(request.GET.get('nombre', None))
@@ -506,11 +553,10 @@ def DelDepartment(request):
         return JsonResponse({"code": 1}, content_type="application/json", safe=False)
     except Exception as e:
         print(e)
-        return JsonResponse({"code": 2}, content_type="application/json", safe=False) \
- \
-               @ csrf_exempt
+        return JsonResponse({"code": 2}, content_type="application/json", safe=False)
 
 
+@csrf_exempt
 def DelSubDepartment(request):
     try:
         print(request.GET.get('nombre', None))
@@ -519,3 +565,29 @@ def DelSubDepartment(request):
     except Exception as e:
         print(e)
         return JsonResponse({"code": 2}, content_type="application/json", safe=False)
+
+
+@csrf_exempt
+def getSubDepartments(request):
+    print(request.GET.get('depto', None))
+    return JsonResponse(
+        serializers.serialize('json',
+                              SubDepartamento.objects.filter(depto__nombre=request.GET.get('depto', None))),
+        content_type="application/json", safe=False)
+
+
+@csrf_exempt
+def getUserInfo(request):
+    # print(request.GET.get('depto', None))
+    folio = -1
+    if(Orden.objects.all().count() == 0):
+        folio = 1
+    else:
+        folio = Orden.objects.all().count()+1
+    query = Empleado.objects.filter(pk=request.session['NombreUser']['pk']).values('pk',
+                                                                                'nombre',
+                                                                                'ap',
+                                                                                'am',
+                                                                                'departamento__nombre',
+                                                                                'subdepartamento__nombre')
+    return HttpResponse(json.dumps({'data': list(query), 'folio': folio,'fecha':datetime.datetime.now().date()}, cls=DjangoJSONEncoder), content_type="application/json")

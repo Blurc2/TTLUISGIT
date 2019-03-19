@@ -2,6 +2,8 @@
 var update = false
 var idDepartamento = -1
 var deptoName = ""
+var equipoName = ""
+var formorder = ""
 
 function showRegisterModal()
 {
@@ -14,13 +16,64 @@ function showRegisterModal()
     $('#id_idEmpleado').attr('readonly', false);
 //    $("#department").show()
     $('#regform').modal('show')
+    $("#deptochoices").show()
     $('#registro').trigger("reset");
+
+    $.ajax({
+            url: "{% url 'tt:getSubDepartments' %}",
+            type: 'GET',
+            data: {'depto':$('#id_depto').val()},
+            success: function (data) {
+                var json = JSON.parse(data)
+                var newOptions = {};
+                var index = 0;
+                json.forEach(function(element){
+                   newOptions[(index++).toString()] = element['fields']['nombre']
+                });
+                newOptions[(index++).toString()] = "Ninguno"
+
+                var $el = $("#id_subdepto");
+                $el.empty();
+                $.each(newOptions, function(key,value) {
+                  $el.append($("<option></option>")
+                     .attr("value", value).text(value));
+                });
+            }
+        });
+
+    $('#id_depto').on('change', function (e) {
+        var valueSelected = this.value;
+        // alert(valueSelected)
+        $.ajax({
+            url: "{% url 'tt:getSubDepartments' %}",
+            type: 'GET',
+            data: {'depto':valueSelected},
+            success: function (data) {
+                var json = JSON.parse(data)
+                var newOptions = {};
+                var index = 0;
+                json.forEach(function(element){
+                   newOptions[(index++).toString()] = element['fields']['nombre']
+                });
+                newOptions[(index++).toString()] = "Ninguno"
+
+                var $el = $("#id_subdepto");
+                $el.empty();
+                $.each(newOptions, function(key,value) {
+                  $el.append($("<option></option>")
+                     .attr("value", value).text(value));
+                });
+            }
+        });
+    });
 
 }
 
 
 $(document).ready(function()
 {
+    formorder = $("#divformorder").html()
+    $("#contenido").empty()
 {% if userName %}
     $("#username").text('{{ userName }}')
     $(".sesionforms").hide()
@@ -309,7 +362,7 @@ if($("#headerFormReg").text()=="Registrate")
             }
         else if(data.code == 2)
         {
-            $("#registererror").text("Este correo ya se encuentra registrado en el sistema.")
+            $("#registererror").text("Este correo o id de empleado ya se encuentra registrado en el sistema.")
             $("#badreg").fadeIn("slow");
         }
         else
@@ -546,6 +599,7 @@ function showTec()
                 $("#id_am").val(element['fields']['am'])
                 $("#id_telefono").val(element['fields']['numero'])
                 $("#id_extension").val(element['fields']['ext'])
+                  $("#deptochoices").hide()
                 $('#regform').modal('show')
               });
 
@@ -601,6 +655,7 @@ function showTec()
             $("#btnRegistrar").val("Registrar")
 //            $("#department").hide()
             $('#regform').modal('show')
+            $("#deptochoices").hide()
             $('#registro').trigger("reset");
         });
     }
@@ -829,8 +884,8 @@ function showEquipment()
               $(("#"+(element['pk']+element['ns']+"delete")).replace(/\s+/g, '')).on('click',function()
               {
                 $.ajax({
-                    url : "{% url "tt:DelDepartment" %}",
-                    data : {'nombre':element['nombre']},
+                    url : "{% url "tt:DelEquipment" %}",
+                    data : {'idEquipo':element['pk']},
                     dataType : 'json',
                     success : function(data) {
                         console.log(data);
@@ -843,7 +898,7 @@ function showEquipment()
                                 title:"<center>Borrado exitoso</center>",
                                 iconSource:"fontAwesome",
                                 sound:false,
-                                msg: "Departamento eliminado exitosamente"
+                                msg: "Equipo eliminado exitosamente"
                                 });
                                 setTimeout(function(){location.reload();},2500)
                             }
@@ -856,7 +911,7 @@ function showEquipment()
                                 title:"<center>Error al borrar</center>",
                                 iconSource:"fontAwesome",
                                 sound:false,
-                                msg: "No se pudo eliminar el departamento, intenta de nuevo más tarde"
+                                msg: "No se pudo eliminar el equipo, intenta de nuevo más tarde"
                                 });
                     },
                     error : function(xhr, status) {
@@ -865,10 +920,14 @@ function showEquipment()
                 });
               });
 
-              $("#"+(element['pk']+element['ns']+"infoDepto").replace(/\s+/g, '')).on('click',function()
+              $("#"+(element['pk']+element['ns']+"infoequipo").replace(/\s+/g, '')).on('click',function()
               {
-                deptoName = element['nombre']
-                showSubDepartments(element['nombre'])
+                equipoName = element['ns']
+
+                  $("#contenido").empty()
+                  $("#contenido").hide()
+                  $("#contenido").append(showEquipmentInfo(element))
+                  $("#contenido").fadeIn('slow')
               });
 
         });
@@ -925,6 +984,98 @@ function createEquipmentTable(json)
 '</table>';
 
 return html;
+
+}
+
+function showEquipmentInfo(json) {
+    var html='<div class="ui sixteen wide column placeholder segments">\n' +
+        '        <center>\n' +
+        '            <div class="ui icon header">\n' +
+        '                <i class="tv icon"></i>\n' +
+        '                Información del equipo con NS : '+json['ns']+'\n' +
+        '            </div>\n' +
+        '        </center>\n' +
+        '        <div class="ui segment">\n' +
+        '        </div>\n' +
+        '        <div class="ui segments">\n' +
+        '            <div class="ui segment">\n' +
+        '\n' +
+        '                <p style="opacity: 0.5;"><i class="user icon"></i>&nbsp;Equipo perteneciente a : </p><p id="equipdatauser">Id Empleado: '+json['empleado__pk']+', Nombre del empleado: '+json['empleado__nombre']+'</p>\n' +
+        '            </div>\n' +
+        '            <div class="ui segment">\n' +
+        '\n' +
+        '                <p style="opacity: 0.5;"><i class="laptop icon"></i>&nbsp;Tipo de equipo: </p><p id="equipdatatype">'+json['tipo_equipo__nombre']+'</p>\n' +
+        '            </div>\n' +
+        '            <div class="ui segment">\n' +
+        '\n' +
+        '                <p style="opacity: 0.5;"><i class="fas fa-building"></i>&nbsp;Departamento actual: </p><p id="equipdatadepto">'+json['depto__nombre']+'</p>\n' +
+        '            </div>\n' +
+        '        </div>\n' +
+        '        <div class="ui segment">\n' +
+        '            <p><i class="far fa-calendar-check"></i>&nbsp;Datos generales del equipo</p>\n' +
+        '        </div>\n' +
+        '        <div class="ui horizontal segments">\n' +
+        '            <div class="ui segment" >\n' +
+        '                <p style="opacity: 0.5;">Número de serie: </p><p id="equipdatans">'+json['ns']+'</p>\n' +
+        '            </div>\n' +
+        '            <div class="ui segment">\n' +
+        '                <p style="opacity: 0.5;">Modelo: </p><p id="equipdatamodelo">'+json['modelo']+'</p>\n' +
+        '            </div>\n' ;
+    if(json['tipo_equipo__nombre'] === 'Computo') {
+        html +=
+            '            <div class="ui segment equipcomputer">\n' +
+            '                <p style="opacity: 0.5;">MAC: </p><p id="equipdatamac">'+json['mac']+'</p>\n' +
+            '            </div>\n' +
+            '            <div class="ui segment equipcomputer">\n' +
+            '                <p style="opacity: 0.5;" >IP: </p><p id="equipadataip">'+json['ip']+'</p>\n' +
+            '            </div>\n' +
+            '\n';
+    }
+        html+=
+        '        </div>\n' +
+        '\n' ;
+    if(json['tipo_equipo__nombre'] === 'Computo') {
+        html +=
+            '        <div class="ui segment equipcomputer">\n' +
+            '            <p><i class="fas fa-cogs"></i>&nbsp;Caracteristicas del equipo de computo</p>\n' +
+            '        </div>\n' +
+            '        <div class="ui horizontal segments">\n' +
+            '            <div class="ui segment equipcomputer" >\n' +
+            '                <p style="opacity: 0.5;">Sistema Operativo: </p><p id="equipdataSO">'+json['sistema_operativo']+'</p>\n' +
+            '            </div>\n' +
+            '            <div class="ui segment equipcomputer">\n' +
+            '                <p style="opacity: 0.5;">Procesador: </p><p id="equipdataprocesador">'+json['procesador']+'</p>\n' +
+            '            </div>\n' +
+            '            <div class="ui segment equipcomputer">\n' +
+            '                <p style="opacity: 0.5;">Número de puertos: </p><p id="equipdatapuertos">'+json['num_puertos']+'</p>\n' +
+            '            </div>\n' +
+            '            <div class="ui segment equipcomputer">\n' +
+            '                <p style="opacity: 0.5;">Memoria RAM: </p><p id="equipadataram">'+json['memoria_ram']+'</p>\n' +
+            '            </div>\n' +
+            '            <div class="ui segment equipcomputer">\n' +
+            '                <p style="opacity: 0.5;">Disco Duro: </p><p id="equipadatahdd">'+json['disco_duro']+'</p>\n' +
+            '            </div>\n' +
+            '\n' +
+            '        </div>\n' +
+            '\n';
+    }
+    html+=
+        '        <div class="ui segment">\n' +
+        '            <i class="fas fa-book-open"></i>&nbsp;Datos adicionales</p>\n' +
+        '        </div>\n' +
+        '        <div class="ui horizontal segments">\n' +
+        '            <div class="ui segment" >\n' +
+        '                <p style="opacity: 0.5;">Caracteristicas: </p><textarea style="width: 75%;" readonly id="equipdatafeatures">'+json['caracteristicas']+'</textarea >\n' +
+        '            </div>\n' +
+        '            <div class="ui segment">\n' +
+        '                <p style="opacity: 0.5;">Observaciones: </p><textarea style="width: 75%;" readonly id="equipdatacommentary">'+json['observaciones']+'</textarea>\n' +
+        '            </div>\n' +
+        '\n' +
+        '        </div>\n' +
+        '\n' +
+        '    </div>';
+
+    return html;
 
 }
 
@@ -1189,6 +1340,55 @@ function createSubDepTable(json,depto)
 return html;
 
 }
+
+function showOrderForm()
+{
+    $("#contenido").empty()
+    $.ajax({
+            url : "{% url "tt:getUserInfo" %}",
+            data : {},
+            dataType : 'json',
+            success : function(data) {
+                console.log(data);
+                $("#contenido").append('<div class="ui sixteen wide column" id="divformorder" style="display: none;">'+formorder+'</div>')
+                $("#divformorder").fadeIn()
+                $("#id_fecha").val(data['fecha'])
+                $("#id_depto").val(data['data'][0]['departamento__nombre'])
+                $("#id_subdepto").val(data['data'][0]['subdepartamento__nombre'])
+                $("#id_folio").val(data['folio'])
+                $("#id_solicitante").val("Id Empleado: "+data['data'][0]['pk']+", Nombre: "+data['data'][0]['nombre']+" "+data['data'][0]['ap']+" "+data['data'][0]['am'])
+                // if(data.code == 1)
+                //     {Lobibox.notify('success', {
+                //         size: 'mini',
+                //         rounded: true,
+                //         delayIndicator: true,
+                //         icon: true,
+                //         title:"<center>Borrado exitoso</center>",
+                //         iconSource:"fontAwesome",
+                //         sound:false,
+                //         msg: "SubDepartamento eliminado exitosamente"
+                //         });
+                //         setTimeout(function(){location.reload();},2500)
+                //     }
+                // else if(data.code == 2)
+                //     Lobibox.notify('error', {
+                //         size: 'mini',
+                //         rounded: true,
+                //         delayIndicator: true,
+                //         icon: true,
+                //         title:"<center>Error al borrar</center>",
+                //         iconSource:"fontAwesome",
+                //         sound:false,
+                //         msg: "No se pudo eliminar el subdepartamento, intenta de nuevo más tarde"
+                //         });
+            },
+            error : function(xhr, status) {
+                console.log("error ");
+            },
+        });
+
+}
+
 
 function isIpn(url)
 {

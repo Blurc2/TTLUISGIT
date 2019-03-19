@@ -15,15 +15,13 @@ class formDepartamento(forms.Form):
     depname = forms.CharField(label="depname",required=False)
 
 class formEquipo(forms.Form):
-    def __init__(self, departamento_choices,empleados_choices, *args, **kwargs):
+    def __init__(self, departamento_choices,empleados_choices,equipo_choices, *args, **kwargs):
         super(formEquipo, self).__init__(*args, **kwargs)
         self.fields['departamento'].choices = departamento_choices
         self.fields['empleados'].choices = empleados_choices
-    TypeEquipo = (
-        ('Computo', 'Computo'),
-        ('Impresora', 'Impresora'),
-    )
-    tipoequipo = forms.ChoiceField(choices=TypeEquipo, label="Tipo de equipo",required=True)
+        self.fields['tipoequipo'].choices = equipo_choices
+
+    tipoequipo = forms.ChoiceField(choices=(), label="Tipo de equipo",required=True)
     departamento = forms.ChoiceField(choices=(),label="Departamento",required=True)
     empleados = forms.ChoiceField(choices=(),label="Empleados",required=True)
     fmarca = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Marca del equipo'}), label="Marca",required=True)
@@ -44,13 +42,13 @@ class formEquipo(forms.Form):
     option = forms.CharField(label="option", max_length=60,required=False)
 
 class formregistro(forms.Form):
-    TypeTec = (
-        ('Hardware', 'Hardware'),
-        ('Software', 'Software'),
-    )
+    def __init__(self, departamento_choices, subdepartamentos_choices, tecnico_choices, *args, **kwargs):
+        super(formregistro, self).__init__(*args, **kwargs)
+        self.fields['depto'].choices = departamento_choices
+        self.fields['subdepto'].choices = subdepartamentos_choices
+        self.fields['tipotecnico'].choices = tecnico_choices
     idEmpleado = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'ID Empleado'}),label="idEmpleado",required=True)
     email = forms.CharField(widget=forms.EmailInput(attrs={'placeholder': 'Correo'}), label="Email", max_length=60,required=True)
-    # departamento = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Departamento'}), label="Departamento", max_length=60,required=True)
     contra = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Contraseña'}), label="Contraseña", max_length=60,required=True)
     nombre = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Usuario'}), label="Nombre", max_length=60,required=True)
     ap = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Apellido Paterno'}), label="Apellido Paterno", max_length=60,required=True)
@@ -58,4 +56,18 @@ class formregistro(forms.Form):
     telefono = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Teléfono'}), label="Teléfono",required=True)
     extension = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Extensión'}), label="Extensión",required=False)
     tipoEmpleado = forms.CharField(label="tipoEmpleado", max_length=60,required=False)
-    tipotecnico = forms.ChoiceField(choices=TypeTec, label="Tipo de técnico")
+    tipotecnico = forms.ChoiceField(choices=(), label="Tipo de técnico")
+    depto = forms.ChoiceField(choices=(), label="Departamento",required=True)
+    subdepto = forms.ChoiceField(choices=(), label="SubDepartamento",required=True)
+
+class formOrden(forms.Form):
+    def __init__(self, typework_choices, *args, **kwargs):
+        super(formOrden, self).__init__(*args, **kwargs)
+        self.fields['tipo_trabajo'].choices = typework_choices
+    depto = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Departamento', 'readonly': True}), label="Departamento", max_length=100,required=True)
+    subdepto = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'SubDepartamento', 'readonly': True}), label="SubDepartamento", max_length=100,required=True)
+    fecha = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Fecha', 'readonly': True}), label="Fecha",required=True)
+    folio = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Folio', 'readonly': True}), label="Folio",required=True)
+    solicitante = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Solicitante', 'readonly': True}), label="Solicitante",required=True)
+    tipo_trabajo = forms.ChoiceField(choices=(),label="Tipo de trabajo",required=True)
+    descripcion = forms.IntegerField(widget=forms.Textarea(attrs={'placeholder': 'Descripcion'}), label="Descripcion", required=True)
