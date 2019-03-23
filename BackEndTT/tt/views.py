@@ -22,7 +22,7 @@ def Index(request):
     typeworklist = []
 
 
-    emplist.append(("Selecciona a que empleado pertenece", "Selecciona a que empleado pertenece"))
+    emplist.append(("Selecciona a que empleado pertenece", "Selecciona a que empleado perteneces"))
     for dep in Departamento.objects.all().values('nombre'):
         deplist.append((dep['nombre'], dep['nombre']))
     for typework in TipoTrabajo.objects.all().values('nombre'):
