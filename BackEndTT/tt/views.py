@@ -20,7 +20,9 @@ def Index(request):
     emplist = []
     typeequipolist = []
     typeworklist = []
-    emplist.append(("Selecciona a que empleado pertenece", "Selecciona a que empleado pertenece"))
+
+
+    emplist.append(("Selecciona a que empleado pertenece", "Selecciona a que empleado pertenece asdasf"))
     for dep in Departamento.objects.all().values('nombre'):
         deplist.append((dep['nombre'], dep['nombre']))
     for typework in TipoTrabajo.objects.all().values('nombre'):
