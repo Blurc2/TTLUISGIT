@@ -16,7 +16,6 @@ from .models import *
 def Index(request):
     forml = formlogin()
     form2 = formDepartamento()
-
     deplist = []
     emplist = []
     typeequipolist = []
