@@ -64,6 +64,10 @@
                 {{ formorden.solicitante }}
             </div>
             <div class="field">
+                <label>{{ formorden.equipo.label_tag }}</label>
+                {{ formorden.equipo }}
+            </div>
+            <div class="field">
                 <label>{{ formorden.tipo_trabajo.label_tag }}</label>
                 {{ formorden.tipo_trabajo }}
             </div>
@@ -214,32 +218,32 @@
             <label>{{ formequipo.idequipo.label_tag }}</label>
             {{ formequipo.idequipo }}
         </div>
-        <div class="field">
+        <div class="field" id="generalfields">
             <label>Datos generales</label>
             <div class="two fields">
-                <div class="field">
+                <div class="field" id="modelofield">
                     {{formequipo.fmodelo}}
                 </div>
-                <div class="field">
+                <div class="field" id="marcafield">
                     {{formequipo.fmarca}}
                 </div>
             </div>
         </div>
-        <div class="field">
+        <div class="field" id="datafields">
             <label>Datos del equipo</label>
             <div class="three fields">
-                <div class="field">
+                <div class="field" id="macfield">
                     {{formequipo.fmac}}
                 </div>
-                <div class="field">
+                <div class="field" id="nsfield">
                     {{formequipo.fns}}
                 </div>
-                <div class="field">
+                <div class="field" id="ipfield">
                     {{formequipo.fip}}
                 </div>
             </div>
         </div>
-        <div class="field">
+        <div class="field" id="hardwaresection">
             <label>Caracteristicas de hardware</label>
             <div class="four fields">
                 <div class="field">
@@ -259,13 +263,13 @@
         <div class="field">
             <label>Otros datos</label>
             <div class="three fields">
-                <div class="field">
+                <div class="field" id="cambsfield">
                     {{formequipo.fcambs}}
                 </div>
-                <div class="field">
+                <div class="field" id="systemfield">
                     {{formequipo.fsistema_operativo}}
                 </div>
-                <div class="field">
+                <div class="field" id="idffield">
                     {{formequipo.fidf}}
                 </div>
             </div>
@@ -307,9 +311,14 @@
     </form>
 </div>
 
-<div class="ui modal" id="OrdenMod">
+<div class="ui modal" id="OrdenMod" style="padding:15px;">
 
-
+    <h4 class="ui dividing header" id="ordenassignHeader" >Mostrando técnicos</h4>
+    <br>
+        <select class="ui fluid selection dropdown" id="tecnicoOpts" >
+        </select>
+    <br>
+    <button class="ui inverted green button" id="selectTecnicoBtn">Asignar Técnico</button>
 </div>
 
 </body>

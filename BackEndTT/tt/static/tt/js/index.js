@@ -88,10 +88,17 @@ $(document).ready(function()
             showRegisters()
         else if(sessionStorage.getItem("menuItem") == "EQUIPO")
             showEquipment()
+        else if(sessionStorage.getItem("menuItem") == "ORDENESADMIN")
+            showOrdersAdmin()
 //        else if(sessionStorage.getItem("menuItem") == "SUBDEPTO")
 //            showSubDepartments(deptoName)
     {% elif usertype == "Docente" %}
         $(".itemdocente").show('slow')
+        if(sessionStorage.getItem("menuItem") == "EQUIPODOCENTE")
+            showEquipmentDoc()
+        else if(sessionStorage.getItem("menuItem") == "ORDENDOCENTE")
+            showOrderForm()
+
     {% elif usertype == "Tecnico" %}
         $(".itemtecnico").show('slow')
     {% endif %}
@@ -99,6 +106,8 @@ $(document).ready(function()
     $(".sesionforms").show()
     $(".sesion").hide()
 {% endif %}
+
+
 });
 
 $("form#DepartmentForm").submit(function(e){
@@ -255,6 +264,8 @@ formData.append('depname', deptoName);
         });
 }
 });
+
+
 
 $("form#EquipoForm").submit(function(e){
 e.preventDefault();
@@ -846,12 +857,50 @@ function showEquipment()
     console.log(json)
     $("#contenido").append(createEquipmentTable(json))
     $("#tableequip").fadeIn('slow')
+        $('#id_tipoequipo').on('change', function (e) {
+                        var valueSelected = this.value;
+                        // if(element['tipo_equipo__nombre'] != valueSelected)
+                            $('#EquipoForm').trigger("reset");
+                        $("#id_tipoequipo").val(valueSelected)
+                        $("#generalfields").show()
+                        $("#datafields").show()
+                        if(valueSelected === "Computo")
+                        {
+                            $("#hardwaresection").show()
+                            $("#macfield").show()
+                            $("#ipfield").show()
+                            $("#systemfield").show()
+                        }
+                        else
+                        {
+                            $("#hardwaresection").hide()
+                            $("#macfield").hide()
+                            $("#ipfield").hide()
+                            $("#systemfield").hide()
+                        }
+                        if(valueSelected === "Mesas" || valueSelected === "Sillas")
+                        {
+                            $("#cambsfield").show()
+                            $("#generalfields").hide()
+                            $("#datafields").hide()
+                        }
+                        else
+                        {
+                            $("#cambsfield").hide()
+                        }
+                    });
+
     if(!$.isEmptyObject(json))
     {
 
         json.forEach(function(element) {
+            var id  = ""
+            if(element['ns']!=null)
+                id = element['ns']
+            else if(element['cambs']!=null)
+                id = element['cambs']
 
-              $(("#"+(element['pk']+element['ns']+"update")).replace(/\s+/g, '')).on('click',function()
+              $(("#"+(element['pk']+id+"update")).replace(/\s+/g, '')).on('click',function()
               {
                 $("#EquipoHeader").text("Modificar Equipo")
                 $("#badregequipo").hide()
@@ -874,14 +923,45 @@ function showEquipment()
                 $("#id_fobservaciones").val(element['observaciones'])
                 $("#id_tipoequipo").val(element['tipo_equipo__nombre'])
                 $("#id_departamento").val(element['depto__nombre'])
-                $("#id_empleados").val("Id Empleado: "+element['empleado__pk']+", Nombre: "+element['empleado__nombre'])
+                $("#id_empleados").val((element['empleado__pk']!= null) ? "Id Empleado: "+element['empleado__pk']+", Nombre: "+element['empleado__nombre'] : "Equipo Libre")
                 $("#id_fmarca").val(element['marca__nombre'])
                 // idDepartamento = element['pk']
+
+                   var value = element['tipo_equipo__nombre']
+
+                    $("#generalfields").show()
+                    $("#datafields").show()
+                    if(value === "Computo")
+                    {
+                        $("#hardwaresection").show()
+                        $("#macfield").show()
+                        $("#ipfield").show()
+                        $("#systemfield").show()
+                    }
+                    else
+                    {
+                        $("#hardwaresection").hide()
+                        $("#macfield").hide()
+                        $("#ipfield").hide()
+                        $("#systemfield").hide()
+                    }
+                    if(value === "Mesas" || value === "Sillas")
+                    {
+                        $("#cambsfield").show()
+                        $("#generalfields").hide()
+                        $("#datafields").hide()
+                    }
+                    else
+                    {
+                        $("#cambsfield").hide()
+                    }
+
+
 
                 $('#EquipoMod').modal('show')
               });
 
-              $(("#"+(element['pk']+element['ns']+"delete")).replace(/\s+/g, '')).on('click',function()
+              $(("#"+(element['pk']+id+"delete")).replace(/\s+/g, '')).on('click',function()
               {
                 $.ajax({
                     url : "{% url "tt:DelEquipment" %}",
@@ -920,9 +1000,135 @@ function showEquipment()
                 });
               });
 
-              $("#"+(element['pk']+element['ns']+"infoequipo").replace(/\s+/g, '')).on('click',function()
+              $("#"+(element['pk']+id+"infoequipo").replace(/\s+/g, '')).on('click',function()
               {
-                equipoName = element['ns']
+                equipoName = id
+
+                  $("#contenido").empty()
+                  $("#contenido").hide()
+                  $("#contenido").append(showEquipmentInfo(element))
+                  $("#contenido").fadeIn('slow')
+              });
+
+        });
+
+
+    }
+
+$("#agregarequipo").on('click',function(){
+
+
+        $("#EquipoHeader").text("Añadir Equipo")
+            $("#badregequipo").hide()
+            $("#okregequipo").hide()
+            $("#EquipoBtn").val("Añadir Equipo")
+            $('#EquipoMod').modal('show')
+            $('#EquipoForm').trigger("reset");
+        var value = $('#id_tipoequipo').val()
+
+                    $("#generalfields").show()
+                    $("#datafields").show()
+                    if(value === "Computo")
+                    {
+                        $("#hardwaresection").show()
+                        $("#macfield").show()
+                        $("#ipfield").show()
+                        $("#systemfield").show()
+                    }
+                    else
+                    {
+                        $("#hardwaresection").hide()
+                        $("#macfield").hide()
+                        $("#ipfield").hide()
+                        $("#systemfield").hide()
+                    }
+                    if(value === "Mesas" || value === "Sillas")
+                    {
+                        $("#cambsfield").show()
+                        $("#generalfields").hide()
+                        $("#datafields").hide()
+                    }
+                    else
+                    {
+                        $("#cambsfield").hide()
+                    }
+        });
+    }
+});
+}
+
+function createEquipmentTable(json)
+{
+
+    var html ='<table id="tableequip" style="display:none;" class="ui orange celled table">'+
+  '<thead>'+
+  '  <tr><th colspan="2">Identificador</th>'+
+    '  <th colspan="2">Tipo de Equipo</th>'+
+  '  <th colspan="1" style="text-align: center;">Opciones</th>'+
+  '</tr></thead>'+
+  '<tbody>';
+  if($.isEmptyObject(json))
+  {
+    html+='<tr><td class="collapsing"></td><td></td><td></td></tr>'
+  }
+  json.forEach(function(element) {
+      var id  = ""
+    if(element['ns']!=null)
+        id = element['ns']
+    else if(element['cambs']!=null)
+        id = element['cambs']
+      html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+id+"infoequipo").replace(/\s+/g, '')+'"><i class="fas fa-desktop"></i>'+
+        id+
+          '<td colspan="2">'+
+        element['tipo_equipo__nombre']+'</td>'
+        html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+id+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
+          '<div class="or" data-text="o"></div>'+
+          '<button class="ui positive button" id="'+(element['pk']+id+"update").replace(/\s+/g, '')+'">Editar</button></div></td></tr>';
+    });
+
+  html +='<tfoot class="full-width">'+
+    '<tr>'+
+
+      '<th colspan="5">'+
+      '  <div class="ui right floated small primary labeled icon button" id="agregarequipo">'+
+     '     <i class="fas fa-laptop"></i> Agregar Equipo'+
+    '    </div>'+
+   '   </th>'+
+  '  </tr>'+
+ ' </tfoot>'+
+'  </tbody>'+
+'</table>';
+
+return html;
+
+}
+
+function showEquipmentDoc()
+{
+    $("#contenido").empty()
+    sessionStorage.setItem("menuItem", "EQUIPODOCENTE");
+    $.ajax({
+    url: "{% url 'tt:ShowEquipmentDoc' %}",
+    type: 'POST',
+    data: {x:""},
+    success: function (data) {
+    var json = data
+    console.log(json)
+    $("#contenido").append(createEquipmentDocTable(json))
+    $("#tableequip").fadeIn('slow')
+    if(!$.isEmptyObject(json))
+    {
+
+        json.forEach(function(element) {
+            var id  = ""
+            if(element['ns']!=null)
+                id = element['ns']
+            else if(element['cambs']!=null)
+                id = element['cambs']
+
+              $("#"+(element['pk']+id+"infoequipo").replace(/\s+/g, '')).on('click',function()
+              {
+                equipoName = id
 
                   $("#contenido").empty()
                   $("#contenido").hide()
@@ -947,13 +1153,13 @@ $("#agregarequipo").on('click',function(){
 });
 }
 
-function createEquipmentTable(json)
+function createEquipmentDocTable(json)
 {
+
     var html ='<table id="tableequip" style="display:none;" class="ui orange celled table">'+
   '<thead>'+
-  '  <tr><th colspan="2">Número de serie</th>'+
+  '  <tr><th colspan="2">Identificador</th>'+
     '  <th colspan="2">Tipo de Equipo</th>'+
-  '  <th colspan="1" style="text-align: center;">Opciones</th>'+
   '</tr></thead>'+
   '<tbody>';
   if($.isEmptyObject(json))
@@ -961,26 +1167,20 @@ function createEquipmentTable(json)
     html+='<tr><td class="collapsing"></td><td></td><td></td></tr>'
   }
   json.forEach(function(element) {
-      html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+element['ns']+"infoequipo").replace(/\s+/g, '')+'"><i class="fas fa-desktop"></i>'+
-        element['ns']+
+      var id  = ""
+        if(element['ns']!=null)
+            id = element['ns']
+        else if(element['cambs']!=null)
+            id = element['cambs']
+
+      html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+id+"infoequipo").replace(/\s+/g, '')+'"><i class="fas fa-desktop"></i>'+
+        id+
           '<td colspan="2">'+
         element['tipo_equipo__nombre']+'</td>'
-        html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+element['ns']+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
-          '<div class="or" data-text="o"></div>'+
-          '<button class="ui positive button" id="'+(element['pk']+element['ns']+"update").replace(/\s+/g, '')+'">Editar</button></div></td></tr>';
+        html+='</tr>';
     });
 
-  html +='<tfoot class="full-width">'+
-    '<tr>'+
-
-      '<th colspan="5">'+
-      '  <div class="ui right floated small primary labeled icon button" id="agregarequipo">'+
-     '     <i class="fas fa-laptop"></i> Agregar Equipo'+
-    '    </div>'+
-   '   </th>'+
-  '  </tr>'+
- ' </tfoot>'+
-'  </tbody>'+
+  html +='</tbody>'+
 '</table>';
 
 return html;
@@ -988,11 +1188,19 @@ return html;
 }
 
 function showEquipmentInfo(json) {
+    var id  = ""
+    if(json['ns']!=null)
+        id = json['ns']
+    else if(json['cambs']!=null)
+        id = json['cambs']
+
+    var type = json['tipo_equipo__nombre'] === 'Computo' || json['tipo_equipo__nombre'] === 'Monitor' || json['tipo_equipo__nombre'] === 'Teclado' || json['tipo_equipo__nombre'] === 'Mouse'
+
     var html='<div class="ui sixteen wide column placeholder segments">\n' +
         '        <center>\n' +
         '            <div class="ui icon header">\n' +
         '                <i class="tv icon"></i>\n' +
-        '                Información del equipo con NS : '+json['ns']+'\n' +
+        '                Información del equipo con identificador : '+id+'\n' +
         '            </div>\n' +
         '        </center>\n' +
         '        <div class="ui segment">\n' +
@@ -1014,13 +1222,20 @@ function showEquipmentInfo(json) {
         '        <div class="ui segment">\n' +
         '            <p><i class="far fa-calendar-check"></i>&nbsp;Datos generales del equipo</p>\n' +
         '        </div>\n' +
-        '        <div class="ui horizontal segments">\n' +
-        '            <div class="ui segment" >\n' +
-        '                <p style="opacity: 0.5;">Número de serie: </p><p id="equipdatans">'+json['ns']+'</p>\n' +
+        '        <div class="ui horizontal segments">\n';
+    if(type) {
+        html+='            <div class="ui segment" >\n' +
+        '                <p style="opacity: 0.5;">Número de serie: </p><p id="equipdatans">' + json['ns'] + '</p>\n' +
         '            </div>\n' +
         '            <div class="ui segment">\n' +
-        '                <p style="opacity: 0.5;">Modelo: </p><p id="equipdatamodelo">'+json['modelo']+'</p>\n' +
-        '            </div>\n' ;
+        '                <p style="opacity: 0.5;">Modelo: </p><p id="equipdatamodelo">' + (json['modelo'] != null ? json['modelo'] : "") + '</p>\n' +
+        '            </div>\n';
+    }
+    else if(json['tipo_equipo__nombre'] === 'Sillas' || json['tipo_equipo__nombre'] === 'Mesas') {
+        html+='            <div class="ui segment" >\n' +
+        '                <p style="opacity: 0.5;">Cambs: </p><p id="equipdatacambs">' + json['cambs'] + '</p>\n' +
+        '            </div>\n';
+    }
     if(json['tipo_equipo__nombre'] === 'Computo') {
         html +=
             '            <div class="ui segment equipcomputer">\n' +
@@ -1065,10 +1280,10 @@ function showEquipmentInfo(json) {
         '        </div>\n' +
         '        <div class="ui horizontal segments">\n' +
         '            <div class="ui segment" >\n' +
-        '                <p style="opacity: 0.5;">Caracteristicas: </p><textarea style="width: 75%;" readonly id="equipdatafeatures">'+json['caracteristicas']+'</textarea >\n' +
+        '                <p style="opacity: 0.5;">Caracteristicas: </p><textarea style="width: 75%;" readonly id="equipdatafeatures">'+(json['caracteristicas'] != null ? json['caracteristicas'] : "")+'</textarea >\n' +
         '            </div>\n' +
         '            <div class="ui segment">\n' +
-        '                <p style="opacity: 0.5;">Observaciones: </p><textarea style="width: 75%;" readonly id="equipdatacommentary">'+json['observaciones']+'</textarea>\n' +
+        '                <p style="opacity: 0.5;">Observaciones: </p><textarea style="width: 75%;" readonly id="equipdatacommentary">'+(json['observaciones'] != null ? json['observaciones'] : "")+'</textarea>\n' +
         '            </div>\n' +
         '\n' +
         '        </div>\n' +
@@ -1213,6 +1428,227 @@ return html;
 
 }
 
+function showOrdersAdmin()
+{
+    $("#contenido").empty()
+    sessionStorage.setItem("menuItem", "ORDENESADMIN");
+    $.ajax({
+    url: "{% url 'tt:ShowOrdersAdmin' %}",
+    type: 'POST',
+    data: {x:""},
+    success: function (data) {
+    var json = data
+    console.log(json)
+    $("#contenido").append(createOrdersAdminTable(json))
+    $("#tableorder").fadeIn('slow')
+    if(!$.isEmptyObject(json))
+    {
+        json['orden'].forEach(function(element){
+            $(("#"+(element['nofolio']+"asignar")).replace(/\s+/g, '')).on('click',function(){
+                $("#ordenassignHeader").text("Mostrando técnicos de "+element['trabajo__nombre'])
+                var newOptions = {};
+                var index = 0;
+                json['tecnicos'].forEach(function(tecnico){
+                    if(tecnico['trabajos__nombre'] === element['trabajo__nombre'])
+                        newOptions[(index++).toString()] = "Id Empleado: "+tecnico['pk']+", Nombre: "+tecnico['nombre']+" "+tecnico['ap']+" "+tecnico['am']
+                });
+
+                var $el = $("#tecnicoOpts");
+                $el.empty();
+                $.each(newOptions, function(key,value) {
+                  $el.append($("<option></option>")
+                     .attr("value", value).text(value));
+                });
+
+                $('#OrdenMod').modal('show')
+
+                $("#selectTecnicoBtn").on('click',function(){
+
+                    $.ajax({
+                        url: "{% url 'tt:AssignTec' %}",
+                        type: 'GET',
+                        data: {'tecnico':$("#tecnicoOpts").val(),'folio':element['nofolio']},
+                        success: function (data) {
+                            if(data.code == 1)
+                            {
+                            Lobibox.notify('success', {
+                                        size: 'mini',
+                                        rounded: true,
+                                        delayIndicator: true,
+                                        icon: true,
+                                        title:"<center>Técnico asignado</center>",
+                                        iconSource:"fontAwesome",
+                                        sound:false,
+                                        msg: "Técnico asignado correctamente."
+                                        });
+                            $('#OrdenMod').modal('hide')
+                            setTimeout(function(){location.reload();},2500)
+                            }
+                            else
+                            {
+                            Lobibox.notify('error', {
+                                        size: 'mini',
+                                        rounded: true,
+                                        delayIndicator: true,
+                                        icon: true,
+                                        title:"<center>Error al asignar al técnico</center>",
+                                        iconSource:"fontAwesome",
+                                        sound:false,
+                                        msg: "No se pudo asignar el técnico, intenta de nuevo más tarde"
+                                        });
+                            }
+
+                        }
+                        });
+                })
+            })
+        })
+
+        }
+    }
+    });
+}
+
+function createOrdersAdminTable(json)
+{
+
+    var html ='<table id="tableorder" style="display:none;" class="ui blue celled table">'+
+  '<thead>'+
+  '  <tr><th colspan="1">No. Folio</th>'+
+  '  <th colspan="2">Fecha de inicio</th>'+
+  '  <th colspan="2">Fecha de fin</th>'+
+  '  <th colspan="1">Estado</th>'+
+  '  <th colspan="3">Solicitante</th>'+
+  '  <th colspan="1" style="text-align: center;">Opciones</th>'+
+  '</tr></thead>'+
+  '<tbody>';
+  if($.isEmptyObject(json))
+  {
+    html+='<tr><td class="collapsing"></td><td></td><td></td></tr>'
+  }
+  json['orden'].forEach(function(element) {
+      var solicitante = element['empleados'].find(function(element){
+        return element['tipo__nombre'] === "Docente"
+        })
+      var estado = ""
+      var clase = ""
+      switch(element['estado'])
+      {
+          case -1: estado = "Sin asignar"; clase = "negative";
+              break;
+          case 0: estado = "Asignado, en espera de ser resuelto."; clase = "warning";
+              break;
+          case 1: estado = "Resuelto"; clase = "positive";
+              break;
+          default:
+      }
+      html +='<tr class="'+clase+'"><td colspan="1" class="collapsing"><i class="user icon"></i>'+
+        element['nofolio']+
+        '</td><td colspan="2">'+element['start']+'</td>'+
+        '</td><td colspan="2">'+((element['end']!=null) ? element['end'] : "Pendiente")+'</td>'+
+        '</td><td colspan="1">'+estado+'</td>'+
+        // '</td><td colspan="1"><center><img style="width: 10%; height:10%;" src="{% static 'tt/img/red.png' %}"/></center></td>'+
+        '</td><td colspan="3">Id Empleado: '+solicitante['pk']+', Nombre: '+solicitante['nombre']+' '+solicitante['ap']+' '+solicitante['am']+'</td>';
+      if(element['estado']==-1)
+      {
+          html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Cancelar</button>'+
+          '<div class="or" data-text="o"></div>'+
+          '<button class="ui positive button" id="'+(element['nofolio']+"asignar").replace(/\s+/g, '')+'">Asignar</button></div></td></tr>';
+      }
+      else if(element['estado']==0)
+      {
+          html+='<td><center><button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Cancelar</button></center></td></tr>';
+      }
+      else {
+          html+='<td><center><button class="ui positive button" id="'+(element['nofolio']+"pdf").replace(/\s+/g, '')+'">Generar PDF</button></center></td></tr>';
+      }
+
+    });
+
+  html +=
+'  </tbody>'+
+'</table>';
+
+return html;
+
+}
+
+function showOrdersDoc()
+{
+    $("#contenido").empty()
+    sessionStorage.setItem("menuItem", "ORDENESDOCENTE");
+    $.ajax({
+    url: "{% url 'tt:ShowOrdersDoc' %}",
+    type: 'POST',
+    data: {x:""},
+    success: function (data) {
+        var json = data
+        console.log(json)
+        $("#contenido").append(createOrdersDocTable(json))
+        $("#tableorder").fadeIn('slow')
+        if(!$.isEmptyObject(json))
+        {
+
+
+        }
+    }
+    });
+}
+
+function createOrdersDocTable(json)
+{
+
+    var html ='<table id="tableorder" style="display:none;" class="ui blue celled table">'+
+  '<thead>'+
+  '  <tr><th colspan="1">No. Folio</th>'+
+  '  <th colspan="2">Fecha de inicio</th>'+
+  '  <th colspan="2">Fecha de fin</th>'+
+  '  <th colspan="1">Estado</th>'+
+  '  <th colspan="3">Técnico Asignado</th>'+
+  '</tr></thead>'+
+  '<tbody>';
+  if($.isEmptyObject(json) || json['solicitante'][0]['ordenes__nofolio'] == null)
+  {
+    html+='<tr><td class="collapsing"></td><td></td><td></td><td></td><td></td></tr>'
+      html +=
+'  </tbody>'+
+'</table>';
+    return html
+  }
+  json['solicitante'].forEach(function(element) {
+      var solicitante = element['tecnico'][0]
+      // alert(solicitante)
+      var estado = ""
+      var clase = ""
+      switch(element['ordenes__estado'])
+      {
+          case -1: estado = "Sin asignar"; clase = "negative";
+              break;
+          case 0: estado = "Asignado, en espera de ser resuelto."; clase = "warning";
+              break;
+          case 1: estado = "Resuelto"; clase = "positive";
+              break;
+          default:
+      }
+      var emp = (solicitante!==undefined) ? 'Id Empleado: '+solicitante["pk"]+', Nombre: '+solicitante["nombre"]+' '+solicitante["ap"]+' '+solicitante["am"] : "Sin asignar"
+      html +='<tr class="'+clase+'"><td colspan="1" class="collapsing"><i class="user icon"></i>'+
+        element['ordenes__nofolio']+
+        '</td><td colspan="2">'+element['ordenes__start']+'</td>'+
+        '</td><td colspan="2">'+((element['ordenes__end']!=null) ? element['ordenes__end'] : "Pendiente")+'</td>'+
+        '</td><td colspan="1">'+estado+'</td>'+
+        // '</td><td colspan="1"><center><img style="width: 10%; height:10%;" src="{% static 'tt/img/red.png' %}"/></center></td>'+
+        '</td><td colspan="3">'+emp+'</td></tr>';
+
+    });
+
+  html +=
+'  </tbody>'+
+'</table>';
+
+return html;
+
+}
+
 function showSubDepartments(deptoName)
 {
 
@@ -1344,6 +1780,7 @@ return html;
 function showOrderForm()
 {
     $("#contenido").empty()
+    sessionStorage.setItem("menuItem", "ORDENDOCENTE");
     $.ajax({
             url : "{% url "tt:getUserInfo" %}",
             data : {},
@@ -1357,30 +1794,64 @@ function showOrderForm()
                 $("#id_subdepto").val(data['data'][0]['subdepartamento__nombre'])
                 $("#id_folio").val(data['folio'])
                 $("#id_solicitante").val("Id Empleado: "+data['data'][0]['pk']+", Nombre: "+data['data'][0]['nombre']+" "+data['data'][0]['ap']+" "+data['data'][0]['am'])
-                // if(data.code == 1)
-                //     {Lobibox.notify('success', {
-                //         size: 'mini',
-                //         rounded: true,
-                //         delayIndicator: true,
-                //         icon: true,
-                //         title:"<center>Borrado exitoso</center>",
-                //         iconSource:"fontAwesome",
-                //         sound:false,
-                //         msg: "SubDepartamento eliminado exitosamente"
-                //         });
-                //         setTimeout(function(){location.reload();},2500)
-                //     }
-                // else if(data.code == 2)
-                //     Lobibox.notify('error', {
-                //         size: 'mini',
-                //         rounded: true,
-                //         delayIndicator: true,
-                //         icon: true,
-                //         title:"<center>Error al borrar</center>",
-                //         iconSource:"fontAwesome",
-                //         sound:false,
-                //         msg: "No se pudo eliminar el subdepartamento, intenta de nuevo más tarde"
-                //         });
+
+
+
+
+                var newOptions = {};
+                var index = 0;
+                data['equipo'].forEach(function(element){
+
+                newOptions[(index++).toString()] = "Tipo de equipo: "+element['tipo_equipo__nombre']+", Identificador: "+((element['ns']!= null) ? element['ns'] : element['cambs'])
+
+                })
+
+                var $el = $("#id_equipo");
+                $el.empty();
+                $.each(newOptions, function(key,value) {
+                  $el.append($("<option></option>")
+                     .attr("value", value).text(value));
+                });
+
+                $("form#OrdenForm").submit(function(e){
+                    e.preventDefault();
+                    var formData = new FormData(this);
+
+                    $("form#OrdenForm").addClass( "loading" )
+                    $("#badregorden").hide();
+                    $("#okregorden").hide();
+
+                    $.ajax({
+                    url: "{% url 'tt:AddOrder' %}",
+                    type: 'POST',
+                    data: formData,
+                    success: function (data) {
+                    console.log(data.code)
+                    $("form#OrdenForm").removeClass( "loading" )
+                    if(data.code == 0)
+                    {
+                        $("#registererrororden").text("Error, intenta más tarde.")
+                        $("#badregorden").fadeIn("slow");
+                    }
+                    else if(data.code == 2)
+                    {
+                        $("#registererrororden").text("Esta orden ya se encuentra registrada en el sistema")
+                        $("#badregorden").fadeIn("slow");
+                    }
+                    else
+                        {
+                            $("#okregmsgorden").text("Orden registrada exitosamente")
+                            $("#okregorden").fadeIn("slow");
+                            setTimeout(function(){location.reload();},2500)
+                        }
+                    },
+                    cache: false,
+                    contentType: false,
+                    processData: false
+                    });
+
+
+                });
             },
             error : function(xhr, status) {
                 console.log("error ");
@@ -1396,7 +1867,7 @@ function isIpn(url)
 *   Función utilizada para validar si una cadena es una url de ipn.
 *   @param {url} String - URL a comparar con la expresión regular.
 */
- if (/^([a-zA-Z0-9]+)([\.{1}])?([a-zA-Z0-9]+)\@ipn([\.])com([\.])mx/g.test(url))
+ if (/^([a-zA-Z0-9]+)([\.{1}])?([a-zA-Z0-9]+)\@ipn([\.])mx/g.test(url))
      return true;
 
  return false;

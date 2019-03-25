@@ -80,19 +80,23 @@ class Satisfaccion(models.Model):
 class Orden(models.Model):
     nofolio = models.CharField(max_length=30, primary_key=True)
     estado = models.IntegerField()
-    descripcion = models.CharField(max_length=200)
     start = models.DateField()
-    end = models.DateField()
+    end = models.DateField(null=True, blank=True)
     depto = models.ForeignKey(Departamento, on_delete=models.CASCADE)
+    subdepto = models.ForeignKey(SubDepartamento, on_delete=models.CASCADE, null=True, blank=True)
     trabajo = models.ForeignKey(TipoTrabajo, on_delete=models.CASCADE)
-    incidencia = models.ForeignKey(Incidencia, on_delete=models.CASCADE)
-    instalacionsoft = models.ForeignKey(InstalacionSoft, on_delete=models.CASCADE)
+    incidencia = models.ForeignKey(Incidencia, on_delete=models.CASCADE, null=True, blank=True)
+    instalacionsoft = models.ForeignKey(InstalacionSoft, on_delete=models.CASCADE, null=True, blank=True)
     survey = models.OneToOneField(
         Satisfaccion,
         on_delete=models.CASCADE,
+        null = True, blank = True
     )
     equipo = models.ForeignKey('Equipo', on_delete=models.CASCADE)
 
+class Descripcion(models.Model):
+    descripcion = models.CharField(max_length=200)
+    orden = models.ForeignKey(Orden, on_delete=models.CASCADE)
 
 class Empleado(models.Model):
     idEmpleado = models.IntegerField(primary_key=True)
@@ -123,7 +127,7 @@ class Equipo(models.Model):
     idEquipo = models.IntegerField(primary_key=True)
     modelo = models.CharField(max_length=60,blank = True,null=True)
     mac = models.CharField(max_length=60,blank = True,null=True)
-    ns = models.CharField(max_length=60)
+    ns = models.CharField(max_length=60,blank = True,null=True)
     ip = models.CharField(max_length=60,blank = True,null=True)
     cambs = models.CharField(max_length=60,blank = True,null=True)
     sistema_operativo = models.CharField(max_length=60,blank = True,null=True)
@@ -140,6 +144,6 @@ class Equipo(models.Model):
     marca = models.ForeignKey(Marca, on_delete=models.CASCADE,blank = True,null=True)
 
     def __str__(self):
-        return "Tipo: "+self.tipo_equipo.nombre+", Numero de serie: "+self.ns
+        return "Tipo: "+self.tipo_equipo.nombre+(", Numero de serie: "+ self.ns if self.ns is not None else ", Cambs: "+self.cambs)
 
 

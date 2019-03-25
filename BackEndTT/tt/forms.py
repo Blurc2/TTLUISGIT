@@ -61,13 +61,15 @@ class formregistro(forms.Form):
     subdepto = forms.ChoiceField(choices=(), label="SubDepartamento",required=True)
 
 class formOrden(forms.Form):
-    def __init__(self, typework_choices, *args, **kwargs):
+    def __init__(self, typework_choices,equipo_choices, *args, **kwargs):
         super(formOrden, self).__init__(*args, **kwargs)
         self.fields['tipo_trabajo'].choices = typework_choices
+        self.fields['equipo'].choices = equipo_choices
     depto = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Departamento', 'readonly': True}), label="Departamento", max_length=100,required=True)
-    subdepto = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'SubDepartamento', 'readonly': True}), label="SubDepartamento", max_length=100,required=True)
+    subdepto = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'SubDepartamento', 'readonly': True}), label="SubDepartamento", max_length=100,required=False)
     fecha = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Fecha', 'readonly': True}), label="Fecha",required=True)
     folio = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Folio', 'readonly': True}), label="Folio",required=True)
     solicitante = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Solicitante', 'readonly': True}), label="Solicitante",required=True)
     tipo_trabajo = forms.ChoiceField(choices=(),label="Tipo de trabajo",required=True)
-    descripcion = forms.IntegerField(widget=forms.Textarea(attrs={'placeholder': 'Descripcion'}), label="Descripcion", required=True)
+    equipo = forms.ChoiceField(choices=(),label="Equipo involucrado",required=True)
+    descripcion = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Descripcion'}), max_length=200,label="Descripcion", required=False)

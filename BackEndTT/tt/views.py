@@ -2,6 +2,7 @@ import datetime
 
 from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, render_to_response
 from django.views.decorators.csrf import csrf_exempt
@@ -21,8 +22,6 @@ def Index(request):
     typeequipolist = []
     typeworklist = []
 
-
-    emplist.append(("Selecciona a que empleado pertenece", "Selecciona a que empleado pertenece asdasf"))
     for dep in Departamento.objects.all().values('nombre'):
         deplist.append((dep['nombre'], dep['nombre']))
     for typework in TipoTrabajo.objects.all().values('nombre'):
@@ -33,10 +32,11 @@ def Index(request):
     for typeequipo in TipoEquipo.objects.all().values('nombre'):
         typeequipolist.append((typeequipo['nombre'],
                                typeequipo['nombre']))
+    emplist.append(("Equipo Libre", "Equipo Libre"))
     formequipo = formEquipo(deplist, emplist, typeequipolist)
     form = formregistro(deplist, (), typeworklist)
 
-    formorden = formOrden(typeworklist)
+    formorden = formOrden(typeworklist, ())
     # formequipo.fields['departamento'].choices = deplist
     # formequipo.fields['empleados'].choices = emplist
     if 'NombreUser' in request.session:  # Validamos si es que existe una sesión activa en el navegador
@@ -282,7 +282,7 @@ def AddEquip(request):
         emplist = []
         typeequipolist = []
         deplist.append(("Selecciona a que departamento pertenece", "Selecciona a que departamento pertenece"))
-        emplist.append(("Selecciona a que empleado pertenece", "Selecciona a que empleado pertenece"))
+
         for dep in Departamento.objects.all().values('nombre'):
             print(dep)
             deplist.append((dep['nombre'], dep['nombre']))
@@ -292,6 +292,7 @@ def AddEquip(request):
         for typeequipo in TipoEquipo.objects.all().values('nombre'):
             typeequipolist.append((typeequipo['nombre'],
                                    typeequipo['nombre']))
+        emplist.append(("Equipo Libre", "Equipo Libre"))
         form = formEquipo(deplist, emplist, typeequipolist, request.POST)
 
         if form.is_valid():
@@ -324,7 +325,9 @@ def AddEquip(request):
                                                            depto=Departamento.objects.get(
                                                                nombre=form.cleaned_data['departamento']),
                                                            empleado=Empleado.objects.get(
-                                                               pk=form.cleaned_data['empleados'][13:14]),
+                                                               pk=form.cleaned_data['empleados'].split(":", 1)[
+                                                                   1].strip().split(",", 1)[0]) if form.cleaned_data[
+                                                                                                       'empleados'] != "Equipo Libre" else None,
                                                            tipo_equipo=TipoEquipo.objects.get(
                                                                nombre=form.cleaned_data['tipoequipo'])
                                                            )
@@ -350,7 +353,9 @@ def AddEquip(request):
                                                            depto=Departamento.objects.get(
                                                                nombre=form.cleaned_data['departamento']),
                                                            empleado=Empleado.objects.get(
-                                                               pk=form.cleaned_data['empleados'][13:14]),
+                                                               pk=form.cleaned_data['empleados'].split(":", 1)[
+                                                                   1].strip().split(",", 1)[0]) if form.cleaned_data[
+                                                                                                       'empleados'] != "Equipo Libre" else None,
                                                            tipo_equipo=TipoEquipo.objects.get(
                                                                nombre=form.cleaned_data['tipoequipo']))
                             equipo.save()
@@ -375,7 +380,8 @@ def AddEquip(request):
                             depto=Departamento.objects.get(
                                 nombre=form.cleaned_data['departamento']),
                             empleado=Empleado.objects.get(
-                                pk=form.cleaned_data['empleados'][13:14]),
+                                pk=form.cleaned_data['empleados'].split(":", 1)[1].strip().split(",", 1)[0]) if
+                            form.cleaned_data['empleados'] != "Equipo Libre" else None,
                             tipo_equipo=TipoEquipo.objects.get(
                                 nombre=form.cleaned_data['tipoequipo'])
                         )
@@ -401,7 +407,8 @@ def AddEquip(request):
                             depto=Departamento.objects.get(
                                 nombre=form.cleaned_data['departamento']),
                             empleado=Empleado.objects.get(
-                                pk=form.cleaned_data['empleados'][13:14]),
+                                pk=form.cleaned_data['empleados'].split(":", 1)[1].strip().split(",", 1)[0]) if
+                            form.cleaned_data['empleados'] != "Equipo Libre" else None,
                             tipo_equipo=TipoEquipo.objects.get(
                                 nombre=form.cleaned_data['tipoequipo'])
                         )
@@ -411,6 +418,105 @@ def AddEquip(request):
                 print(e)
                 return JsonResponse({"code": 0}, content_type="application/json", safe=False)
 
+    return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+
+
+@csrf_exempt
+def AddOrder(request):
+    if request.method == 'POST':
+        typeworklist = []
+        equiplist = []
+
+        for typework in TipoTrabajo.objects.all().values('nombre'):
+            typeworklist.append((typework['nombre'], typework['nombre']))
+
+        equipo = Equipo.objects.filter(empleado=request.session['NombreUser']['pk']).values('modelo', 'pk',
+                                                                                            'mac',
+                                                                                            'ns',
+                                                                                            'ip',
+                                                                                            'cambs',
+                                                                                            'sistema_operativo',
+                                                                                            'procesador',
+                                                                                            'num_puertos',
+                                                                                            'memoria_ram',
+                                                                                            'disco_duro',
+                                                                                            'idf',
+                                                                                            'caracteristicas',
+                                                                                            'observaciones',
+                                                                                            'tipo_equipo__nombre',
+                                                                                            'depto__nombre',
+                                                                                            'empleado__pk',
+                                                                                            'empleado__nombre',
+                                                                                            'marca__nombre')
+        for equip in equipo:
+            if equip['ns'] is not None:
+                equiplist.append(("Tipo de equipo: " + equip['tipo_equipo__nombre'] + ", Identificador: " + equip['ns'],
+                                  "Tipo de equipo: " + equip['tipo_equipo__nombre'] + ", Identificador: " + equip[
+                                      'ns']))
+            else:
+                equiplist.append(("Tipo de equipo: " + equip['tipo_equipo__nombre'] + ", Identificador: " + equip[
+                    'cambs'], "Tipo de equipo: " + equip['tipo_equipo__nombre'] + ", Identificador: " + equip['cambs']))
+        print(equiplist)
+        form = formOrden(typeworklist, equiplist, request.POST)
+        print(form.errors)
+        if form.is_valid():
+            print(form.cleaned_data['fecha'])
+
+            try:
+                if Orden.objects.filter(nofolio=form.cleaned_data['folio']).exists():
+                    return JsonResponse({"code": 2}, content_type="application/json", safe=False)
+                else:
+                    orden = Orden.objects.create(nofolio=form.cleaned_data['folio'],
+                                                 estado=-1,
+                                                 start=datetime.datetime.now().date(),
+                                                 end=None,
+                                                 depto=Departamento.objects.get(nombre=form.cleaned_data['depto']),
+                                                 subdepto=SubDepartamento.objects.get(
+                                                     nombre=form.cleaned_data['subdepto']) if (
+                                                         form.cleaned_data['subdepto'] != "") else None,
+                                                 trabajo=TipoTrabajo.objects.get(
+                                                     nombre=form.cleaned_data['tipo_trabajo']),
+                                                 incidencia=None,
+                                                 instalacionsoft=None,
+                                                 survey=None,
+                                                 equipo=Equipo.objects.get(
+                                                     Q(ns=form.cleaned_data['equipo'].split(":", 2)[2].strip()) | Q(
+                                                         cambs=form.cleaned_data['equipo'].split(":", 2)[2].strip())),
+
+                                                 )
+
+                    orden.save()
+
+                    descripcion = Descripcion.objects.create(descripcion=form.cleaned_data['descripcion'], orden=orden)
+                    descripcion.save()
+                    empleado = Empleado.objects.get(
+                        pk=form.cleaned_data['solicitante'].split(":", 1)[1].strip().split(",", 1)[0])
+                    empleado.ordenes.add(orden)
+                    empleado.save()
+
+                return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+            except Exception as e:
+                print(e)
+                return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+
+    return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+
+
+@csrf_exempt
+def AssignTec(request):
+    if request.method == 'GET':
+        try:
+            id = request.GET.get('tecnico', None).split(":", 1)[1].strip()[0].split(",", 1)[0]
+            print(id)
+            print(request.GET.get('folio', None))
+            emp = Empleado.objects.get(idEmpleado=id)
+            emp.ordenes.add(Orden.objects.get(nofolio=request.GET.get('folio', None)))
+            emp.save()
+            Orden.objects.filter(nofolio=request.GET.get('folio', None)).update(estado=0)
+            return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+        except Exception as e:
+            print(e)
+            return JsonResponse({"code": 0}, content_type="application/json", safe=False)
     return JsonResponse({"code": 0}, content_type="application/json", safe=False)
 
 
@@ -469,6 +575,78 @@ def ShowRegisters(request):
 
 
 @csrf_exempt
+def ShowOrdersAdmin(request):
+    query = Orden.objects.all().values('nofolio', 'estado',
+                                       'start',
+                                       'end',
+                                       'depto__nombre',
+                                       'subdepto__nombre',
+                                       'trabajo__nombre',
+                                       'incidencia',
+                                       'survey',
+                                       'equipo__ns',
+                                       'equipo__cambs',
+                                       'equipo__pk',
+                                       'instalacionsoft')
+
+    listpks = []
+    for val in query:
+        listpks.append(val['nofolio'])
+    print(listpks)
+
+    ordenes = list(query)
+    for order in ordenes:
+        descripciones = Descripcion.objects.filter(orden=order['nofolio']).values('descripcion')
+        order['descripciones'] = list(descripciones)
+        solicitante = Empleado.objects.filter(ordenes=order['nofolio']).values('nombre',
+                                                                               'ap',
+                                                                               'am',
+                                                                               'pk',
+                                                                               'tipo__nombre'
+                                                                               )
+        order['empleados'] = list(solicitante)
+    tecnicos = Empleado.objects.filter(tipo=TipoUsuario.objects.get(nombre="Tecnico")).values('nombre',
+                                                                                              'ap',
+                                                                                              'am',
+                                                                                              'pk',
+                                                                                              'trabajos__nombre',
+                                                                                              'tipo__nombre')
+    # return HttpResponse(json.dumps(list(query), cls=DjangoJSONEncoder), content_type="application/json")
+    return HttpResponse(json.dumps(
+        {'orden': list(query), 'tecnicos': list(tecnicos)},
+        cls=DjangoJSONEncoder), content_type="application/json")
+
+
+@csrf_exempt
+def ShowOrdersDoc(request):
+    solicitante = Empleado.objects.filter(pk=request.session['NombreUser']['pk']).values('nombre',
+                                                                                         'ap',
+                                                                                         'am',
+                                                                                         'pk',
+                                                                                         'tipo__nombre',
+                                                                                         'ordenes__nofolio',
+                                                                                         'ordenes__estado',
+                                                                                         'ordenes__start',
+                                                                                         'ordenes__end',
+                                                                                         'ordenes__nofolio',
+                                                                                         )
+    solicitudes = list(solicitante)
+    for sol in solicitudes:
+        print(sol['ordenes__nofolio'])
+        tecnico = Empleado.objects.filter(Q(ordenes=sol['ordenes__nofolio']) & Q(tipo__nombre="Tecnico")).values(
+            'nombre',
+            'ap',
+            'am',
+            'pk',
+            'tipo__nombre')
+        sol['tecnico'] = list(tecnico)
+    # return HttpResponse(json.dumps(list(query), cls=DjangoJSONEncoder), content_type="application/json")
+    return HttpResponse(json.dumps(
+        {'solicitante': list(solicitante)},
+        cls=DjangoJSONEncoder), content_type="application/json")
+
+
+@csrf_exempt
 def ShowDepartments(request):
     query = Departamento.objects.all().values('nombre', 'pk', 'ubicacion__edificio', 'ubicacion__piso',
                                               'ubicacion__sala')
@@ -521,6 +699,30 @@ def ShowEquipment(request):
     #                                                               'ubicacion__piso',
     #                                                               'ubicacion__sala')),
     #     content_type="application/json", safe=False)
+
+
+@csrf_exempt
+def ShowEquipmentDoc(request):
+    # print(request.GET.get('nombreDep', None))
+    query = Equipo.objects.filter(empleado=request.session['NombreUser']['pk']).values('modelo', 'pk',
+                                                                                       'mac',
+                                                                                       'ns',
+                                                                                       'ip',
+                                                                                       'cambs',
+                                                                                       'sistema_operativo',
+                                                                                       'procesador',
+                                                                                       'num_puertos',
+                                                                                       'memoria_ram',
+                                                                                       'disco_duro',
+                                                                                       'idf',
+                                                                                       'caracteristicas',
+                                                                                       'observaciones',
+                                                                                       'tipo_equipo__nombre',
+                                                                                       'depto__nombre',
+                                                                                       'empleado__pk',
+                                                                                       'empleado__nombre',
+                                                                                       'marca__nombre')
+    return HttpResponse(json.dumps(list(query), cls=DjangoJSONEncoder), content_type="application/json")
 
 
 @csrf_exempt
@@ -581,14 +783,34 @@ def getSubDepartments(request):
 def getUserInfo(request):
     # print(request.GET.get('depto', None))
     folio = -1
-    if(Orden.objects.all().count() == 0):
+    if (Orden.objects.all().count() == 0):
         folio = 1
     else:
-        folio = Orden.objects.all().count()+1
+        folio = Orden.objects.all().count() + 1
     query = Empleado.objects.filter(pk=request.session['NombreUser']['pk']).values('pk',
-                                                                                'nombre',
-                                                                                'ap',
-                                                                                'am',
-                                                                                'departamento__nombre',
-                                                                                'subdepartamento__nombre')
-    return HttpResponse(json.dumps({'data': list(query), 'folio': folio,'fecha':datetime.datetime.now().date()}, cls=DjangoJSONEncoder), content_type="application/json")
+                                                                                   'nombre',
+                                                                                   'ap',
+                                                                                   'am',
+                                                                                   'departamento__nombre',
+                                                                                   'subdepartamento__nombre')
+    equipo = Equipo.objects.filter(empleado=request.session['NombreUser']['pk']).values('modelo', 'pk',
+                                                                                        'mac',
+                                                                                        'ns',
+                                                                                        'ip',
+                                                                                        'cambs',
+                                                                                        'sistema_operativo',
+                                                                                        'procesador',
+                                                                                        'num_puertos',
+                                                                                        'memoria_ram',
+                                                                                        'disco_duro',
+                                                                                        'idf',
+                                                                                        'caracteristicas',
+                                                                                        'observaciones',
+                                                                                        'tipo_equipo__nombre',
+                                                                                        'depto__nombre',
+                                                                                        'empleado__pk',
+                                                                                        'empleado__nombre',
+                                                                                        'marca__nombre')
+    return HttpResponse(json.dumps(
+        {'data': list(query), 'equipo': list(equipo), 'folio': folio, 'fecha': datetime.datetime.now().date()},
+        cls=DjangoJSONEncoder), content_type="application/json")
