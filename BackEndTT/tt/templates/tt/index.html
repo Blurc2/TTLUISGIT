@@ -92,6 +92,9 @@
             <input class="ui inverted green button" id="OrdenBtn" type="submit" value="Crear solicitud"/>
         </form>
     </div>
+
+
+
 </div>
 
 
@@ -164,7 +167,8 @@
         </div>
 
         <h4 class="ui dividing header"></h4>
-        <input class="ui inverted green button" id="btnRegistrar" type="submit" value="Registrar"/>
+        <button style="margin: 15px;" id="btncloseregmod" class="ui inverted left floated red button" type="button">Cerrar</button>
+        <input style="margin: 15px;" class="ui inverted right floated green button" id="btnRegistrar" type="submit" value="Registrar"/>
     </form>
 </div>
 
@@ -201,7 +205,8 @@
         </div>
 
         <h4 class="ui dividing header"></h4>
-        <input class="ui inverted green button" id="DepartmentBtn" type="submit" value="Añadir departamento"/>
+        <button style="margin: 15px;" id="btnclosedepartmentmod" class="ui inverted left floated red button" type="button">Cerrar</button>
+        <input style="margin: 15px;" class="ui inverted right floated green button" id="DepartmentBtn" type="submit" value="Añadir departamento"/>
     </form>
 </div>
 
@@ -307,7 +312,8 @@
         </div>
 
         <h4 class="ui dividing header"></h4>
-        <input class="ui inverted green button" id="EquipoBtn" type="submit" value="Añadir Equipo"/>
+        <button style="margin: 15px;" id="btncloseequipomod" class="ui inverted left floated red button" type="button">Cerrar</button>
+        <input style="margin: 15px;" class="ui inverted right floated green button" id="EquipoBtn" type="submit" value="Añadir Equipo"/>
     </form>
 </div>
 
@@ -315,10 +321,100 @@
 
     <h4 class="ui dividing header" id="ordenassignHeader" >Mostrando técnicos</h4>
     <br>
-        <select class="ui fluid selection dropdown" id="tecnicoOpts" >
+        <select class="ui dropdown fluid selection" id="tecnicoOpts" >
         </select>
     <br>
-    <button class="ui inverted green button" id="selectTecnicoBtn">Asignar Técnico</button>
+    <button style="margin: 15px;" id="btncloseordenmod" class="ui inverted left floated red button" type="button">Cerrar</button>
+    <button style="margin: 15px;" class="ui inverted right floated green button" id="selectTecnicoBtn" type="button">Asignar Técnico</button>
+</div>
+
+<div class="ui modal" id="SurveyMod">
+
+    <center>
+            <div class="ui icon header">
+                <i class="clipboard outline icon"></i>
+                <p id="pOrdenFolio">Tu Orden con No. Folio : </p>
+                <p>Ha finalizado, por favor responde la siguiente encuesta.</p>
+            </div>
+    </center>
+
+   <form class="ui form" style="padding:15px;" id="SurveyForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h4 class="ui dividing header">ENCUESTA DE SERVICIO</h4>
+       <div class="scrolling content">
+       <div class="field">
+           <h4 class="ui dividing header">CONFIABILIDAD</h4>
+            <div class="field">
+                <label>{{ formsurvey.choice11.label_tag }}</label>
+                {{ formsurvey.choice11 }}
+            </div>
+           <div class="field">
+                <label>{{ formsurvey.choice12.label_tag }}</label>
+                {{ formsurvey.choice12 }}
+            </div>
+           <div class="field">
+                <label>{{ formsurvey.choice13.label_tag }}</label>
+                {{ formsurvey.choice13 }}
+            </div>
+       </div>
+       <div class="field">
+           <h4 class="ui dividing header">RESPONSABILIDAD</h4>
+            <div class="field">
+                <label>{{ formsurvey.choice21.label_tag }}</label>
+                {{ formsurvey.choice21 }}
+            </div>
+           <div class="field">
+                <label>{{ formsurvey.choice22.label_tag }}</label>
+                {{ formsurvey.choice22 }}
+            </div>
+           <div class="field">
+                <label>{{ formsurvey.choice23.label_tag }}</label>
+                {{ formsurvey.choice23 }}
+            </div>
+           <div class="field">
+                <label>{{ formsurvey.choice24.label_tag }}</label>
+                {{ formsurvey.choice24 }}
+            </div>
+       </div>
+       <div class="field">
+           <h4 class="ui dividing header">SEGURIDAD Y EMPATIA</h4>
+            <div class="field">
+                <label>{{ formsurvey.choice31.label_tag }}</label>
+                {{ formsurvey.choice31 }}
+            </div>
+           <div class="field">
+                <label>{{ formsurvey.choice32.label_tag }}</label>
+                {{ formsurvey.choice32 }}
+            </div>
+           <div class="field">
+                <label>{{ formsurvey.choice33.label_tag }}</label>
+                {{ formsurvey.choice33 }}
+            </div>
+       </div>
+       <div class="field">
+           <h4 class="ui dividing header">INFRAESTRUCTURA Y SERVICIOS GENERALES</h4>
+            <div class="field">
+                <label>{{ formsurvey.choice41.label_tag }}</label>
+                {{ formsurvey.choice41 }}
+            </div>
+           <div class="field">
+                <label>{{ formsurvey.choice42.label_tag }}</label>
+                {{ formsurvey.choice42 }}
+            </div>
+           <div class="field">
+                <label>{{ formsurvey.choice43.label_tag }}</label>
+                {{ formsurvey.choice43 }}
+            </div>
+           <div class="field">
+                <label>{{ formsurvey.choice44.label_tag }}</label>
+                {{ formsurvey.choice44 }}
+            </div>
+       </div>
+       </div>
+        <h4 class="ui dividing header"></h4>
+       <!--<button style="margin: 15px;" id="btnclosesurveymod" class="ui inverted left floated red button" type="button">Cerrar</button>-->
+       <input style="margin: 15px;"  class="ui inverted right floated green button" type="submit" value="Enviar encuesta"/>
+    </form>
 </div>
 
 </body>
@@ -326,6 +422,7 @@
 
 <script>
     $(".loader").hide();
+
     {%include "index.js" %}
 
 

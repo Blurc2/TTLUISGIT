@@ -15,6 +15,7 @@ urlpatterns=[
     url(r'^ajax/ShowRegisters/$', views.ShowRegisters, name='ShowRegisters'),
     url(r'^ajax/ShowOrdersAdmin/$', views.ShowOrdersAdmin, name='ShowOrdersAdmin'),
     url(r'^ajax/ShowOrdersDoc/$', views.ShowOrdersDoc, name='ShowOrdersDoc'),
+    url(r'^ajax/ShowOrdersTec/$', views.ShowOrdersTec, name='ShowOrdersTec'),
     url(r'^ajax/ShowEquipment/$', views.ShowEquipment, name='ShowEquipment'),
     url(r'^ajax/ShowEquipmentDoc/$', views.ShowEquipmentDoc, name='ShowEquipmentDoc'),
     url(r'^ajax/DelTecnicos/$', views.DelTecnicos, name='DelTecnicos'),
@@ -28,4 +29,7 @@ urlpatterns=[
     url(r'^ajax/ValidarDocente/$', views.ValidarDocente, name='ValidarDocente'),
     url(r'^ajax/getSubDepartments/$', views.getSubDepartments, name='getSubDepartments'),
     url(r'^ajax/getUserInfo/$', views.getUserInfo, name='getUserInfo'),
+    url(r'^ajax/getOrder/$', views.getOrder, name='getOrder'),
+    url(r'^ajax/finishOrder/$', views.finishOrder, name='finishOrder'),
+    url(r'^ajax/cancelOrder/$', views.cancelOrder, name='cancelOrder'),
 ]

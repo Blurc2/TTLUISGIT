@@ -2,7 +2,7 @@ from django import forms
 
 
 class formlogin(forms.Form):
-    correo = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Ingresa tu usuario'}),label="Usuario", max_length=100,required=True)
+    correo = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Ingresa tu correo'}),label="Correo", max_length=100,required=True)
     passs = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Ingresa tu contraseña'}), label="Contraseña", max_length=100,required=True)
 
 class formDepartamento(forms.Form):
@@ -51,14 +51,34 @@ class formregistro(forms.Form):
     email = forms.CharField(widget=forms.EmailInput(attrs={'placeholder': 'Correo'}), label="Email", max_length=60,required=True)
     contra = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Contraseña'}), label="Contraseña", max_length=60,required=True)
     nombre = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Usuario'}), label="Nombre", max_length=60,required=True)
-    ap = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Apellido Paterno'}), label="Apellido Paterno", max_length=60,required=True)
-    am = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Apellido Materno'}), label="Apellido Materno", max_length=60,required=True)
+    ap = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Primer Apellido'}), label="Primer Apellido", max_length=60,required=True)
+    am = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Segundo Apellido'}), label="Segundo Apellido", max_length=60,required=True)
     telefono = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Teléfono'}), label="Teléfono",required=True)
     extension = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Extensión'}), label="Extensión",required=False)
     tipoEmpleado = forms.CharField(label="tipoEmpleado", max_length=60,required=False)
     tipotecnico = forms.ChoiceField(choices=(), label="Tipo de técnico")
     depto = forms.ChoiceField(choices=(), label="Departamento",required=True)
-    subdepto = forms.ChoiceField(choices=(), label="SubDepartamento",required=True)
+    subdepto = forms.ChoiceField(choices=(), label="SubDepartamento",required=False)
+
+class formSurvey(forms.Form):
+    choice =(
+        ('SI', 'SI'),
+        ('NO', 'NO')
+    )
+    choice11 = forms.ChoiceField(choices=choice, label="Los requisitos presentados, corresponden a los requisitos solicitados.", required=True)
+    choice12 = forms.ChoiceField(choices=choice, label="Las dudas o inquietudes, se resolvieron satisfactoriamente.", required=True)
+    choice13 = forms.ChoiceField(choices=choice, label="La gestión del tramite y/o servicio fue satisfactoria.", required=True)
+    choice21 = forms.ChoiceField(choices=choice, label="Le informaron sobre los requisitos aplicables al tramite o servicio realizado.", required=True)
+    choice22 = forms.ChoiceField(choices=choice, label="El trámite o servicio se realizó en los periodos y horarios establecidos.", required=True)
+    choice23 = forms.ChoiceField(choices=choice, label="Se revisaron y cotejaron los datos e información presentada.", required=True)
+    choice24 = forms.ChoiceField(choices=choice, label="Los recursos (humanos y materiales) fueron suficientes y eficientes para el trámite o servicio.", required=True)
+    choice31 = forms.ChoiceField(choices=choice, label="Se informó sobre el manejo confidencial de datos e información presentada.", required=True)
+    choice32 = forms.ChoiceField(choices=choice, label="El trato que se le dio fue el adecuado por parte del personal operativo o responsable.", required=True)
+    choice33 = forms.ChoiceField(choices=choice, label="Percibe confiable el trámite y servicio brindado por el personal responsable.", required=True)
+    choice41 = forms.ChoiceField(choices=choice, label="El acceso y rutas de emergencia estan indicadas.", required=True)
+    choice42 = forms.ChoiceField(choices=choice, label="Las condiciones fueron las adecuadas para realizar el trámite o servicio.", required=True)
+    choice43 = forms.ChoiceField(choices=choice, label="El área cuenta con los servicios generales (iluminación, sanitarios, acceso, limpieza, etc.)", required=True)
+    choice44 = forms.ChoiceField(choices=choice, label="Las herramientas y equipos fueron los adecuados para el trámite o servicio realizado.", required=True)
 
 class formOrden(forms.Form):
     def __init__(self, typework_choices,equipo_choices, *args, **kwargs):

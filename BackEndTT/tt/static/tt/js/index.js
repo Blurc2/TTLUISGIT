@@ -4,6 +4,7 @@ var idDepartamento = -1
 var deptoName = ""
 var equipoName = ""
 var formorder = ""
+var tipouser = ""
 
 function showRegisterModal()
 {
@@ -69,38 +70,88 @@ function showRegisterModal()
 
 }
 
+function showSurvey(index,json,limit)
+{
+    if(index==limit)
+        return
+    else
+    {
+        $("#SurveyForm").trigger("reset")
+        $("#SurveyMod").modal({closable: false}).modal('show')
+        $("#pOrdenFolio").text("Tu Orden con No. Folio :"+json[index]['pk'])
+
+        $("form#SurveyForm").submit(function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $("#SurveyMod").modal('hide')
+            showSurvey(index+1,json,limit)
+        })
+    }
+
+}
 
 $(document).ready(function()
 {
+
     formorder = $("#divformorder").html()
     $("#contenido").empty()
+    // $("#btnclosesurveymod").on('click',function(){
+    //     $("#SurveyMod").modal('hide')
+    // })
+     $("#btnclosedepartmentmod").on('click',function(){
+        $("#DepartmentMod").modal('hide')
+    })
+     $("#btncloseequipomod").on('click',function(){
+        $("#EquipoMod").modal('hide')
+    })
+     $("#btncloseordenmod").on('click',function(){
+        $("#OrdenMod").modal('hide')
+    })
+     $("#btncloseregmod").on('click',function(){
+        $("#regform").modal('hide')
+    })
+
+{% if ordenes %}
+
+    console.log(JSON.parse("{{ ordenes }}".split("&#39;").join('"')))
+
+    var json = JSON.parse("{{ ordenes }}".split("&#39;").join('"'))
+    showSurvey(0,json,json.length)
+
+{% endif%}
+
 {% if userName %}
     $("#username").text('{{ userName }}')
+    tipouser = "{{ usertype }}"
     $(".sesionforms").hide()
     $(".sesion").show()
     {% if usertype == "Administrador" %}
         $(".itemadmin").show('slow')
-        if(sessionStorage.getItem("menuItem") == "TECNICOS")
+        if(sessionStorage.getItem("menuItem") === "TECNICOS")
             showTec()
-        else if(sessionStorage.getItem("menuItem") == "DEPARTAMENTOS")
+        else if(sessionStorage.getItem("menuItem") === "DEPARTAMENTOS")
             showDep()
-        else if(sessionStorage.getItem("menuItem") == "REGISTROS")
+        else if(sessionStorage.getItem("menuItem") === "REGISTROS")
             showRegisters()
-        else if(sessionStorage.getItem("menuItem") == "EQUIPO")
+        else if(sessionStorage.getItem("menuItem") === "EQUIPO")
             showEquipment()
-        else if(sessionStorage.getItem("menuItem") == "ORDENESADMIN")
+        else if(sessionStorage.getItem("menuItem") === "ORDENESADMIN")
             showOrdersAdmin()
 //        else if(sessionStorage.getItem("menuItem") == "SUBDEPTO")
 //            showSubDepartments(deptoName)
     {% elif usertype == "Docente" %}
         $(".itemdocente").show('slow')
-        if(sessionStorage.getItem("menuItem") == "EQUIPODOCENTE")
+        if(sessionStorage.getItem("menuItem") === "EQUIPODOCENTE")
             showEquipmentDoc()
-        else if(sessionStorage.getItem("menuItem") == "ORDENDOCENTE")
+        else if(sessionStorage.getItem("menuItem") === "ORDENDOCENTE")
             showOrderForm()
+        else if(sessionStorage.getItem("menuItem") === "ORDENESDOCENTE")
+            showOrdersDoc()
 
     {% elif usertype == "Tecnico" %}
         $(".itemtecnico").show('slow')
+        if(sessionStorage.getItem("menuItem") === "ORDERSTEC")
+            showOrdersTec()
     {% endif %}
 {% else %}
     $(".sesionforms").show()
@@ -397,82 +448,99 @@ if($("#headerFormReg").text()=="Registrate")
                         title:"<center>CORREO NO VALIDO</center>",
                         iconSource:"fontAwesome",
                         sound:false,
-                        msg: "No se pudo validar el correo, el correo debe tener terminación @ipn.com.mx"
+                        msg: "No se pudo validar el correo, el correo debe tener terminación ipn.mx"
                         });
     }
 }
 else
 {
-    if(update)
+    if(isIpn(formData.get('email')))
     {
-        formData.append('tipoEmpleado', "TECNICOUPDATE");
-        $("form#registro").addClass( "loading" )
-        $("#badreg").hide();
-        $("#okreg").hide();
-        $.ajax({
-        url: "{% url 'tt:Registrar' %}",
-        type: 'POST',
-        data: formData,
-        success: function (data) {
-        console.log(data.code)
-        $("form#registro").removeClass( "loading" )
-        if(data.code == 0)
+        if(update)
+        {
+            formData.append('tipoEmpleado', "TECNICOUPDATE");
+            $("form#registro").addClass( "loading" )
+            $("#badreg").hide();
+            $("#okreg").hide();
+            $.ajax({
+            url: "{% url 'tt:Registrar' %}",
+            type: 'POST',
+            data: formData,
+            success: function (data) {
+            console.log(data.code)
+            $("form#registro").removeClass( "loading" )
+            if(data.code == 0)
+                {
+                    $("#registererror").text("Error, intenta más tarde.")
+                    $("#badreg").fadeIn("slow");
+                }
+            else if(data.code == 2)
             {
-                $("#registererror").text("Error, intenta más tarde.")
+                $("#registererror").text("Error al intentar actualizar, intenta de nuevo más tarde.")
                 $("#badreg").fadeIn("slow");
             }
-        else if(data.code == 2)
-        {
-            $("#registererror").text("Error al intentar actualizar, intenta de nuevo más tarde.")
-            $("#badreg").fadeIn("slow");
+            else
+                {
+                    $("#okregmsg").text("Técnico actualizado exitosamente")
+                    $("#okreg").fadeIn("slow");
+                    setTimeout(function(){location.reload();},2500)
+                }
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+            });
+
         }
         else
+        {
+            formData.append('tipoEmpleado', "TECNICO");
+            $("form#registro").addClass( "loading" )
+            $("#badreg").hide();
+            $("#okreg").hide();
+            $.ajax({
+            url: "{% url 'tt:Registrar' %}",
+            type: 'POST',
+            data: formData,
+            success: function (data) {
+            console.log(data.code)
+            $("form#registro").removeClass( "loading" )
+            if(data.code == 0)
+                {
+                    $("#registererror").text("Error, intenta más tarde.")
+                    $("#badreg").fadeIn("slow");
+                }
+            else if(data.code == 2)
             {
-                $("#okregmsg").text("Técnico actualizado exitosamente")
-                $("#okreg").fadeIn("slow");
-                setTimeout(function(){location.reload();},2500)
+                $("#registererror").text("Este correo ya se encuentra registrado en el sistema.")
+                $("#badreg").fadeIn("slow");
             }
-        },
-        cache: false,
-        contentType: false,
-        processData: false
-        });
+            else
+                {
+                    $("#okregmsg").text("Técnico registrado exitosamente")
+                    $("#okreg").fadeIn("slow");
+                    setTimeout(function(){location.reload();},2500)
+                }
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+            });
+        }
 
     }
     else
     {
-        formData.append('tipoEmpleado', "TECNICO");
-        $("form#registro").addClass( "loading" )
-        $("#badreg").hide();
-        $("#okreg").hide();
-        $.ajax({
-        url: "{% url 'tt:Registrar' %}",
-        type: 'POST',
-        data: formData,
-        success: function (data) {
-        console.log(data.code)
-        $("form#registro").removeClass( "loading" )
-        if(data.code == 0)
-            {
-                $("#registererror").text("Error, intenta más tarde.")
-                $("#badreg").fadeIn("slow");
-            }
-        else if(data.code == 2)
-        {
-            $("#registererror").text("Este correo ya se encuentra registrado en el sistema.")
-            $("#badreg").fadeIn("slow");
-        }
-        else
-            {
-                $("#okregmsg").text("Técnico registrado exitosamente")
-                $("#okreg").fadeIn("slow");
-                setTimeout(function(){location.reload();},2500)
-            }
-        },
-        cache: false,
-        contentType: false,
-        processData: false
-        });
+    Lobibox.notify('error', {
+                        size: 'mini',
+                        rounded: true,
+                        delayIndicator: true,
+                        icon: true,
+                        title:"<center>CORREO NO VALIDO</center>",
+                        iconSource:"fontAwesome",
+                        sound:false,
+                        msg: "No se pudo validar el correo, el correo debe tener terminación ipn.mx"
+                        });
     }
 
 }
@@ -494,14 +562,15 @@ var formData = new FormData(this);
     if(data.logincode == 0)
         {
             $("#username").text(data.userName)
-            if(data.usertype == "Administrador")
+            if(data.usertype === "Administrador")
                 $(".itemadmin").show('slow')
-            else if(data.usertype == "Docente")
+            else if(data.usertype === "Docente")
                 $(".itemdocente").show('slow')
-            else if(data.usertype == "Tecnico")
+            else if(data.usertype === "Tecnico")
                 $(".itemtecnico").show('slow')
             $(".sesionforms").hide('slow')
             $(".sesion").show('slow')
+            tipouser = data.usertype
         }
     else if(data.logincode == 1)
         {
@@ -1064,6 +1133,7 @@ function createEquipmentTable(json)
   '<thead>'+
   '  <tr><th colspan="2">Identificador</th>'+
     '  <th colspan="2">Tipo de Equipo</th>'+
+    '  <th colspan="2">Estado del Equipo</th>'+
   '  <th colspan="1" style="text-align: center;">Opciones</th>'+
   '</tr></thead>'+
   '<tbody>';
@@ -1080,7 +1150,9 @@ function createEquipmentTable(json)
       html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+id+"infoequipo").replace(/\s+/g, '')+'"><i class="fas fa-desktop"></i>'+
         id+
           '<td colspan="2">'+
-        element['tipo_equipo__nombre']+'</td>'
+        element['tipo_equipo__nombre']+'</td>'+
+           '<td colspan="2">'+
+          ((element['estado']) ? "En mantenimiento" : "Buen Estado")+'</td>'
         html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+id+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
           '<div class="or" data-text="o"></div>'+
           '<button class="ui positive button" id="'+(element['pk']+id+"update").replace(/\s+/g, '')+'">Editar</button></div></td></tr>';
@@ -1089,7 +1161,7 @@ function createEquipmentTable(json)
   html +='<tfoot class="full-width">'+
     '<tr>'+
 
-      '<th colspan="5">'+
+      '<th colspan="7">'+
       '  <div class="ui right floated small primary labeled icon button" id="agregarequipo">'+
      '     <i class="fas fa-laptop"></i> Agregar Equipo'+
     '    </div>'+
@@ -1160,6 +1232,7 @@ function createEquipmentDocTable(json)
   '<thead>'+
   '  <tr><th colspan="2">Identificador</th>'+
     '  <th colspan="2">Tipo de Equipo</th>'+
+    '  <th colspan="2">Estado del Equipo</th>'+
   '</tr></thead>'+
   '<tbody>';
   if($.isEmptyObject(json))
@@ -1176,7 +1249,9 @@ function createEquipmentDocTable(json)
       html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+id+"infoequipo").replace(/\s+/g, '')+'"><i class="fas fa-desktop"></i>'+
         id+
           '<td colspan="2">'+
-        element['tipo_equipo__nombre']+'</td>'
+        element['tipo_equipo__nombre']+'</td>'+
+          '<td colspan="2">'+
+          ((element['estado']) ? "En mantenimiento" : "Buen Estado")+'</td>'
         html+='</tr>';
     });
 
@@ -1444,7 +1519,58 @@ function showOrdersAdmin()
     if(!$.isEmptyObject(json))
     {
         json['orden'].forEach(function(element){
+
+            $(("#"+(element['nofolio']+"ver")).replace(/\s+/g, '')).on('click',function(){
+                showOrderInfo(element['nofolio'],element['estado'])
+            })
+
+            $(("#"+(element['nofolio']+"cancelar")).replace(/\s+/g, '')).on('click',function(){
+                $.ajax({
+                        url: "{% url 'tt:cancelOrder' %}",
+                        type: 'GET',
+                        data: {'idOrden':element['nofolio']},
+                        success: function (data) {
+                            if(data.code == 1)
+                            {
+                            Lobibox.notify('success', {
+                                        size: 'mini',
+                                        rounded: true,
+                                        delayIndicator: true,
+                                        icon: true,
+                                        title:"<center>Orden Eliminada</center>",
+                                        iconSource:"fontAwesome",
+                                        sound:false,
+                                        msg: "Orden eliminada correctamente."
+                                        });
+                            $('#OrdenMod').modal('hide')
+                            setTimeout(function(){location.reload();},2500)
+                            }
+                            else
+                            {
+                            Lobibox.notify('error', {
+                                        size: 'mini',
+                                        rounded: true,
+                                        delayIndicator: true,
+                                        icon: true,
+                                        title:"<center>Error al eliminar orden</center>",
+                                        iconSource:"fontAwesome",
+                                        sound:false,
+                                        msg: "No se pudo eliminar la orden, intenta de nuevo más tarde"
+                                        });
+                            }
+
+                        }
+                        });
+            })
+
+
+
+            $(".ui.dropdown").dropdown()
+
             $(("#"+(element['nofolio']+"asignar")).replace(/\s+/g, '')).on('click',function(){
+
+                $('#OrdenMod').modal('show')
+
                 $("#ordenassignHeader").text("Mostrando técnicos de "+element['trabajo__nombre'])
                 var newOptions = {};
                 var index = 0;
@@ -1460,10 +1586,8 @@ function showOrdersAdmin()
                      .attr("value", value).text(value));
                 });
 
-                $('#OrdenMod').modal('show')
-
-                $("#selectTecnicoBtn").on('click',function(){
-
+                    $("#selectTecnicoBtn").on('click',function(){
+                    // alert($("#tecnicoOpts").val())
                     $.ajax({
                         url: "{% url 'tt:AssignTec' %}",
                         type: 'GET',
@@ -1501,6 +1625,8 @@ function showOrdersAdmin()
                         }
                         });
                 })
+
+
             })
         })
 
@@ -1551,16 +1677,26 @@ function createOrdersAdminTable(json)
         '</td><td colspan="3">Id Empleado: '+solicitante['pk']+', Nombre: '+solicitante['nombre']+' '+solicitante['ap']+' '+solicitante['am']+'</td>';
       if(element['estado']==-1)
       {
-          html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Cancelar</button>'+
+          html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Borrar</button>'+
           '<div class="or" data-text="o"></div>'+
-          '<button class="ui positive button" id="'+(element['nofolio']+"asignar").replace(/\s+/g, '')+'">Asignar</button></div></td></tr>';
+          '<button class="ui orange button" id="'+(element['nofolio']+"asignar").replace(/\s+/g, '')+'">Asignar</button>'+
+           '<div class="or" data-text="o"></div>'+
+          '<button class="ui positive button" id="'+(element['nofolio']+"ver").replace(/\s+/g, '')+'">Ver Detalles</button></div></td></tr>';
       }
       else if(element['estado']==0)
       {
-          html+='<td><center><button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Cancelar</button></center></td></tr>';
+          html+='<td colspan="1" class="right aligned collapsing"><center><div class="ui buttons"><button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Borrar</button>'+
+          '<div class="or" data-text="o"></div>'+
+          '<button class="ui positive button" id="'+(element['nofolio']+"ver").replace(/\s+/g, '')+'">Ver Detalles</button></center></div></td></tr>';
       }
       else {
-          html+='<td><center><button class="ui positive button" id="'+(element['nofolio']+"pdf").replace(/\s+/g, '')+'">Generar PDF</button></center></td></tr>';
+
+          html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Borrar</button>'+
+          '<div class="or" data-text="o"></div>'+
+          '<button class="ui orange button" id="'+(element['nofolio']+"ver").replace(/\s+/g, '')+'">Ver Detalles</button>'+
+           '<div class="or" data-text="o"></div>'+
+          '<button class="ui positive button" id="'+(element['nofolio']+"pdf").replace(/\s+/g, '')+'">Generar PDF</button></div></td></tr>';
+
       }
 
     });
@@ -1584,27 +1720,58 @@ function showOrdersDoc()
     success: function (data) {
         var json = data
         console.log(json)
-        $("#contenido").append(createOrdersDocTable(json))
+        $("#contenido").append(createOrdersDocTable(json,"Doc"))
         $("#tableorder").fadeIn('slow')
         if(!$.isEmptyObject(json))
         {
-
+            json['solicitante'].forEach(function(element){
+              $("#"+(element['ordenes__nofolio']+"ver").replace(/\s+/g, '')).on('click',function () {
+                showOrderInfo(element['ordenes__nofolio'],element['ordenes__estado'])
+              })
+            })
 
         }
     }
     });
 }
 
-function createOrdersDocTable(json)
+function showOrdersTec()
 {
+    $("#contenido").empty()
+    sessionStorage.setItem("menuItem", "ORDERSTEC")
+    $.ajax({
+    url: "{% url 'tt:ShowOrdersTec' %}",
+    type: 'POST',
+    data: {x:""},
+    success: function (data) {
+        var json = data
+        console.log(json)
+        $("#contenido").append(createOrdersDocTable(json,"Tec"))
+        $("#tableorder").fadeIn('slow')
+        if(!$.isEmptyObject(json))
+        {
+            json['solicitante'].forEach(function(element){
+                $("#"+(element['ordenes__nofolio']+"ver").replace(/\s+/g, '')).on('click',function () {
+                    showOrderInfo(element['ordenes__nofolio'],element['ordenes__estado'])
+                })
+            })
 
+        }
+    }
+    });
+}
+
+function createOrdersDocTable(json,type)
+{
+    var typ = (type==="Doc") ? "Técnico asignado" : "Solicitante"
     var html ='<table id="tableorder" style="display:none;" class="ui blue celled table">'+
   '<thead>'+
   '  <tr><th colspan="1">No. Folio</th>'+
   '  <th colspan="2">Fecha de inicio</th>'+
   '  <th colspan="2">Fecha de fin</th>'+
   '  <th colspan="1">Estado</th>'+
-  '  <th colspan="3">Técnico Asignado</th>'+
+  '  <th colspan="3">'+typ+'</th>'+
+  '  <th colspan="1">opciones</th>'+
   '</tr></thead>'+
   '<tbody>';
   if($.isEmptyObject(json) || json['solicitante'][0]['ordenes__nofolio'] == null)
@@ -1616,7 +1783,7 @@ function createOrdersDocTable(json)
     return html
   }
   json['solicitante'].forEach(function(element) {
-      var solicitante = element['tecnico'][0]
+      var solicitante = (type === "Doc") ? element['tecnico'][0] : element['docente'][0]
       // alert(solicitante)
       var estado = ""
       var clase = ""
@@ -1637,13 +1804,14 @@ function createOrdersDocTable(json)
         '</td><td colspan="2">'+((element['ordenes__end']!=null) ? element['ordenes__end'] : "Pendiente")+'</td>'+
         '</td><td colspan="1">'+estado+'</td>'+
         // '</td><td colspan="1"><center><img style="width: 10%; height:10%;" src="{% static 'tt/img/red.png' %}"/></center></td>'+
-        '</td><td colspan="3">'+emp+'</td></tr>';
+        '</td><td colspan="3">'+emp+'</td>'+
+      '<td><center><button class="ui positive button" id="'+(element['ordenes__nofolio']+"ver").replace(/\s+/g, '')+'">Ver</button></center></td></tr>';
 
     });
 
-  html +=
-'  </tbody>'+
-'</table>';
+    html +=
+        '  </tbody>' +
+        '</table>';
 
 return html;
 
@@ -1777,6 +1945,179 @@ return html;
 
 }
 
+function showOrderInfo(id,estado)
+{
+    $("#contenido").empty()
+    // sessionStorage.setItem("menuItem", "ORDENINFO");
+    $.ajax({
+            url : "{% url "tt:getOrder" %}",
+            data : {"idOrden":id},
+            dataType : 'json',
+            success : function(data) {
+                console.log(data);
+                $("#contenido").append(createorderinfotable(data))
+                if(tipouser === "Tecnico" && estado === 0)
+                {
+                    $("#divbuttonfinishorder").show()
+
+                    $("#divbuttonfinishorder").on('click',function(){
+                         $.ajax({
+                            url : "{% url "tt:finishOrder" %}",
+                            data : {"idOrden":id,"msg":$.trim($("#textareacommenttec").val())},
+                            dataType : 'json',
+                            success : function(data) {
+                                console.log(data);
+                                if(data.code == 1)
+                                {
+                                    Lobibox.notify('success', {
+                                    size: 'mini',
+                                    rounded: true,
+                                    delayIndicator: true,
+                                    icon: true,
+                                    title:"<center>Orden finalizada</center>",
+                                    iconSource:"fontAwesome",
+                                    sound:false,
+                                    msg: "Orden finalizada con exito"
+                                    });
+                                    setTimeout(function(){location.reload();},2500)
+
+                                }
+                                else
+                                {
+                                    Lobibox.notify('error', {
+                                    size: 'mini',
+                                    rounded: true,
+                                    delayIndicator: true,
+                                    icon: true,
+                                    title:"<center>Error al finalizar la orden</center>",
+                                    iconSource:"fontAwesome",
+                                    sound:false,
+                                    msg: "No se pudo finalizar la orden, intenta de nuevo más tarde"
+                                    });
+                                }
+
+                            },
+                            error : function(xhr, status) {
+                                console.log("error ");
+                            },
+                        });
+                    })
+                }
+
+                $("#divorderinfo").fadeIn('slow')
+            },
+            error : function(xhr, status) {
+                console.log("error ");
+            },
+        });
+
+}
+
+function createorderinfotable(json) {
+    var clasestate = ""
+    var clasemsg = ""
+    if(json['orden'][0]['estado'] == -1)
+    {
+        clasestate = "negative"
+        clasemsg = "En espera de ser asignada a un técnico"
+    }
+    else if(json['orden'][0]['estado'] == 0)
+    {
+        clasestate = "warning"
+        clasemsg = "Asignada, en espera de ser resuelta"
+    }
+    else
+    {
+        clasestate = "positive"
+        clasemsg = "Orden finalizada"
+    }
+    html = '<div class="ui sixteen wide column" id="divorderinfo" style="display: none;">\n' +
+        '        <center>\n' +
+        '            <div class="ui icon header">\n' +
+        '                <i class="clipboard outline icon"></i>\n' +
+        '                Detalles de la orden No. Folio : '+json['orden'][0]['pk']+'\n' +
+        '            </div>\n' +
+        '        </center>\n' +
+        '        <div class="ui segments">\n' +
+        '            <div class="ui segment">\n' +
+        '                <h3>Datos generales</h3>\n' +
+        '            </div>\n' +
+        '            <div class="ui segments">\n' +
+        '                <div class="ui segment">\n' +
+        '                    <p><i class="user outline icon"></i>Solicitante : '+json['empleados'][0]['nombre']+' '+json['empleados'][0]['ap']+' '+json['empleados'][0]['am']+'</p>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                     <p><i class="user icon"></i>Técnico asignado : '+((json['empleados'].length>1) ? json['empleados'][1]['nombre']+' '+json['empleados'][1]['ap']+' '+json['empleados'][1]['am'] : "Sin técnico asignado")+'</p>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                   <p><i class="laptop icon"></i>Equipo : '+((json['orden'][0]['equipo__ns'] != null) ? "Tipo : "+json['orden'][0]['equipo__tipo_equipo__nombre']+", Identificador: "+json['orden'][0]['equipo__ns'] : "Tipo : "+json['orden'][0]['equipo__tipo_equipo__nombre']+", Identificador: "+json['orden'][0]['equipo__cambs'])+'</p>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                   <p><i class="gavel icon"></i>Tipo de trabajo : '+json['orden'][0]['trabajo__nombre']+'</p>\n' +
+        '                </div>\n' +
+        '                <div class="ui attached '+clasestate+' message ">\n' +
+        '                <p><i class="check circle icon"></i>Estado : '+clasemsg+'</p>\n' +
+        '            </div>\n' +
+        '            </div>\n' +
+        '            <div class="ui segment">\n' +
+        '                <h3>Fecha de la orden</h3>\n' +
+        '            </div>\n' +
+        '            <div class="ui horizontal segments">\n' +
+        '                <div class="ui segment">\n' +
+        '                    <p><i class="calendar alternate outline icon"></i>Fecha de inicio : '+json['orden'][0]['start']+'</p>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                    <p><i class="calendar alternate icon"></i>Fecha de fin : '+((json['orden'][0]['end'] != null) ? json['orden'][0]['end'] : "Orden no finalizada") +'</p>\n' +
+        '                </div>\n' +
+        '            </div>\n' +
+        '            <div class="ui segment">\n' +
+        '                <h3>Detalles de la orden</h3>\n' +
+        '            </div>\n' +
+        '            <div class="ui horizontal segments">\n' +
+        '                <div class="ui segment">\n' +
+        '                    <p><i class="building outline icon"></i>Departamento : '+json['orden'][0]['depto__nombre']+", Edificio: "+json['orden'][0]['depto__ubicacion__edificio']+", Piso: "+json['orden'][0]['depto__ubicacion__piso']+", Sala: "+json['orden'][0]['depto__ubicacion__sala']+'</p>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                    <p><i class="building icon"></i>Subdepartamento : '+((json['orden'][0]['subdepto__nombre']!=null) ? json['orden'][0]['subdepto__nombre']+", Edificio: "+json['orden'][0]['subdepto__ubicacion__edificio']+", Piso: "+json['orden'][0]['subdepto__ubicacion__piso']+", Sala: "+json['orden'][0]['subdepto__ubicacion__sala'] : "Sin subdepartamento")+'</p>\n' +
+        '                </div>\n' +
+        '            </div>\n' +
+        '            <div class="ui segment " id="divincidence">\n' +
+        '                <p><i class="exclamation triangle icon"></i>Incidencia : '+((json['orden'][0]['incidencia__tipoincidencia'] != null) ? json['orden'][0]['incidencia__tipoincidencia'] : "Sin incidencia")+'</p>\n' +
+        '            </div>\n' +
+        '            <div class="ui segment" id="divdetailinstalation" style="display: none;">\n' +
+        '                <h3>Detalles de instalación</h3>\n' +
+        '            </div>\n' +
+        '            <div class="ui segment" id="divtableinstalation" style="display: none;">\n' +
+        '                <div class="ui relaxed divided list" id="instalationcontent">\n' +
+        '                    <div class="item">\n' +
+        '                        <div class="content">\n' +
+        '                            <a class="header">Google Chrome</a>\n' +
+        '                        </div>\n' +
+        '                    </div>\n' +
+        '                </div>\n' +
+        '            </div>\n' +
+        '            <div class="ui segment">\n' +
+        '                <h3>Comentarios</h3>\n' +
+        '            </div>\n' +
+        '            <div class="ui horizontal segments">\n' +
+        '                <div class="ui segment">\n' +
+        '                    <p>Comentarios del solicitante</p>\n' +
+        '                    <textarea style="width: 75%;" readonly>'+json['desc'].find(function(element){return element['who'] === 0})['descripcion']+'</textarea>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                    <p>Comentarios del técnico</p>\n' +
+        '                    <textarea style="width: 75%;" id="textareacommenttec">'+((json['desc'].find(function(element){return element['who'] === 1}) !== undefined) ? json['desc'].find(function(element){return element['who'] === 1})['descripcion'] : "")+'</textarea>\n' +
+        '                </div>\n' +
+        '            </div>\n' +
+        '            <div class="ui clearing segment" id="divbuttonfinishorder" style="display: none;">\n' +
+        '                <button class="ui inverted right floated blue button">Finalizar orden</button>\n' +
+        '            </div>\n' +
+        '        </div>\n' +
+        '    </div>'
+
+    return html
+}
+
 function showOrderForm()
 {
     $("#contenido").empty()
@@ -1838,6 +2179,11 @@ function showOrderForm()
                         $("#registererrororden").text("Esta orden ya se encuentra registrada en el sistema")
                         $("#badregorden").fadeIn("slow");
                     }
+                    else if(data.code == 3)
+                    {
+                        $("#registererrororden").text("Este equipo ya se encuentra asignado a una orden, espera a que finalice para asignarle otra.")
+                        $("#badregorden").fadeIn("slow");
+                    }
                     else
                         {
                             $("#okregmsgorden").text("Orden registrada exitosamente")
@@ -1867,9 +2213,9 @@ function isIpn(url)
 *   Función utilizada para validar si una cadena es una url de ipn.
 *   @param {url} String - URL a comparar con la expresión regular.
 */
- if (/^([a-zA-Z0-9]+)([\.{1}])?([a-zA-Z0-9]+)\@ipn([\.])mx/g.test(url))
-     return true;
+ // if (/^([a-zA-Z0-9]+)([\.{1}])?([a-zA-Z0-9]+)\@([a-zA-Z0-9]*)ipn([\.])mx/g.test(url))
+ //     return true;
 
- return false;
+ return url.endsWith("ipn.mx");
 
 }

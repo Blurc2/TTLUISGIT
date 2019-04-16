@@ -1,5 +1,7 @@
+import ast
 import datetime
 
+from django.contrib.auth import authenticate, login, logout
 from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
@@ -11,16 +13,26 @@ import time
 from django.core.mail import send_mail
 from .forms import *
 from .models import *
-
+from .firebase import Firebase
+firebase = Firebase()
 
 @csrf_exempt
 def Index(request):
     forml = formlogin()
     form2 = formDepartamento()
+    formsurvey = formSurvey()
     deplist = []
     emplist = []
     typeequipolist = []
     typeworklist = []
+
+    #
+    # authentication = firebase.instance.getReference()._authenticate('rinnegan', 'luis@gmail.com')
+    # firebase.instance.getReference().authentication = authentication
+    # print(authentication.extra)
+
+    # result = firebase.instance.getReference().get('/users', None)
+    # print(result)
 
     for dep in Departamento.objects.all().values('nombre'):
         deplist.append((dep['nombre'], dep['nombre']))
@@ -40,17 +52,22 @@ def Index(request):
     # formequipo.fields['departamento'].choices = deplist
     # formequipo.fields['empleados'].choices = emplist
     if 'NombreUser' in request.session:  # Validamos si es que existe una sesión activa en el navegador
+        ordenes = {}
+        if request.session['NombreUser']['tipo'] == "Docente":
+            ordenes = Orden.objects.filter(estado=1, survey=None).values('pk')
+
         return render(request, 'tt/index.html',
-                      {'form': form, 'forml': forml, 'formdep': form2, 'formequipo': formequipo, 'formorden': formorden,
+                      {'form': form, 'forml': forml, 'formdep': form2, 'formequipo': formequipo, 'formorden': formorden,'formsurvey': formsurvey,
                        'userName': request.session['NombreUser']['tipo'] + " : " +
                                    request.session['NombreUser']['nombre'] + " " +
                                    request.session['NombreUser']['ap'] + " " +
                                    request.session['NombreUser']['am'],
-                       'usertype': request.session['NombreUser']['tipo']})
+                       'usertype': request.session['NombreUser']['tipo'],
+                       'ordenes':list(ordenes)})
     else:
         return render(request, 'tt/index.html',
                       {'form': form, 'forml': forml, 'formdep': form2, 'formequipo': formequipo,
-                       'formorden': formorden})
+                       'formorden': formorden,'formsurvey': formsurvey,})
 
 
 @csrf_exempt
@@ -76,13 +93,14 @@ def Registrar(request):
 
                 if (form.cleaned_data['tipoEmpleado'] == "DOCENTE"):
                     if (Empleado.objects.filter(email=form.cleaned_data['email']).exists() or Empleado.objects.filter(
-                            pk=form.cleaned_data['idEmpleado']).exists()):
+                            idEmpleado=form.cleaned_data['idEmpleado']).exists()):
                         return JsonResponse({"code": 2}, content_type="application/json", safe=False)
                     emp = Empleado.objects.create(idEmpleado=form.cleaned_data['idEmpleado'],
                                                   nombre=form.cleaned_data['nombre'],
                                                   ap=form.cleaned_data['ap'],
                                                   am=form.cleaned_data['am'],
                                                   email=form.cleaned_data['email'],
+                                                  uuid="",
                                                   password=form.cleaned_data['contra'],
                                                   numero=form.cleaned_data['telefono'],
                                                   ext=form.cleaned_data['extension'],
@@ -93,46 +111,98 @@ def Registrar(request):
                                                                                'subdepto'] == "Ninguno") else SubDepartamento.objects.get(
                                                       nombre=form.cleaned_data['subdepto']),
                                                   tipo=TipoUsuario.objects.get(nombre='Docente'))
+                    # )
+                    # emp.empleado.ap = form.cleaned_data['ap']
+                    # emp.empleado.am = form.cleaned_data['am']
+                    # emp.empleado.numero = form.cleaned_data['telefono']
+                    # emp.empleado.ext = form.cleaned_data['extension']
+                    # emp.empleado.estado = False
+                    # emp.empleado.departamento = Departamento.objects.get(
+                    #                                   nombre=form.cleaned_data['depto'])
+                    # emp.empleado.subdepartamento = None if (form.cleaned_data[
+                    #                                                            'subdepto'] == "Ninguno") else SubDepartamento.objects.get(
+                    #                                   nombre=form.cleaned_data['subdepto'])
+                    # emp.empleado.tipo = TipoUsuario.objects.get(nombre='Docente')
+                    # user = User.objects.create_user(form.cleaned_data['email'], form.cleaned_data['email'],
+                    #                                 form.cleaned_data['contra'])
+                    # user.last_name = str(form.cleaned_data['idEmpleado'])
+                    # user.save()
                     emp.save()
                 elif (form.cleaned_data['tipoEmpleado'] == "TECNICO"):
                     if (Empleado.objects.filter(email=form.cleaned_data['email']).exists() or Empleado.objects.filter(
-                            pk=form.cleaned_data['idEmpleado']).exists()):
+                            idEmpleado=form.cleaned_data['idEmpleado']).exists()):
                         return JsonResponse({"code": 2}, content_type="application/json", safe=False)
                     print(form.cleaned_data['tipotecnico'])
-                    emp = Empleado.objects.create(idEmpleado=form.cleaned_data['idEmpleado'],
-                                                  nombre=form.cleaned_data['nombre'],
-                                                  ap=form.cleaned_data['ap'],
-                                                  am=form.cleaned_data['am'],
-                                                  email=form.cleaned_data['email'],
-                                                  password=form.cleaned_data['contra'],
-                                                  numero=form.cleaned_data['telefono'],
-                                                  ext=form.cleaned_data['extension'],
-                                                  tipo=TipoUsuario.objects.get(nombre='Tecnico'),
-                                                  estado=True,
-                                                  departamento=None,
-                                                  subdepartamento=None,
-                                                  trabajos=TipoTrabajo.objects.get(
-                                                      nombre=form.cleaned_data['tipotecnico'])
-                                                  )
+
+                    user = firebase.instance.createuser(form.cleaned_data['email'], form.cleaned_data['contra'])
+                    print(user)
+                    if (user is not None):
+                        emp = Empleado.objects.create(idEmpleado=form.cleaned_data['idEmpleado'],
+                                                      nombre=form.cleaned_data['nombre'],
+                                                      ap=form.cleaned_data['ap'],
+                                                      am=form.cleaned_data['am'],
+                                                      email=form.cleaned_data['email'],
+                                                      password=form.cleaned_data['contra'],
+                                                      numero=form.cleaned_data['telefono'],
+                                                      ext=form.cleaned_data['extension'],
+                                                      uuid = user['localId'],
+                                                      tipo=TipoUsuario.objects.get(nombre='Tecnico'),
+                                                      estado=True,
+                                                      departamento=None,
+                                                      subdepartamento=None,
+                                                      trabajos=TipoTrabajo.objects.get(
+                                                          nombre=form.cleaned_data['tipotecnico'])
+                                                      )
+                        # empdata = serializers.serialize('json', emp)
+                        # print(ast.literal_eval(empdata))
+                        emp2 = Empleado.objects.get(idEmpleado=form.cleaned_data['idEmpleado'])
+                        print(emp2.as_dict())
+                        firebase.instance.reference.database().child("users").child(user['localId']).set(
+                            emp2.as_dict())
+                    # user = User.objects.create_user(form.cleaned_data['email'], form.cleaned_data['email'],
+                    #                                 form.cleaned_data['contra'])
+                    # user.save()
                     emp.save()
                 elif (form.cleaned_data['tipoEmpleado'] == "TECNICOUPDATE"):
-                    emp = Empleado.objects.filter(idEmpleado=form.cleaned_data['idEmpleado']).update(
-                        nombre=form.cleaned_data['nombre'],
-                        ap=form.cleaned_data['ap'],
-                        am=form.cleaned_data['am'],
-                        email=form.cleaned_data['email'],
-                        password=form.cleaned_data['contra'],
-                        numero=form.cleaned_data['telefono'],
-                        ext=form.cleaned_data['extension'],
-                        departamento=None,
-                        subdepartamento=None,
-                        trabajos=TipoTrabajo.objects.get(nombre=form.cleaned_data['tipotecnico'])
-                    )
+
+                    emp = Empleado.objects.get(idEmpleado=form.cleaned_data['idEmpleado'])
+
+                    user = firebase.instance.authuser(emp['email'], emp['password'])
+
+                    print(user)
+                    if (user is not None):
+
+                        # empdata = serializers.serialize('json', emp)
+                        # print(ast.literal_eval(empdata))
+                        emp2 = Empleado.objects.get(idEmpleado=form.cleaned_data['idEmpleado'])
+                        print(emp2.as_dict())
+                        firebase.instance.delete_user_account(user['idToken'])
+                        user2 = firebase.instance.createuser(form.cleaned_data['email'], form.cleaned_data['contra'])
+                        if( user2 is not None) :
+                            emp.update(
+                                nombre=form.cleaned_data['nombre'],
+                                ap=form.cleaned_data['ap'],
+                                am=form.cleaned_data['am'],
+                                email=form.cleaned_data['email'],
+                                password=form.cleaned_data['contra'],
+                                uuid=user['localId'],
+                                numero=form.cleaned_data['telefono'],
+                                ext=form.cleaned_data['extension'],
+                                departamento=None,
+                                subdepartamento=None,
+                                trabajos=TipoTrabajo.objects.get(nombre=form.cleaned_data['tipotecnico'])
+                            )
+                            firebase.instance.reference.database().child("users").child(user['localId']).set(
+                                emp2.as_dict())
+
+                    # emp.save()
 
                 return JsonResponse({"code": 1}, content_type="application/json", safe=False)
             except Exception as e:
                 print(e)
                 return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+        else:
+            print(form.errors)
 
     return JsonResponse({"code": 0}, content_type="application/json", safe=False)
 
@@ -144,14 +214,24 @@ def ValidarDocente(request):
     try:
         if (request.GET.get('action', None) == "OK"):
 
-            send_mail(
-                'UDI, Estado de solicitud de registro',
-                'Saludos.\nLa verificación de registro fue exitosa, ya puedes iniciar sesión.\nURL: 127.0.0.1:8000/index.',
-                'from@example.com',
-                [request.GET.get('correo', None)],
-                fail_silently=False,
-            )
-            Empleado.objects.filter(idEmpleado=request.GET.get('idEmp', None)).update(estado=True)
+            emp = Empleado.objects.filter(idEmpleado=request.GET.get('idEmp', None))
+            emp2 = Empleado.objects.get(idEmpleado=request.GET.get('idEmp', None))
+            user = firebase.instance.createuser(emp[0].email, emp[0].password)
+
+            print(user)
+            if(user is not None):
+                # empdata = serializers.serialize('json', emp)
+                # print(ast.literal_eval(empdata))
+                print(emp2.as_dict())
+                emp.update(estado=True,uuid = user['localId'])
+                firebase.instance.reference.database().child("users").child(emp[0].uuid).set(emp2.as_dict())
+                send_mail(
+                    'UDI, Estado de solicitud de registro',
+                    'Saludos.\nLa verificación de registro fue exitosa, ya puedes iniciar sesión.\nURL: 127.0.0.1:8000/index.',
+                    'from@example.com',
+                    [request.GET.get('correo', None)],
+                    fail_silently=False,
+                )
         elif (request.GET.get('action', None) == "ERROR"):
 
             send_mail(
@@ -164,6 +244,7 @@ def ValidarDocente(request):
             Empleado.objects.filter(idEmpleado=request.GET.get('idEmp', None)).delete()
         return JsonResponse({"code": 0}, content_type="application/json", safe=False)
     except Exception as e:
+        print(e)
         return JsonResponse({"code": -1}, content_type="application/json", safe=False)
 
 
@@ -465,6 +546,11 @@ def AddOrder(request):
             try:
                 if Orden.objects.filter(nofolio=form.cleaned_data['folio']).exists():
                     return JsonResponse({"code": 2}, content_type="application/json", safe=False)
+                elif Orden.objects.filter(equipo=Equipo.objects.get(
+                        Q(ns=form.cleaned_data['equipo'].split(":", 2)[2].strip()) | Q(
+                            cambs=form.cleaned_data['equipo'].split(":", 2)[2].strip())
+                ), estado__lt = 1).exists():
+                    return JsonResponse({"code": 3}, content_type="application/json", safe=False)
                 else:
                     orden = Orden.objects.create(nofolio=form.cleaned_data['folio'],
                                                  estado=-1,
@@ -487,12 +573,18 @@ def AddOrder(request):
 
                     orden.save()
 
-                    descripcion = Descripcion.objects.create(descripcion=form.cleaned_data['descripcion'], orden=orden)
+                    descripcion = Descripcion.objects.create(descripcion=form.cleaned_data['descripcion'],who=0, orden=orden)
                     descripcion.save()
                     empleado = Empleado.objects.get(
                         pk=form.cleaned_data['solicitante'].split(":", 1)[1].strip().split(",", 1)[0])
                     empleado.ordenes.add(orden)
                     empleado.save()
+                    ordendict = orden.as_dict()
+                    print(ordendict)
+                    ordendict.update({'descripciones':{'0': form.cleaned_data['descripcion']}})
+                    print(ordendict)
+                    firebase.instance.reference.database().child("users").child(empleado.uuid).child("ordenes")\
+                        .child(str(form.cleaned_data['folio'])).set(ordendict)
 
                 return JsonResponse({"code": 1}, content_type="application/json", safe=False)
             except Exception as e:
@@ -506,13 +598,29 @@ def AddOrder(request):
 def AssignTec(request):
     if request.method == 'GET':
         try:
-            id = request.GET.get('tecnico', None).split(":", 1)[1].strip()[0].split(",", 1)[0]
+            id = request.GET.get('tecnico', None).split(":", 1)[1].strip().split(",", 1)[0]
             print(id)
             print(request.GET.get('folio', None))
             emp = Empleado.objects.get(idEmpleado=id)
             emp.ordenes.add(Orden.objects.get(nofolio=request.GET.get('folio', None)))
             emp.save()
-            Orden.objects.filter(nofolio=request.GET.get('folio', None)).update(estado=0)
+            orden = Orden.objects.filter(nofolio=request.GET.get('folio', None))
+
+            desc = Descripcion.objects.get(orden = request.GET.get('folio', None))
+            ordendict = orden[0].as_dict()
+            print(ordendict)
+            ordendict.update({'descripciones': {'0': desc.descripcion}})
+            print(ordendict)
+            firebase.instance.reference.database().child("users").child(emp.uuid).child(
+                "ordenes") \
+                .child(str(request.GET.get('folio', None))).set(ordendict)
+
+            emp = Empleado.objects.filter(ordenes = request.GET.get('folio', None))
+            for e in emp:
+                firebase.instance.reference.database().child("users").child(e.uuid).child(
+                    "ordenes") \
+                    .child(str(request.GET.get('folio', None))).child('estado').set(0)
+            orden.update(estado=0)
             return JsonResponse({"code": 1}, content_type="application/json", safe=False)
         except Exception as e:
             print(e)
@@ -529,19 +637,28 @@ def IniciarSesion(request):
             passs = form.cleaned_data['passs']
             print(email)
             print(passs)
+            # user = authenticate(username=email, password=passs)
+
             if Empleado.objects.filter(email=email, password=passs).exists():
+                # if user is not None:
+                # login(request,user)
                 us = Empleado.objects.get(email=email, password=passs)
                 if (us.estado == False):
                     return JsonResponse({'logincode': -1}, content_type="application/json", safe=False)
+                ordenes = {}
+                if us.tipo.nombre == "Docente":
+                    ordenes = Orden.objects.filter(estado=1, survey = None).values('pk')
                 request.session['NombreUser'] = {'email': us.email, 'pass': us.password,
                                                  'nombre': us.nombre, 'ap': us.ap, 'am': us.am
                     , 'tipo': us.tipo.nombre,
                                                  'pk': us.idEmpleado}  # Creamos una sesión asociada al usuario
                 return JsonResponse(
                     {'logincode': 0, 'userName': us.tipo.nombre + " : " + us.nombre + " " + us.ap + " " + us.am,
-                     'usertype': us.tipo.nombre}, content_type="application/json", safe=False)
+                     'usertype': us.tipo.nombre,'ordenes': list(ordenes)}, content_type="application/json", safe=False)
             else:
                 return JsonResponse({'logincode': 1}, content_type="application/json", safe=False)
+            # else:
+            #     return JsonResponse({'logincode': 1}, content_type="application/json", safe=False)
         else:  # En caso de que el formulario no sea valido, se procedera a recargar la página para volver a introducir credenciales
             return JsonResponse({'logincode': 1}, content_type="application/json", safe=False)
     else:  # Analogamente al else de arriba, por si el metodo de envio no es post
@@ -551,6 +668,7 @@ def IniciarSesion(request):
 @csrf_exempt
 def CerrarSesion(request):
     try:
+        # logout(request)
         del request.session['NombreUser']
         return JsonResponse({'logincode': 2}, content_type="application/json", safe=False)
     except Exception as e:
@@ -596,7 +714,7 @@ def ShowOrdersAdmin(request):
 
     ordenes = list(query)
     for order in ordenes:
-        descripciones = Descripcion.objects.filter(orden=order['nofolio']).values('descripcion')
+        descripciones = Descripcion.objects.filter(orden=order['nofolio']).values('descripcion','who')
         order['descripciones'] = list(descripciones)
         solicitante = Empleado.objects.filter(ordenes=order['nofolio']).values('nombre',
                                                                                'ap',
@@ -640,6 +758,78 @@ def ShowOrdersDoc(request):
             'pk',
             'tipo__nombre')
         sol['tecnico'] = list(tecnico)
+    # return HttpResponse(json.dumps(list(query), cls=DjangoJSONEncoder), content_type="application/json")
+    return HttpResponse(json.dumps(
+        {'solicitante': list(solicitante)},
+        cls=DjangoJSONEncoder), content_type="application/json")
+
+
+@csrf_exempt
+def finishOrder(request):
+    try:
+        orden = Orden.objects.filter(pk=request.GET.get('idOrden', None)).update(estado = 1,
+                                                                         end = datetime.datetime.now().date())
+        print(orden)
+        print(request.GET.get('msg', None))
+        descripcion = Descripcion.objects.create(descripcion=request.GET.get('msg', None),who=1, orden=Orden.objects.get(pk=request.GET.get('idOrden', None)))
+        descripcion.save()
+        emp = Empleado.objects.filter(ordenes = request.GET.get('idOrden', None))
+        for e in emp:
+            firebase.instance.reference.database().child("users").child(e.uuid).child(
+                "ordenes") \
+                .child(str(request.GET.get('idOrden', None))).child("estado").set(1)
+            firebase.instance.reference.database().child("users").child(e.uuid).child(
+                "ordenes") \
+                .child(str(request.GET.get('idOrden', None))).child("descripciones").child("1").set(request.GET.get('msg', None))
+            firebase.instance.reference.database().child("users").child(e.uuid).child(
+                "ordenes") \
+                .child(str(request.GET.get('idOrden', None))).child("end").set(
+                datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+        return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+    except Exception as e:
+        print(e)
+        return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+
+@csrf_exempt
+def cancelOrder(request):
+    try:
+        orden = Orden.objects.get(pk=request.GET.get('idOrden', None))
+        print(orden)
+        empleado = Empleado.objects.filter(ordenes = request.GET.get('idOrden', None))
+        for emp in empleado:
+            firebase.instance.reference.database().child("users").child(emp.uuid).child(
+                "ordenes") \
+                .child(str(request.GET.get('idOrden', None))).remove()
+
+        orden.delete()
+        return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+    except Exception as e:
+        print(e)
+        return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+
+@csrf_exempt
+def ShowOrdersTec(request):
+    solicitante = Empleado.objects.filter(pk=request.session['NombreUser']['pk']).values('nombre',
+                                                                                         'ap',
+                                                                                         'am',
+                                                                                         'pk',
+                                                                                         'tipo__nombre',
+                                                                                         'ordenes__nofolio',
+                                                                                         'ordenes__estado',
+                                                                                         'ordenes__start',
+                                                                                         'ordenes__end',
+                                                                                         'ordenes__nofolio',
+                                                                                         )
+    solicitudes = list(solicitante)
+    for sol in solicitudes:
+        print(sol['ordenes__nofolio'])
+        docente = Empleado.objects.filter(Q(ordenes=sol['ordenes__nofolio']) & Q(tipo__nombre="Docente")).values(
+            'nombre',
+            'ap',
+            'am',
+            'pk',
+            'tipo__nombre')
+        sol['docente'] = list(docente)
     # return HttpResponse(json.dumps(list(query), cls=DjangoJSONEncoder), content_type="application/json")
     return HttpResponse(json.dumps(
         {'solicitante': list(solicitante)},
@@ -691,8 +881,12 @@ def ShowEquipment(request):
                                         'empleado__pk',
                                         'empleado__nombre',
                                         'marca__nombre')
-    return HttpResponse(json.dumps(list(query), cls=DjangoJSONEncoder), content_type="application/json")
 
+    for eq in query:
+        estado = Orden.objects.filter(equipo = eq['pk'],estado__lt = 1).exists()
+        eq.update({'estado': estado})
+    # print(list(query))
+    return HttpResponse(json.dumps(list(query), cls=DjangoJSONEncoder), content_type="application/json")
     # return JsonResponse(
     #     serializers.serialize('json', Equipo.objects.all().values('nombre', 'pk',
     #                                                               'ubicacion__edificio',
@@ -722,6 +916,9 @@ def ShowEquipmentDoc(request):
                                                                                        'empleado__pk',
                                                                                        'empleado__nombre',
                                                                                        'marca__nombre')
+    for eq in query:
+        estado = Orden.objects.filter(equipo = eq['pk'],estado__lt = 1).exists()
+        eq.update({'estado': estado})
     return HttpResponse(json.dumps(list(query), cls=DjangoJSONEncoder), content_type="application/json")
 
 
@@ -729,7 +926,18 @@ def ShowEquipmentDoc(request):
 def DelTecnicos(request):
     try:
         print(request.GET.get('idEmp', None))
-        Empleado.objects.get(idEmpleado=request.GET.get('idEmp', None)).delete()
+        emp = Empleado.objects.get(idEmpleado=request.GET.get('idEmp', None))
+
+        for val in emp.ordenes.all():
+            print(val)
+            # Orden.objects.filter(pk = order).update(estado = -1)
+
+        user = firebase.instance.authuser(emp.email, emp.password)
+        if (user is not None):
+            firebase.instance.deleteuser(user['idToken'])
+
+            firebase.instance.reference.database().child("users").child(emp.uuid).remove()
+            emp.delete()
         return JsonResponse({"code": 1}, content_type="application/json", safe=False)
     except Exception as e:
         print(e)
@@ -813,4 +1021,50 @@ def getUserInfo(request):
                                                                                         'marca__nombre')
     return HttpResponse(json.dumps(
         {'data': list(query), 'equipo': list(equipo), 'folio': folio, 'fecha': datetime.datetime.now().date()},
+        cls=DjangoJSONEncoder), content_type="application/json")
+
+
+@csrf_exempt
+def getOrder(request):
+    # print(request.GET.get('depto', None))
+    # if (Orden.objects.all().count() == 0):
+    #     folio = 1
+    # else:
+    #     folio = Orden.objects.all().count() + 1
+    print("Id Orden -> " + request.GET.get('idOrden', None))
+    query = Empleado.objects.filter(ordenes=request.GET.get('idOrden', None)).values('pk',
+                                                                                     'nombre',
+                                                                                     'ap',
+                                                                                     'am',
+                                                                                     'tipo__nombre')
+
+    desc = Descripcion.objects.filter(orden=request.GET.get('idOrden', None)).values('who',
+                                                                                     'descripcion')
+    orden = Orden.objects.filter(pk=request.GET.get('idOrden', None)).values('pk',
+                                                                             'estado',
+                                                                             'start',
+                                                                             'end',
+                                                                             'depto__nombre',
+                                                                             'depto__ubicacion__edificio',
+                                                                             'depto__ubicacion__piso',
+                                                                             'depto__ubicacion__sala',
+                                                                             'subdepto__nombre',
+                                                                             'subdepto__ubicacion__edificio',
+                                                                             'subdepto__ubicacion__piso',
+                                                                             'subdepto__ubicacion__sala',
+                                                                             'trabajo__nombre',
+                                                                             'incidencia__tipoincidencia',
+                                                                             'instalacionsoft__nombre',
+                                                                             'survey__confiabilidad',
+                                                                             'survey__responsabilidad',
+                                                                             'survey__seguridad',
+                                                                             'survey__infrayservicios',
+                                                                             'equipo__ns',
+                                                                             'equipo__cambs',
+                                                                             'equipo__tipo_equipo__nombre'
+
+                                                                             )
+
+    return HttpResponse(json.dumps(
+        {'empleados': list(query), 'orden': list(orden),'desc': list(desc)},
         cls=DjangoJSONEncoder), content_type="application/json")
