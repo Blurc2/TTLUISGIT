@@ -62,6 +62,7 @@ class formregistro(forms.Form):
 
 class formSurvey(forms.Form):
     choice =(
+        ('', 'Selecciona una opción'),
         ('SI', 'SI'),
         ('NO', 'NO')
     )
@@ -79,6 +80,7 @@ class formSurvey(forms.Form):
     choice42 = forms.ChoiceField(choices=choice, label="Las condiciones fueron las adecuadas para realizar el trámite o servicio.", required=True)
     choice43 = forms.ChoiceField(choices=choice, label="El área cuenta con los servicios generales (iluminación, sanitarios, acceso, limpieza, etc.)", required=True)
     choice44 = forms.ChoiceField(choices=choice, label="Las herramientas y equipos fueron los adecuados para el trámite o servicio realizado.", required=True)
+    idOrder = forms.CharField(label="idOrder", max_length=60, required=False)
 
 class formOrden(forms.Form):
     def __init__(self, typework_choices,equipo_choices, *args, **kwargs):

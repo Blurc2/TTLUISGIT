@@ -93,8 +93,6 @@
         </form>
     </div>
 
-
-
 </div>
 
 
@@ -321,7 +319,7 @@
 
     <h4 class="ui dividing header" id="ordenassignHeader" >Mostrando técnicos</h4>
     <br>
-        <select class="ui dropdown fluid selection" id="tecnicoOpts" >
+        <select class="ui dropdown technique fluid selection" id="tecnicoOpts" >
         </select>
     <br>
     <button style="margin: 15px;" id="btncloseordenmod" class="ui inverted left floated red button" type="button">Cerrar</button>
@@ -412,8 +410,8 @@
        </div>
        </div>
         <h4 class="ui dividing header"></h4>
-       <!--<button style="margin: 15px;" id="btnclosesurveymod" class="ui inverted left floated red button" type="button">Cerrar</button>-->
-       <input style="margin: 15px;"  class="ui inverted right floated green button" type="submit" value="Enviar encuesta"/>
+       <button style="margin: 15px; display: none" id="btnclosesurveymod" class="ui inverted left floated red button" type="button">Cerrar</button>
+       <input style="margin: 15px;"  class="ui inverted right floated green button" id="btnSendSurvey" type="submit" value="Enviar encuesta"/>
     </form>
 </div>
 
@@ -422,7 +420,17 @@
 
 <script>
     $(".loader").hide();
-
+//     <div class="ui sixteen wide column" id="divgraph">
+//     </div>
+// var data = [
+//   {
+//     x: ['giraffes', 'orangutans', 'monkeys'],
+//     y: [20, 14, 23],
+//     type: 'bar'
+//   }
+// ];
+//
+// Plotly.newPlot('divgraph', data);
     {%include "index.js" %}
 
 

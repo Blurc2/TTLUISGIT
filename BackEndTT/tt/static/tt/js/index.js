@@ -5,6 +5,10 @@ var deptoName = ""
 var equipoName = ""
 var formorder = ""
 var tipouser = ""
+var surveys = []
+var indexsurvey = 0
+var surveylength = 0
+var jsonsurvey = {}
 
 function showRegisterModal()
 {
@@ -16,7 +20,10 @@ function showRegisterModal()
     $("#okreg").hide()
     $('#id_idEmpleado').attr('readonly', false);
 //    $("#department").show()
-    $('#regform').modal('show')
+    $('#regform').modal({
+                    selector    : {
+                    close    : '.close, #btncloseregmod'
+                }}).modal('show')
     $("#deptochoices").show()
     $('#registro').trigger("reset");
 
@@ -70,53 +77,96 @@ function showRegisterModal()
 
 }
 
-function showSurvey(index,json,limit)
+function showSurvey()
 {
-    if(index==limit)
-        return
-    else
-    {
-        $("#SurveyForm").trigger("reset")
-        $("#SurveyMod").modal({closable: false}).modal('show')
-        $("#pOrdenFolio").text("Tu Orden con No. Folio :"+json[index]['pk'])
 
-        $("form#SurveyForm").submit(function(e) {
+    console.log("Index "+indexsurvey+" -> limit "+surveylength)
+    if(!surveys.includes(indexsurvey) && indexsurvey<surveylength)
+    {
+        surveys.push(indexsurvey)
+        // console.log("EN IF")
+        $("#SurveyForm").trigger("reset")
+        $("#SurveyMod").modal({
+            closable: false,
+            selector    : {
+                    close    : '.close, #btnclosesurveymod'
+                }
+        }).modal('show')
+        $("#pOrdenFolio").text("Tu Orden con No. Folio :"+jsonsurvey[indexsurvey]['pk'])
+
+    }
+    else
+        return
+}
+
+$("form#SurveyForm").submit(function(e) {
             e.preventDefault();
             var formData = new FormData(this);
-            $("#SurveyMod").modal('hide')
-            showSurvey(index+1,json,limit)
-        })
-    }
+            formData.append('idOrder', jsonsurvey[indexsurvey]['pk'])
+            $.ajax({
+                url: "{% url 'tt:sendSurvey' %}",
+                type: 'POST',
+                data: formData,
+                success: function (data) {
+                console.log(data.code)
+                if(data.code === 1)
+                {
 
-}
+                    $('#btnclosesurveymod' ).click()
+                    indexsurvey++
+                    showSurvey()
+                }
+                else if(data.code === 2)
+                {
+                        Lobibox.notify('error', {
+                            size: 'mini',
+                            rounded: true,
+                            delayIndicator: true,
+                            icon: true,
+                            title:"<center>ERROR AL ENVIAR LA ENCUESTA</center>",
+                            iconSource:"fontAwesome",
+                            sound:false,
+                            msg: "No se pudo enviar la encuesta"
+                        });
+                }
+                else
+                {
+                    Lobibox.notify('error', {
+                            size: 'mini',
+                            rounded: true,
+                            delayIndicator: true,
+                            icon: true,
+                            title:"<center>ERROR AL ENVIAR LA ENCUESTA</center>",
+                            iconSource:"fontAwesome",
+                            sound:false,
+                            msg: "No se pudo enviar la encuesta"
+                        });
+                }
+                },
+                cache: false,
+                contentType: false,
+                processData: false
+            });
+
+        })
 
 $(document).ready(function()
 {
 
     formorder = $("#divformorder").html()
     $("#contenido").empty()
-    // $("#btnclosesurveymod").on('click',function(){
-    //     $("#SurveyMod").modal('hide')
-    // })
-     $("#btnclosedepartmentmod").on('click',function(){
-        $("#DepartmentMod").modal('hide')
-    })
-     $("#btncloseequipomod").on('click',function(){
-        $("#EquipoMod").modal('hide')
-    })
-     $("#btncloseordenmod").on('click',function(){
-        $("#OrdenMod").modal('hide')
-    })
-     $("#btncloseregmod").on('click',function(){
-        $("#regform").modal('hide')
-    })
+
 
 {% if ordenes %}
 
     console.log(JSON.parse("{{ ordenes }}".split("&#39;").join('"')))
 
     var json = JSON.parse("{{ ordenes }}".split("&#39;").join('"'))
-    showSurvey(0,json,json.length)
+    surveys = []
+    indexsurvey = 0
+    surveylength = json.length
+    jsonsurvey = json
+    showSurvey()
 
 {% endif%}
 
@@ -137,6 +187,8 @@ $(document).ready(function()
             showEquipment()
         else if(sessionStorage.getItem("menuItem") === "ORDENESADMIN")
             showOrdersAdmin()
+        else if(sessionStorage.getItem("menuItem") === "GRAPHADMIN")
+            showGraph()
 //        else if(sessionStorage.getItem("menuItem") == "SUBDEPTO")
 //            showSubDepartments(deptoName)
     {% elif usertype == "Docente" %}
@@ -557,7 +609,7 @@ var formData = new FormData(this);
     type: 'POST',
     data: formData,
     success: function (data) {
-    console.log(data.code)
+    console.log(data)
 //    $("form#login").removeClass( "loading" )
     if(data.logincode == 0)
         {
@@ -571,6 +623,15 @@ var formData = new FormData(this);
             $(".sesionforms").hide('slow')
             $(".sesion").show('slow')
             tipouser = data.usertype
+
+            if(data.ordenes.length > 0)
+            {
+                surveys = []
+                indexsurvey = 0
+                surveylength = data.ordenes.length
+                jsonsurvey = data.ordenes
+                showSurvey()
+            }
         }
     else if(data.logincode == 1)
         {
@@ -680,7 +741,10 @@ function showTec()
                 $("#id_telefono").val(element['fields']['numero'])
                 $("#id_extension").val(element['fields']['ext'])
                   $("#deptochoices").hide()
-                $('#regform').modal('show')
+                $('#regform').modal({
+                    selector    : {
+                    close    : '.close, #btncloseregmod'
+                }}).modal('show')
               });
 
               $(("#"+element['fields']['nombre']+element['fields']['ap']+element['fields']['am']+"delete").replace(/\s+/g, '')).on('click',function()
@@ -734,7 +798,10 @@ function showTec()
             $('#id_idEmpleado').attr('readonly', false);
             $("#btnRegistrar").val("Registrar")
 //            $("#department").hide()
-            $('#regform').modal('show')
+            $('#regform').modal({
+                    selector    : {
+                    close    : '.close, #btncloseregmod'
+                }}).modal('show')
             $("#deptochoices").hide()
             $('#registro').trigger("reset");
         });
@@ -811,7 +878,10 @@ function showDep()
                 $("#id_sala").val(element['ubicacion__sala'])
                 idDepartamento = element['pk']
 
-                $('#DepartmentMod').modal('show')
+                $('#DepartmentMod').modal({
+                    selector    : {
+                    close    : '.close, #btnclosedepartmentmod'
+                }}).modal('show')
               });
 
               $(("#"+(element['pk']+element['nombre']+"delete")).replace(/\s+/g, '')).on('click',function()
@@ -869,7 +939,10 @@ $("#agregardep").on('click',function(){
             $("#badregdep").hide()
             $("#okregdep").hide()
             $("#DepartmentBtn").val("Añadir departamento")
-            $('#DepartmentMod').modal('show')
+            $('#DepartmentMod').modal({
+                    selector    : {
+                    close    : '.close, #btnclosedepartmentmod'
+                }}).modal('show')
             $('#DepartmentForm').trigger("reset");
         });
     }
@@ -1027,7 +1100,10 @@ function showEquipment()
 
 
 
-                $('#EquipoMod').modal('show')
+                $('#EquipoMod').modal({
+                    selector    : {
+                    close    : '.close, #btncloseequipomod'
+                }}).modal('show')
               });
 
               $(("#"+(element['pk']+id+"delete")).replace(/\s+/g, '')).on('click',function()
@@ -1091,7 +1167,10 @@ $("#agregarequipo").on('click',function(){
             $("#badregequipo").hide()
             $("#okregequipo").hide()
             $("#EquipoBtn").val("Añadir Equipo")
-            $('#EquipoMod').modal('show')
+            $('#EquipoMod').modal({
+                    selector    : {
+                    close    : '.close, #btncloseequipomod'
+                }}).modal('show')
             $('#EquipoForm').trigger("reset");
         var value = $('#id_tipoequipo').val()
 
@@ -1218,7 +1297,10 @@ $("#agregarequipo").on('click',function(){
             $("#badregequipo").hide()
             $("#okregequipo").hide()
             $("#EquipoBtn").val("Añadir Equipo")
-            $('#EquipoMod').modal('show')
+            $('#EquipoMod').modal({
+                    selector    : {
+                    close    : '.close, #btncloseequipomod'
+                }}).modal('show')
             $('#EquipoForm').trigger("reset");
         });
     }
@@ -1542,7 +1624,6 @@ function showOrdersAdmin()
                                         sound:false,
                                         msg: "Orden eliminada correctamente."
                                         });
-                            $('#OrdenMod').modal('hide')
                             setTimeout(function(){location.reload();},2500)
                             }
                             else
@@ -1565,11 +1646,14 @@ function showOrdersAdmin()
 
 
 
-            $(".ui.dropdown").dropdown()
+            $(".ui.dropdown.technique").dropdown()
 
             $(("#"+(element['nofolio']+"asignar")).replace(/\s+/g, '')).on('click',function(){
 
-                $('#OrdenMod').modal('show')
+                $('#OrdenMod').modal({
+                    selector    : {
+                    close    : '.close, #btncloseordenmod'
+                }}).modal('show')
 
                 $("#ordenassignHeader").text("Mostrando técnicos de "+element['trabajo__nombre'])
                 var newOptions = {};
@@ -1605,7 +1689,6 @@ function showOrdersAdmin()
                                         sound:false,
                                         msg: "Técnico asignado correctamente."
                                         });
-                            $('#OrdenMod').modal('hide')
                             setTimeout(function(){location.reload();},2500)
                             }
                             else
@@ -1677,22 +1760,25 @@ function createOrdersAdminTable(json)
         '</td><td colspan="3">Id Empleado: '+solicitante['pk']+', Nombre: '+solicitante['nombre']+' '+solicitante['ap']+' '+solicitante['am']+'</td>';
       if(element['estado']==-1)
       {
-          html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Borrar</button>'+
-          '<div class="or" data-text="o"></div>'+
+          html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons">' +
+          // '<button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Borrar</button>'+
+          // '<div class="or" data-text="o"></div>'+
           '<button class="ui orange button" id="'+(element['nofolio']+"asignar").replace(/\s+/g, '')+'">Asignar</button>'+
            '<div class="or" data-text="o"></div>'+
           '<button class="ui positive button" id="'+(element['nofolio']+"ver").replace(/\s+/g, '')+'">Ver Detalles</button></div></td></tr>';
       }
       else if(element['estado']==0)
       {
-          html+='<td colspan="1" class="right aligned collapsing"><center><div class="ui buttons"><button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Borrar</button>'+
-          '<div class="or" data-text="o"></div>'+
+          html+='<td colspan="1" class="right aligned collapsing"><center><div class="ui buttons">' +
+          // '<button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Borrar</button>'+
+          // '<div class="or" data-text="o"></div>'+
           '<button class="ui positive button" id="'+(element['nofolio']+"ver").replace(/\s+/g, '')+'">Ver Detalles</button></center></div></td></tr>';
       }
       else {
 
-          html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Borrar</button>'+
-          '<div class="or" data-text="o"></div>'+
+          html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons">' +
+          // '<button class="ui negative button" id="'+(element['nofolio']+"cancelar").replace(/\s+/g, '')+'">Borrar</button>'+
+          // '<div class="or" data-text="o"></div>'+
           '<button class="ui orange button" id="'+(element['nofolio']+"ver").replace(/\s+/g, '')+'">Ver Detalles</button>'+
            '<div class="or" data-text="o"></div>'+
           '<button class="ui positive button" id="'+(element['nofolio']+"pdf").replace(/\s+/g, '')+'">Generar PDF</button></div></td></tr>';
@@ -1848,7 +1934,10 @@ $("#contenido").empty()
                 $("#id_sala").val(element['ubicacion__sala'])
                 idDepartamento = element['pk']
 
-                $('#DepartmentMod').modal('show')
+                $('#DepartmentMod').modal({
+                    selector    : {
+                    close    : '.close, #btnclosedepartmentmod'
+                }}).modal('show')
               });
 
               $(("#"+(element['pk']+element['nombre']+"delete")).replace(/\s+/g, '')).on('click',function()
@@ -1897,7 +1986,10 @@ $("#contenido").empty()
             $("#badregdep").hide()
             $("#okregdep").hide()
             $("#DepartmentBtn").val("Añadir SubDepartamento")
-            $('#DepartmentMod').modal('show')
+            $('#DepartmentMod').modal({
+                    selector    : {
+                    close    : '.close, #btnclosedepartmentmod'
+                }}).modal('show')
             $('#DepartmentForm').trigger("reset");
         });
     }
@@ -2206,6 +2298,265 @@ function showOrderForm()
 
 }
 
+function showGraph()
+{
+    $("#contenido").empty()
+    sessionStorage.setItem("menuItem", "GRAPHADMIN");
+    $.ajax({
+            url : "{% url "tt:ShowGraph" %}",
+            data : {},
+            dataType : 'json',
+            success : function(data) {
+
+                var json = JSON.parse(data)
+                console.log(json);
+                $("#contenido").append('<div class="ui fifteen wide column" style="display: none;" id="graphcontainer"> ' +
+                    '<div class="row"><div class="ui clearing segment"> ' +
+                    '<div class="ui right floated teal buttons">\n' +
+                    '  <div class="ui right floated button">Tipo de gráfica</div>\n' +
+                    '  <div class="ui right floated dropdown graphs icon button">\n' +
+                    '    <i class="dropdown icon"></i>\n' +
+                    '    <div class="menu">\n' +
+                    '      <div class="item active"><i class="pencil alternate icon"></i>Satisfacción</div>\n' +
+                    '      <div class="item"><i class="fas fa-file-invoice"></i> Ordenes</div>\n' +
+                    '    </div>\n' +
+                    '  </div>\n' +
+                    '</div>' +
+                    '<div class="ui left floated purple buttons" style="display: none;" id="months">\n' +
+                    '  <div class="ui right floated button">Mes</div>\n' +
+                    '  <div class="ui right floated dropdown graphsmonth icon button">\n' +
+                    '    <i class="dropdown icon"></i>\n' +
+                    '    <div class="menu">\n' +
+                    '      <div class="item active">Todos</div>\n' +
+                    '      <div class="item">Enero</div>\n' +
+                    '      <div class="item">Febrero</div>\n' +
+                    '      <div class="item">Marzo</div>\n' +
+                    '      <div class="item">Abril</div>\n' +
+                    '      <div class="item">Mayo</div>\n' +
+                    '      <div class="item">Junio</div>\n' +
+                    '      <div class="item">Julio</div>\n' +
+                    '      <div class="item">Agosto</div>\n' +
+                    '      <div class="item">Septiembre</div>\n' +
+                    '      <div class="item">Octubre</div>\n' +
+                    '      <div class="item">Noviembre</div>\n' +
+                    '      <div class="item">Diciembre</div>\n' +
+                    '    </div>\n' +
+                    '  </div>\n' +
+                    '</div>' +
+                    '</div></div>' +
+                    '<div class="row"><div id="divgraph">\n' +
+                    '</div></div></div>')
+                $(".ui.dropdown.graphs").dropdown({
+                     onChange: function(value, text, $selectedItem) {
+                        if(text.endsWith("Satisfacción"))
+                        {
+                            $("#months").fadeOut('slow')
+                            createSatisGraph(json)
+                        }
+                        else
+                        {
+                            $("#months").fadeIn('slow')
+                            $.ajax({
+                                url : "{% url "tt:getOrderByMonth" %}",
+                                data : {'mes':"Todos"},
+                                dataType : 'json',
+                                success : function(data) {
+                                    var json = JSON.parse(data)
+                                    console.log(json);
+                                    createOrderGraph(json,"Todos")
+
+                                },
+                                error : function(xhr, status) {
+                                    console.log("error ");
+                                },
+                            });
+                        }
+                    }
+                })
+
+                $(".ui.dropdown.graphsmonth").dropdown({
+                     onChange: function(value, text, $selectedItem) {
+                        $.ajax({
+                                url : "{% url "tt:getOrderByMonth" %}",
+                                data : {'mes':text},
+                                dataType : 'json',
+                                success : function(data) {
+                                    var json = JSON.parse(data)
+                                    console.log(json);
+                                    createOrderGraph(json,text)
+                                },
+                                error : function(xhr, status) {
+                                    console.log("error ");
+                                },
+                            });
+                    }
+                })
+                createSatisGraph(json)
+
+            },
+            error : function(xhr, status) {
+                console.log("error ");
+            },
+        });
+}
+
+function createSatisGraph(json)
+{
+    var size = json.length
+    var datos = {
+        'conf' : 0,
+        'resp' : 0,
+        'seg' : 0,
+        'infra' : 0
+    }
+    json.forEach(function(e){
+        datos['conf'] += e.fields.confiabilidad
+        datos['resp'] += e.fields.responsabilidad
+        datos['seg'] += e.fields.seguridad
+        datos['infra'] += e.fields.infrayservicios
+    })
+    var yValue = [datos['conf']/size,datos['resp']/size,datos['seg']/size,datos['infra']/size]
+    var data = [
+      {
+        x: ['Confiabilidad', 'Responsabilidad', 'Seguridad','Infraestructura y Servicios'],
+        y: yValue,
+        type: 'bar',
+          text: yValue.map(String),
+          textposition: 'auto',
+          hoverinfo: 'none',
+          marker: {
+            color: ['rgb(213, 172, 78,1)', 'rgba(139, 98, 32,1)', 'rgba(114, 14, 7,1)', 'rgba(69, 5, 12,1)'],
+            opacity: 0.6,
+            line: {
+              color: 'rgb(8,48,107)',
+              width: 1.5
+            }
+          }
+      }
+    ];
+
+    var layout = {
+      title: 'Gráfica de Satisfacción, #Ordenes : '+size
+    };
+    $("#graphcontainer").fadeIn("slow")
+    Plotly.newPlot('divgraph', data,layout);
+}
+
+function createOrderGraph(json,type)
+{
+    if(type === "Todos")
+    {
+        var datos = {
+            '1' : 0,
+            '2' : 0,
+            '3' : 0,
+            '4' : 0,
+            '5' : 0,
+            '6' : 0,
+            '7' : 0,
+            '8' : 0,
+            '9' : 0,
+            '10' : 0,
+            '11' : 0,
+            '12' : 0
+        }
+        json.forEach(function(e){
+            switch (e.fields.start.split("-")[1]) {
+                case "01": datos['1']+=1
+                    break;
+                case "02": datos['2']+=1
+                    break;
+                case "03": datos['3']+=1
+                    break;
+                case "04": datos['4']+=1
+                    break;
+                case "05": datos['5']+=1
+                    break;
+                case "06": datos['6']+=1
+                    break;
+                case "07": datos['7']+=1
+                    break;
+                case "08": datos['8']+=1
+                    break;
+                case "09": datos['9']+=1
+                    break;
+                case "10": datos['10']+=1
+                    break;
+                case "11": datos['11']+=1
+                    break;
+                case "12": datos['12']+=1
+                    break;
+            }
+        })
+        var yValue = [datos['1'],datos['2'],datos['3'],datos['4'],datos['5'],datos['6'],datos['7'],datos['8'],datos['9'],datos['10'],datos['11'],datos['12']]
+        var data = [
+          {
+            x: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+            y: yValue,
+            type: 'bar',
+              text: yValue.map(String),
+              textposition: 'auto',
+              hoverinfo: 'none',
+              marker: {
+                color: ['rgb(255,248,182)', 'rgb(255,228,163)', 'rgb(255,189,145)', 'rgb(255,141,113),rgb(255,112,126),rgb(231,201,144),rgb(217,234,157),rgb(133,229,188),rgb(126,185,240),rgb(195,150,234),rgb(255,158,27),rgb(255,123,8)'],
+                opacity: 0.6,
+                line: {
+                  color: 'rgb(8,48,107)',
+                  width: 1.5
+                }
+              }
+          }
+        ];
+
+        var layout = {
+          title: 'Gráfica de ordenes anual #Ordenes : '+json.length
+        };
+        $("#graphcontainer").fadeIn("slow")
+        Plotly.newPlot('divgraph', data,layout);
+    }
+    else
+    {
+        var datos = {
+            'hw' : 0,
+            'sw' : 0
+        }
+        json.forEach(function(e){
+            switch (e.fields.trabajo) {
+                case 1: datos['hw']+=1
+                    break;
+                case 2: datos['sw']+=1
+                    break;
+
+            }
+        })
+        var yValue = [datos['hw'],datos['sw']]
+        var data = [
+          {
+            x: ['Hardware','Software'],
+            y: yValue,
+            type: 'bar',
+              text: yValue.map(String),
+              textposition: 'auto',
+              hoverinfo: 'none',
+              marker: {
+                color: ['rgb(255,248,182)', 'rgb(255,228,163)'],
+                opacity: 0.6,
+                line: {
+                  color: 'rgb(8,48,107)',
+                  width: 1.5
+                }
+              }
+          }
+        ];
+
+        var layout = {
+          title: 'Gráfica de ordenes por mes #Ordenes : '+json.length
+        };
+        $("#graphcontainer").fadeIn("slow")
+        Plotly.newPlot('divgraph', data,layout);
+    }
+
+}
 
 function isIpn(url)
 {

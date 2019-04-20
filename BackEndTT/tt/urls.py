@@ -32,4 +32,7 @@ urlpatterns=[
     url(r'^ajax/getOrder/$', views.getOrder, name='getOrder'),
     url(r'^ajax/finishOrder/$', views.finishOrder, name='finishOrder'),
     url(r'^ajax/cancelOrder/$', views.cancelOrder, name='cancelOrder'),
+    url(r'^ajax/sendSurvey/$', views.sendSurvey, name='sendSurvey'),
+    url(r'^ajax/ShowGraph/$', views.ShowGraph, name='ShowGraph'),
+    url(r'^ajax/getOrderByMonth/$', views.getOrderByMonth, name='getOrderByMonth'),
 ]
