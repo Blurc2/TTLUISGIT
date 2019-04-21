@@ -112,6 +112,7 @@ def Registrar(request):
                                                   numero=form.cleaned_data['telefono'],
                                                   ext=form.cleaned_data['extension'],
                                                   estado=False,
+                                                  observaciones="",
                                                   departamento=Departamento.objects.get(
                                                       nombre=form.cleaned_data['depto']),
                                                   subdepartamento=None if (form.cleaned_data[
@@ -155,6 +156,7 @@ def Registrar(request):
                                                       uuid=user['localId'],
                                                       tipo=TipoUsuario.objects.get(nombre='Tecnico'),
                                                       estado=True,
+                                                      observaciones=form.cleaned_data['observaciones'],
                                                       departamento=None,
                                                       subdepartamento=None,
                                                       trabajos=TipoTrabajo.objects.get(
@@ -193,6 +195,7 @@ def Registrar(request):
                                 uuid=user['localId'],
                                 numero=form.cleaned_data['telefono'],
                                 ext=form.cleaned_data['extension'],
+                                observaciones=form.cleaned_data['observaciones'],
                                 departamento=None,
                                 subdepartamento=None,
                                 trabajos=TipoTrabajo.objects.get(nombre=form.cleaned_data['tipotecnico'])
@@ -705,7 +708,7 @@ def ShowTecnicos(request):
 def ShowRegisters(request):
     return JsonResponse(
         serializers.serialize('json',
-                              Empleado.objects.filter(tipo=TipoUsuario.objects.get(nombre='Docente'), estado=False)),
+                              Empleado.objects.filter(tipo=TipoUsuario.objects.get(nombre='Docente'))),
         content_type="application/json", safe=False)
 
 
@@ -1048,6 +1051,49 @@ def getUserInfo(request):
         {'data': list(query), 'equipo': list(equipo), 'folio': folio, 'fecha': datetime.datetime.now().date()},
         cls=DjangoJSONEncoder), content_type="application/json")
 
+
+@csrf_exempt
+def getUserInfoById(request):
+    # print(request.GET.get('depto', None))
+    query = Empleado.objects.filter(pk=request.GET.get('pk', None)).values('pk',
+                                                                           'nombre',
+                                                                           'ap',
+                                                                           'am',
+                                                                           'email',
+                                                                           'password',
+                                                                           'numero',
+                                                                           'ext',
+                                                                           'departamento__nombre',
+                                                                           'subdepartamento__nombre',
+                                                                           'ordenes__nofolio',
+                                                                           'ordenes__estado',
+                                                                           'ordenes__start',
+                                                                           'ordenes__end',
+                                                                           'ordenes__equipo__ns',
+                                                                           'ordenes__equipo__tipo_equipo__nombre',
+                                                                           'ordenes__trabajo__nombre',
+                                                                           )
+    equipo = Equipo.objects.filter(empleado=request.GET.get('pk', None)).values('modelo', 'pk',
+                                                                                        'mac',
+                                                                                        'ns',
+                                                                                        'ip',
+                                                                                        'cambs',
+                                                                                        'sistema_operativo',
+                                                                                        'procesador',
+                                                                                        'num_puertos',
+                                                                                        'memoria_ram',
+                                                                                        'disco_duro',
+                                                                                        'idf',
+                                                                                        'caracteristicas',
+                                                                                        'observaciones',
+                                                                                        'tipo_equipo__nombre',
+                                                                                        'depto__nombre',
+                                                                                        'empleado__pk',
+                                                                                        'empleado__nombre',
+                                                                                        'marca__nombre')
+    return HttpResponse(json.dumps(
+        {'data': list(query), 'equipo': list(equipo)},
+        cls=DjangoJSONEncoder), content_type="application/json")
 
 @csrf_exempt
 def getOrder(request):

@@ -37,4 +37,5 @@ urlpatterns=[
     url(r'^ajax/getOrderByMonth/$', views.getOrderByMonth, name='getOrderByMonth'),
     url(r'^ajax/recPass/$', views.recPass, name='recPass'),
     url(r'^ajax/updateDoc/$', views.updateDoc, name='updateDoc'),
+    url(r'^ajax/getUserInfoById/$', views.getUserInfoById, name='getUserInfoById'),
 ]

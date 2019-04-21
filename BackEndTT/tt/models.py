@@ -156,6 +156,7 @@ class Empleado(models.Model):
     uuid = models.CharField(max_length=100)
     ext = models.CharField(max_length=5,null=True, blank=True)
     estado = models.BooleanField()
+    observaciones = models.CharField(max_length=200,null=True, blank=True)
     tipo = models.ForeignKey(TipoUsuario, on_delete=models.CASCADE)
     trabajos = models.ForeignKey(TipoTrabajo,on_delete=models.SET(None), null=True, blank=True)
     departamento = models.ForeignKey(Departamento, on_delete=models.SET(None), null=True, blank=True)

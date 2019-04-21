@@ -28,6 +28,7 @@ function showRegisterModal()
                     close    : '.close, #btncloseregmod'
                 }}).modal('show')
     $("#deptochoices").show()
+    $("#taobs").hide()
     $('#registro').trigger("reset");
 
     $.ajax({
@@ -755,7 +756,9 @@ function showTec()
                 $("#id_am").val(element['fields']['am'])
                 $("#id_telefono").val(element['fields']['numero'])
                 $("#id_extension").val(element['fields']['ext'])
+                $("#id_observaciones").val(element['fields']['observaciones'])
                   $("#deptochoices").hide()
+                  $("#taobs").show()
                 $('#regform').modal({
                     selector    : {
                     close    : '.close, #btncloseregmod'
@@ -818,6 +821,7 @@ function showTec()
                     close    : '.close, #btncloseregmod'
                 }}).modal('show')
             $("#deptochoices").hide()
+            $("#taobs").show()
             $('#registro').trigger("reset");
         });
     }
@@ -1570,6 +1574,25 @@ function showRegisters()
                 }
                 });
               });
+
+
+              $(("#"+(element['pk']+element['fields']['nombre']+"details")).replace(/\s+/g, '')).on('click',function()
+              {
+
+                  $.ajax({
+                    url: "{% url 'tt:getUserInfoById' %}",
+                    type: 'GET',
+                    data: {'pk':element['pk']},
+                    success: function (data) {
+                        console.log(data)
+                        $("#contenido").empty()
+                      $("#contenido").append(showDocInfo(data))
+                      $("#detailDoc").fadeIn('slow')
+                    }
+                    });
+
+
+              });
         });
         }
     }
@@ -1595,9 +1618,22 @@ function createRegistersTable(json)
         element['pk']+
         '</td><td colspan="2">'+element['fields']['nombre']+'</td>'+
         '</td><td colspan="3">'+element['fields']['email']+'</td>';
-        html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+element['fields']['nombre']+"invalidate").replace(/\s+/g, '')+'">Invalidar</button>'+
+
+      if(element['fields']['estado'] === false)
+      {
+          html+='<td colspan="1" class="right aligned collapsing"><center><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+element['fields']['nombre']+"invalidate").replace(/\s+/g, '')+'">Invalidar</button>'+
           '<div class="or" data-text="o"></div>'+
-          '<button class="ui positive button" id="'+(element['pk']+element['fields']['nombre']+"validate").replace(/\s+/g, '')+'">Validar</button></div></td></tr>';
+          '<button class="ui orange button" id="'+(element['pk']+element['fields']['nombre']+"details").replace(/\s+/g, '')+'">Ver detalles</button>' +
+           '<div class="or" data-text="o"></div>'+
+          '<button class="ui positive button" id="'+(element['pk']+element['fields']['nombre']+"validate").replace(/\s+/g, '')+'">Validar</button>' +
+          '</div></center></td></tr>';
+      }
+      else
+      {
+          html+='<td colspan="1" class="right aligned collapsing"><center>' +
+              '<button class="ui orange button" id="'+(element['pk']+element['fields']['nombre']+"details").replace(/\s+/g, '')+'">Ver detalles</button></center></td></tr>';
+      }
+
     });
 
   html +=
@@ -2913,6 +2949,111 @@ $("form#formRecPass").submit(function(e) {
             }
         });
 })
+
+function showDocInfo(json)
+{
+    console.log(json)
+    var html ='<div class="ui sixteen wide column" id="detailDoc" style="display: none;">\n' +
+        '        <div class="ui placeholder segment">\n' +
+        '            <center>\n' +
+        '              <div class="ui icon header">\n' +
+        '                <i class="user icon"></i>\n' +
+        '                Detalles del docente : '+json.data[0].nombre+' '+json.data[0].ap+' '+json.data[0].am+'\n' +
+        '              </div>\n' +
+        '            </center>\n' +
+        '\n' +
+        '            <div class="ui segments">\n' +
+        '              <div class="ui segment">\n' +
+        '                <strong>Datos generales</strong>\n' +
+        '              </div>\n' +
+        '              <div class="ui segments">\n' +
+        '                <div class="ui segment">\n' +
+        '                  <p>Id Empleado : '+json.data[0].pk+'</p>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                  <p>Nombre : '+json.data[0].nombre+' '+json.data[0].ap+' '+json.data[0].am+'</p>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                  <p>Correo : '+json.data[0].email+'</p>\n' +
+        '                </div>\n' +
+        '\n' +
+        '              </div>\n' +
+        '              <div class="ui segment">\n' +
+        '                <strong><i class="address card icon"></i>Datos de contacto</strong>\n' +
+        '              </div>\n' +
+        '              <div class="ui horizontal segments">\n' +
+        '                <div class="ui segment">\n' +
+        '                  <p>Teléfono : '+json.data[0].numero+'</p>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                  <p>Extensión : '+((json.data[0].ext === null) ? "" : json.data[0].ext)+'</p>\n' +
+        '                </div>\n' +
+        '              </div>\n' +
+        '              <div class="ui horizontal segments">\n' +
+        '                <div class="ui segment">\n' +
+        '                  <p>Departamento : '+json.data[0].departamento__nombre+'</p>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                  <p>Subdepartamento : '+((json.data[0].subdepartamento__nombre === null) ? "" : json.data[0].subdepartamento__nombre)+'</p>\n' +
+        '                </div>\n' +
+        '              </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                  <strong><i class="laptop icon"></i>Equipo</strong>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                    <div class="ui list">\n' ;
+        json.equipo.forEach(function(element){
+            html+= '                      <a class="item">\n' +
+            '                        <i class="right triangle icon"></i>\n' +
+            '                        <div class="content">\n' +
+            '                          <div class="header">Número de serie : '+element.ns+'</div>\n' +
+            '                          <div class="description">Tipo de equipo : '+element.tipo_equipo__nombre+', Modelo : '+element.modelo+'</div>\n' +
+            '                        </div>\n' +
+            '                      </a>\n';
+        })
+        html+=
+        '                    </div>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                  <strong><i class="edit icon"></i>Ordenes</strong>\n' +
+        '                </div>\n' +
+        '                <div class="ui segment">\n' +
+        '                    <div class="ui list">\n';
+        json.data.forEach(function(element){
+            if(element.ordenes__nofolio !== null) {
+                var clasestate = ""
+                var clasemsg = ""
+                if (element.ordenes__estado == -1) {
+                    clasestate = "negative"
+                    clasemsg = "En espera de ser asignada a un técnico"
+                } else if (element.ordenes__estado == 0) {
+                    clasestate = "warning"
+                    clasemsg = "Asignada, en espera de ser resuelta"
+                } else {
+                    clasestate = "positive"
+                    clasemsg = "Orden finalizada"
+                }
+                html += '                      <a class="item">\n' +
+                    '                        <i class="right triangle icon"></i>\n' +
+                    '                        <div class="content">\n' +
+                    '                          <div class="header">No. Folio : ' + element.ordenes__nofolio + '</div>\n' +
+                    '                          <div class="description">Fecha de inicio : ' + element.ordenes__start + ', Fecha de fin : ' + ((element.ordenes__end === null) ? "Sin resolver" : element.ordenes__end) + '' +
+                    '                           <br>Equipo : ' + element.ordenes__equipo__ns + ',Tipo de trabajo : ' + element.ordenes__trabajo__nombre + '<br>' +
+                    '                <div class="ui attached ' + clasestate + ' message ">\n' +
+                    '                <p><i class="check circle icon"></i>Estado : ' + clasemsg + '</p>\n' +
+                    '            </div>\n' +
+                    '</div>\n' +
+                    '                        </div>\n' +
+                    '                      </a>\n';
+            }
+        })
+        html+='</div></div>'+
+        '            </div>\n' +
+        '        </div>\n' +
+        '    </div>';
+
+    return html
+}
 
 function isIpn(url)
 {

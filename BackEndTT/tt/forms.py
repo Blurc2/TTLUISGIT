@@ -59,6 +59,7 @@ class formregistro(forms.Form):
     tipotecnico = forms.ChoiceField(choices=(), label="Tipo de técnico")
     depto = forms.ChoiceField(choices=(), label="Departamento",required=True)
     subdepto = forms.ChoiceField(choices=(), label="SubDepartamento",required=False)
+    observaciones = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Observaciones'}), label="Observaciones", max_length=200,required=False)
 
 class formSurvey(forms.Form):
     choice =(
