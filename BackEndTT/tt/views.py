@@ -22,6 +22,7 @@ firebase = Firebase()
 def Index(request):
     forml = formlogin()
     form2 = formDepartamento()
+    formrecpass = formRecPass()
     formsurvey = formSurvey()
     deplist = []
     emplist = []
@@ -68,11 +69,12 @@ def Index(request):
                                    request.session['NombreUser']['ap'] + " " +
                                    request.session['NombreUser']['am'],
                        'usertype': request.session['NombreUser']['tipo'],
-                       'ordenes': list(ordenes)})
+                       'ordenes': list(ordenes),
+                       'formrecpass':formrecpass})
     else:
         return render(request, 'tt/index.html',
                       {'form': form, 'forml': forml, 'formdep': form2, 'formequipo': formequipo,
-                       'formorden': formorden, 'formsurvey': formsurvey, })
+                       'formorden': formorden, 'formsurvey': formsurvey,'formrecpass':formrecpass })
 
 
 @csrf_exempt
@@ -170,18 +172,16 @@ def Registrar(request):
                     emp.save()
                 elif (form.cleaned_data['tipoEmpleado'] == "TECNICOUPDATE"):
 
-                    emp = Empleado.objects.get(idEmpleado=form.cleaned_data['idEmpleado'])
+                    emp = Empleado.objects.filter(idEmpleado=form.cleaned_data['idEmpleado'])
+                    uuid = emp[0].uuid
 
-                    user = firebase.instance.authuser(emp['email'], emp['password'])
+                    user = firebase.instance.authuser(emp[0].email, emp[0].password)
 
                     print(user)
                     if (user is not None):
 
-                        # empdata = serializers.serialize('json', emp)
-                        # print(ast.literal_eval(empdata))
-                        emp2 = Empleado.objects.get(idEmpleado=form.cleaned_data['idEmpleado'])
-                        print(emp2.as_dict())
-                        firebase.instance.delete_user_account(user['idToken'])
+
+                        firebase.instance.deleteuser(user['idToken'])
                         user2 = firebase.instance.createuser(form.cleaned_data['email'], form.cleaned_data['contra'])
                         if (user2 is not None):
                             emp.update(
@@ -197,8 +197,17 @@ def Registrar(request):
                                 subdepartamento=None,
                                 trabajos=TipoTrabajo.objects.get(nombre=form.cleaned_data['tipotecnico'])
                             )
-                            firebase.instance.reference.database().child("users").child(user['localId']).set(
-                                emp2.as_dict())
+
+                            ordenes = firebase.instance.reference.database().child("users").child(uuid).child("ordenes").get()
+                            firebase.instance.reference.database().child("users").child(uuid).remove()
+                            emp2 = Empleado.objects.get(idEmpleado=form.cleaned_data['idEmpleado'])
+                            print(ordenes.val())
+                            firebase.instance.reference.database().child("users").child(user['localId']).set(emp2.as_dict())
+                            if ordenes.val() is not None:
+                                firebase.instance.reference.database().child("users").child(user['localId']).child("ordenes").set(ordenes.val())
+
+
+
 
                     # emp.save()
 
@@ -702,7 +711,7 @@ def ShowRegisters(request):
 
 @csrf_exempt
 def ShowOrdersAdmin(request):
-    query = Orden.objects.all().values('nofolio', 'estado',
+    query = Orden.objects.all().order_by('estado').values('nofolio', 'estado',
                                        'start',
                                        'end',
                                        'depto__nombre',
@@ -1011,6 +1020,10 @@ def getUserInfo(request):
                                                                                    'nombre',
                                                                                    'ap',
                                                                                    'am',
+                                                                                   'email',
+                                                                                   'password',
+                                                                                   'numero',
+                                                                                   'ext',
                                                                                    'departamento__nombre',
                                                                                    'subdepartamento__nombre')
     equipo = Equipo.objects.filter(empleado=request.session['NombreUser']['pk']).values('modelo', 'pk',
@@ -1144,21 +1157,153 @@ def ShowGraph(request):
         content_type="application/json", safe=False)
 
 @csrf_exempt
+def updateDoc(request):
+    if request.method == 'POST':
+        deplist = []
+        subdeplist = []
+        typeworklist = []
+        for dep in Departamento.objects.all().values('nombre'):
+            deplist.append((dep['nombre'], dep['nombre']))
+        for subdep in SubDepartamento.objects.all().values('nombre'):
+            subdeplist.append((subdep['nombre'], subdep['nombre']))
+        for typework in TipoTrabajo.objects.all().values('nombre'):
+            typeworklist.append((typework['nombre'], typework['nombre']))
+        subdeplist.append(("Ninguno", "Ninguno"))
+        form = formregistro(deplist, subdeplist, typeworklist, request.POST)
+        if form.is_valid():
+            emp = Empleado.objects.filter(idEmpleado=form.cleaned_data['idEmpleado'])
+            uuid = emp[0].uuid
+
+            user = firebase.instance.authuser(emp[0].email, emp[0].password)
+
+            print(user)
+            if (user is not None):
+
+                firebase.instance.deleteuser(user['idToken'])
+                user2 = firebase.instance.createuser(form.cleaned_data['email'], form.cleaned_data['contra'])
+                if (user2 is not None):
+                    emp.update(
+                        nombre=form.cleaned_data['nombre'],
+                        ap=form.cleaned_data['ap'],
+                        am=form.cleaned_data['am'],
+                        email=form.cleaned_data['email'],
+                        password=form.cleaned_data['contra'],
+                        uuid=user['localId'],
+                        numero=form.cleaned_data['telefono'],
+                        ext=form.cleaned_data['extension'],
+                        estado=True,
+                        departamento=Departamento.objects.get(
+                            nombre=form.cleaned_data['depto']),
+                        subdepartamento=None if (form.cleaned_data[
+                                                     'subdepto'] == "Ninguno") else SubDepartamento.objects.get(
+                            nombre=form.cleaned_data['subdepto']))
+
+                    ordenes = firebase.instance.reference.database().child("users").child(uuid).child("ordenes").get()
+                    firebase.instance.reference.database().child("users").child(uuid).remove()
+                    emp2 = Empleado.objects.get(idEmpleado=form.cleaned_data['idEmpleado'])
+                    print(ordenes.val())
+                    firebase.instance.reference.database().child("users").child(user['localId']).set(emp2.as_dict())
+                    if ordenes.val() is not None:
+                        firebase.instance.reference.database().child("users").child(user['localId']).child(
+                            "ordenes").set(ordenes.val())
+
+                return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+            else:
+                return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+
+        else:
+            print(form.errors)
+            return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+    else:
+        return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+
+@csrf_exempt
+def recPass(request):
+    if request.method == 'POST':
+        form = formRecPass(request.POST)
+        if form.is_valid():
+            print(form.cleaned_data['emailrec'])
+            emp = Empleado.objects.get(email=form.cleaned_data['emailrec'])
+            send_mail(
+                'UDI, Recuperación de contraseña',
+                'Saludos.\nSe solicito recuperación de contraseña para :\n'+
+                'Cuenta : '+form.cleaned_data['emailrec']+'\n'+
+                'Contraseña: '+emp.password+'\nInicia sesión en: 127.0.0.1:8000/index.'+
+                'Si no solicitaste tu contraseña, puedes ignorar este email.\n Gracias.',
+                'from@example.com',
+                [form.cleaned_data['emailrec']],
+                fail_silently=False,
+            )
+            return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+        else:
+            print(form.errors)
+            return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+    else:
+        return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+
+
+
+@csrf_exempt
 def getOrderByMonth(request):
     mes = request.GET.get('mes', None)
     print(mes)
     if mes == "Todos":
-        return JsonResponse(
-            serializers.serialize('json',
-                                  Orden.objects.all()),
-            content_type="application/json", safe=False)
+        orden = Orden.objects.all().values('pk',
+                                     'estado',
+                                     'start',
+                                     'end',
+                                     'depto__nombre',
+                                     'depto__ubicacion__edificio',
+                                     'depto__ubicacion__piso',
+                                     'depto__ubicacion__sala',
+                                     'subdepto__nombre',
+                                     'subdepto__ubicacion__edificio',
+                                     'subdepto__ubicacion__piso',
+                                     'subdepto__ubicacion__sala',
+                                     'trabajo__nombre',
+                                     'incidencia__tipoincidencia',
+                                     'instalacionsoft__nombre',
+                                     'survey__confiabilidad',
+                                     'survey__responsabilidad',
+                                     'survey__seguridad',
+                                     'survey__infrayservicios',
+                                     'equipo__ns',
+                                     'equipo__cambs',
+                                     'equipo__tipo_equipo__nombre'
+
+                                     )
+        return HttpResponse(json.dumps(
+        {'ordenes': list(orden)},
+        cls=DjangoJSONEncoder), content_type="application/json")
     else:
         valmes = months(mes)
         print(valmes)
-        return JsonResponse(
-            serializers.serialize('json',
-                                  Orden.objects.filter(start__month=valmes)),
-            content_type="application/json", safe=False)
+        orden = Orden.objects.filter(start__month=valmes).values('pk',
+                                   'estado',
+                                   'start',
+                                   'end',
+                                   'depto__nombre',
+                                   'depto__ubicacion__edificio',
+                                   'depto__ubicacion__piso',
+                                   'depto__ubicacion__sala',
+                                   'subdepto__nombre',
+                                   'subdepto__ubicacion__edificio',
+                                   'subdepto__ubicacion__piso',
+                                   'subdepto__ubicacion__sala',
+                                   'trabajo__nombre',
+                                   'incidencia__tipoincidencia',
+                                   'instalacionsoft__nombre',
+                                   'survey__confiabilidad',
+                                   'survey__responsabilidad',
+                                   'survey__seguridad',
+                                   'survey__infrayservicios',
+                                   'equipo__ns',
+                                   'equipo__cambs',
+                                   'equipo__tipo_equipo__nombre'
+                                   )
+        return HttpResponse(json.dumps(
+        {'ordenes': list(orden)},
+        cls=DjangoJSONEncoder), content_type="application/json")
 
 
 def months(argument):

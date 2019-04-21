@@ -9,6 +9,8 @@ var surveys = []
 var indexsurvey = 0
 var surveylength = 0
 var jsonsurvey = {}
+var jsonorder = {}
+var typeordergraph = ""
 
 function showRegisterModal()
 {
@@ -18,6 +20,7 @@ function showRegisterModal()
     $("#btnRegistrar").val("Registrar")
     $("#badreg").hide()
     $("#okreg").hide()
+    $("#btncloseregmod").show()
     $('#id_idEmpleado').attr('readonly', false);
 //    $("#department").show()
     $('#regform').modal({
@@ -155,6 +158,16 @@ $(document).ready(function()
 
     formorder = $("#divformorder").html()
     $("#contenido").empty()
+    $('.ui.checkbox')
+    .checkbox()
+    .checkbox({
+        onChecked: function () {
+            showPass()
+        },
+        onUnchecked: function () {
+            showPass()
+        }
+    })
 
 
 {% if ordenes %}
@@ -199,6 +212,8 @@ $(document).ready(function()
             showOrderForm()
         else if(sessionStorage.getItem("menuItem") === "ORDENESDOCENTE")
             showOrdersDoc()
+        else if(sessionStorage.getItem("menuItem") === "PERFDOC")
+            showPerfil()
 
     {% elif usertype == "Tecnico" %}
         $(".itemtecnico").show('slow')
@@ -1213,6 +1228,7 @@ function createEquipmentTable(json)
   '  <tr><th colspan="2">Identificador</th>'+
     '  <th colspan="2">Tipo de Equipo</th>'+
     '  <th colspan="2">Estado del Equipo</th>'+
+    '  <th colspan="2">Equipo asignado</th>'+
   '  <th colspan="1" style="text-align: center;">Opciones</th>'+
   '</tr></thead>'+
   '<tbody>';
@@ -1231,7 +1247,9 @@ function createEquipmentTable(json)
           '<td colspan="2">'+
         element['tipo_equipo__nombre']+'</td>'+
            '<td colspan="2">'+
-          ((element['estado']) ? "En mantenimiento" : "Buen Estado")+'</td>'
+          ((element['estado']) ? "En mantenimiento" : "Buen Estado")+'</td>'+
+          '<td colspan="2"><center>'+
+          ((element['empleado__nombre'] === null) ? "NO" : "SI")+'</center></td>'
         html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+id+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
           '<div class="or" data-text="o"></div>'+
           '<button class="ui positive button" id="'+(element['pk']+id+"update").replace(/\s+/g, '')+'">Editar</button></div></td></tr>';
@@ -1240,7 +1258,7 @@ function createEquipmentTable(json)
   html +='<tfoot class="full-width">'+
     '<tr>'+
 
-      '<th colspan="7">'+
+      '<th colspan="9">'+
       '  <div class="ui right floated small primary labeled icon button" id="agregarequipo">'+
      '     <i class="fas fa-laptop"></i> Agregar Equipo'+
     '    </div>'+
@@ -1364,8 +1382,13 @@ function showEquipmentInfo(json) {
         '        </div>\n' +
         '        <div class="ui segments">\n' +
         '            <div class="ui segment">\n' +
-        '\n' +
-        '                <p style="opacity: 0.5;"><i class="user icon"></i>&nbsp;Equipo perteneciente a : </p><p id="equipdatauser">Id Empleado: '+json['empleado__pk']+', Nombre del empleado: '+json['empleado__nombre']+'</p>\n' +
+        '\n' ;
+    if(json['empleado__pk'] === null)
+        html+= '<p style="opacity: 0.5;"><i class="user icon"></i>&nbsp;Equipo perteneciente a : </p><p id="equipdatauser">Equipo sin asignar</p>\n'
+    else
+        html+=
+        '                <p style="opacity: 0.5;"><i class="user icon"></i>&nbsp;Equipo perteneciente a : </p><p id="equipdatauser">Id Empleado: '+json['empleado__pk']+', Nombre del empleado: '+json['empleado__nombre']+'</p>\n'
+    html+=
         '            </div>\n' +
         '            <div class="ui segment">\n' +
         '\n' +
@@ -2322,7 +2345,7 @@ function showGraph()
                     '    </div>\n' +
                     '  </div>\n' +
                     '</div>' +
-                    '<div class="ui left floated purple buttons" style="display: none;" id="months">\n' +
+                    '<div class="ui left floated yellow buttons" style="display: none;" id="months">\n' +
                     '  <div class="ui right floated button">Mes</div>\n' +
                     '  <div class="ui right floated dropdown graphsmonth icon button">\n' +
                     '    <i class="dropdown icon"></i>\n' +
@@ -2343,6 +2366,17 @@ function showGraph()
                     '    </div>\n' +
                     '  </div>\n' +
                     '</div>' +
+                    '<div class="ui left floated orange buttons" style="display: none; margin-left: 10px;" id="typeordergraph">\n' +
+                    '  <div class="ui right floated button">Tipo de gráfica de ordenes</div>\n' +
+                    '  <div class="ui right floated dropdown graphorder icon button">\n' +
+                    '    <i class="dropdown icon"></i>\n' +
+                    '    <div class="menu">\n' +
+                    '      <div class="item active">General</div>\n' +
+                    '      <div class="item">Por departamento</div>\n' +
+                    '      <div class="item">Por subdepartamento</div>\n' +
+                    '    </div>\n' +
+                    '  </div>\n' +
+                    '</div>' +
                     '</div></div>' +
                     '<div class="row"><div id="divgraph">\n' +
                     '</div></div></div>')
@@ -2351,19 +2385,23 @@ function showGraph()
                         if(text.endsWith("Satisfacción"))
                         {
                             $("#months").fadeOut('slow')
+                            $("#typeordergraph").fadeOut('slow')
                             createSatisGraph(json)
                         }
                         else
                         {
                             $("#months").fadeIn('slow')
+                            $("#typeordergraph").fadeIn('slow')
                             $.ajax({
                                 url : "{% url "tt:getOrderByMonth" %}",
                                 data : {'mes':"Todos"},
                                 dataType : 'json',
                                 success : function(data) {
-                                    var json = JSON.parse(data)
+                                    var json = data.ordenes
                                     console.log(json);
-                                    createOrderGraph(json,"Todos")
+                                    jsonorder = json
+                                    typeordergraph = "Todos"
+                                    createOrderGraph(json,"Todos","General")
 
                                 },
                                 error : function(xhr, status) {
@@ -2381,14 +2419,22 @@ function showGraph()
                                 data : {'mes':text},
                                 dataType : 'json',
                                 success : function(data) {
-                                    var json = JSON.parse(data)
+                                    var json = data.ordenes
+                                    jsonorder = json
+                                    typeordergraph = text
                                     console.log(json);
-                                    createOrderGraph(json,text)
+                                    createOrderGraph(json,text,"General")
                                 },
                                 error : function(xhr, status) {
                                     console.log("error ");
                                 },
                             });
+                    }
+                })
+
+                $(".ui.dropdown.graphorder").dropdown({
+                     onChange: function(value, text, $selectedItem) {
+                        createOrderGraph(jsonorder,typeordergraph,text)
                     }
                 })
                 createSatisGraph(json)
@@ -2442,121 +2488,431 @@ function createSatisGraph(json)
     Plotly.newPlot('divgraph', data,layout);
 }
 
-function createOrderGraph(json,type)
+function createOrderGraph(json,type,typegraph)
 {
-    if(type === "Todos")
-    {
-        var datos = {
-            '1' : 0,
-            '2' : 0,
-            '3' : 0,
-            '4' : 0,
-            '5' : 0,
-            '6' : 0,
-            '7' : 0,
-            '8' : 0,
-            '9' : 0,
-            '10' : 0,
-            '11' : 0,
-            '12' : 0
-        }
-        json.forEach(function(e){
-            switch (e.fields.start.split("-")[1]) {
-                case "01": datos['1']+=1
-                    break;
-                case "02": datos['2']+=1
-                    break;
-                case "03": datos['3']+=1
-                    break;
-                case "04": datos['4']+=1
-                    break;
-                case "05": datos['5']+=1
-                    break;
-                case "06": datos['6']+=1
-                    break;
-                case "07": datos['7']+=1
-                    break;
-                case "08": datos['8']+=1
-                    break;
-                case "09": datos['9']+=1
-                    break;
-                case "10": datos['10']+=1
-                    break;
-                case "11": datos['11']+=1
-                    break;
-                case "12": datos['12']+=1
-                    break;
+    if(typegraph === "General") {
+        if (type === "Todos") {
+            var datos = {
+                '1': 0,
+                '2': 0,
+                '3': 0,
+                '4': 0,
+                '5': 0,
+                '6': 0,
+                '7': 0,
+                '8': 0,
+                '9': 0,
+                '10': 0,
+                '11': 0,
+                '12': 0
             }
-        })
-        var yValue = [datos['1'],datos['2'],datos['3'],datos['4'],datos['5'],datos['6'],datos['7'],datos['8'],datos['9'],datos['10'],datos['11'],datos['12']]
-        var data = [
-          {
-            x: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-            y: yValue,
-            type: 'bar',
-              text: yValue.map(String),
-              textposition: 'auto',
-              hoverinfo: 'none',
-              marker: {
-                color: ['rgb(255,248,182)', 'rgb(255,228,163)', 'rgb(255,189,145)', 'rgb(255,141,113),rgb(255,112,126),rgb(231,201,144),rgb(217,234,157),rgb(133,229,188),rgb(126,185,240),rgb(195,150,234),rgb(255,158,27),rgb(255,123,8)'],
-                opacity: 0.6,
-                line: {
-                  color: 'rgb(8,48,107)',
-                  width: 1.5
+            json.forEach(function (e) {
+                switch (e.start.split("-")[1]) {
+                    case "01":
+                        datos['1'] += 1
+                        break;
+                    case "02":
+                        datos['2'] += 1
+                        break;
+                    case "03":
+                        datos['3'] += 1
+                        break;
+                    case "04":
+                        datos['4'] += 1
+                        break;
+                    case "05":
+                        datos['5'] += 1
+                        break;
+                    case "06":
+                        datos['6'] += 1
+                        break;
+                    case "07":
+                        datos['7'] += 1
+                        break;
+                    case "08":
+                        datos['8'] += 1
+                        break;
+                    case "09":
+                        datos['9'] += 1
+                        break;
+                    case "10":
+                        datos['10'] += 1
+                        break;
+                    case "11":
+                        datos['11'] += 1
+                        break;
+                    case "12":
+                        datos['12'] += 1
+                        break;
                 }
-              }
-          }
-        ];
+            })
+            var yValue = [datos['1'], datos['2'], datos['3'], datos['4'], datos['5'], datos['6'], datos['7'], datos['8'], datos['9'], datos['10'], datos['11'], datos['12']]
+            var data = [
+                {
+                    x: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                    y: yValue,
+                    type: 'bar',
+                    text: yValue.map(String),
+                    textposition: 'auto',
+                    hoverinfo: 'none',
+                    marker: {
+                        color: ['rgb(255,248,182)', 'rgb(255,228,163)', 'rgb(255,189,145)', 'rgb(255,141,113),rgb(255,112,126),rgb(231,201,144),rgb(217,234,157),rgb(133,229,188),rgb(126,185,240),rgb(195,150,234),rgb(255,158,27),rgb(255,123,8)'],
+                        opacity: 0.6,
+                        line: {
+                            color: 'rgb(8,48,107)',
+                            width: 1.5
+                        }
+                    }
+                }
+            ];
 
-        var layout = {
-          title: 'Gráfica de ordenes anual #Ordenes : '+json.length
-        };
-        $("#graphcontainer").fadeIn("slow")
-        Plotly.newPlot('divgraph', data,layout);
+            var layout = {
+                title: 'Gráfica de ordenes anual #Ordenes : ' + json.length
+            };
+            $("#graphcontainer").fadeIn("slow")
+            Plotly.newPlot('divgraph', data, layout);
+        } else {
+            var datos = {
+                'hw': 0,
+                'sw': 0
+            }
+            json.forEach(function (e) {
+                switch (e.trabajo__nombre) {
+                    case "Hardware":
+                        datos['hw'] += 1
+                        break;
+                    case "Software":
+                        datos['sw'] += 1
+                        break;
+
+                }
+            })
+            var yValue = [datos['hw'], datos['sw']]
+            var data = [
+                {
+                    x: ['Hardware', 'Software'],
+                    y: yValue,
+                    type: 'bar',
+                    text: yValue.map(String),
+                    textposition: 'auto',
+                    hoverinfo: 'none',
+                    marker: {
+                        color: ['rgb(255,248,182)', 'rgb(255,228,163)'],
+                        opacity: 0.6,
+                        line: {
+                            color: 'rgb(8,48,107)',
+                            width: 1.5
+                        }
+                    }
+                }
+            ];
+
+            var layout = {
+                title: 'Gráfica de ordenes por mes #Ordenes : ' + json.length
+            };
+            $("#graphcontainer").fadeIn("slow")
+            Plotly.newPlot('divgraph', data, layout);
+        }
     }
-    else
+    else if(typegraph === "Por departamento")
     {
-        var datos = {
-            'hw' : 0,
-            'sw' : 0
-        }
-        json.forEach(function(e){
-            switch (e.fields.trabajo) {
-                case 1: datos['hw']+=1
-                    break;
-                case 2: datos['sw']+=1
-                    break;
-
+        var datos = {}
+        var deptos = []
+        json.forEach(function (e) {
+            if(!(e.depto__nombre in datos))
+            {
+                deptos.push(e.depto__nombre)
+                datos[e.depto__nombre] = 1
             }
+            else
+            {
+                datos[e.depto__nombre] += 1
+            }
+
         })
-        var yValue = [datos['hw'],datos['sw']]
+        var yValue = []
+        for (var key in datos) {
+            yValue.push(datos[key])
+        }
         var data = [
-          {
-            x: ['Hardware','Software'],
-            y: yValue,
-            type: 'bar',
-              text: yValue.map(String),
-              textposition: 'auto',
-              hoverinfo: 'none',
-              marker: {
-                color: ['rgb(255,248,182)', 'rgb(255,228,163)'],
-                opacity: 0.6,
-                line: {
-                  color: 'rgb(8,48,107)',
-                  width: 1.5
+            {
+                x: deptos,
+                y: yValue,
+                type: 'bar',
+                text: yValue.map(String),
+                textposition: 'auto',
+                hoverinfo: 'none',
+                marker: {
+                    color: 'rgb(255,248,182)',
+                    opacity: 0.6,
+                    line: {
+                        color: 'rgb(8,48,107)',
+                        width: 1.5
+                    }
                 }
-              }
-          }
+            }
         ];
 
         var layout = {
-          title: 'Gráfica de ordenes por mes #Ordenes : '+json.length
+            title: 'Gráfica de ordenes por departamento, mes : '+type+' #Ordenes : ' + json.length
         };
         $("#graphcontainer").fadeIn("slow")
-        Plotly.newPlot('divgraph', data,layout);
+        Plotly.newPlot('divgraph', data, layout);
+    }
+    else if(typegraph === "Por subdepartamento")
+    {
+        var datos = {}
+        var deptos = []
+        json.forEach(function (e) {
+
+            if(!(e.subdepto__nombre in datos))
+            {
+                deptos.push(e.subdepto__nombre)
+                datos[e.subdepto__nombre] = 1
+            }
+            else
+            {
+                datos[e.subdepto__nombre] += 1
+            }
+
+        })
+        var yValue = []
+        for (var key in datos) {
+            yValue.push(datos[key])
+        }
+        var data = [
+            {
+                x: deptos,
+                y: yValue,
+                type: 'bar',
+                text: yValue.map(String),
+                textposition: 'auto',
+                hoverinfo: 'none',
+                marker: {
+                    color: 'rgb(255,248,182)',
+                    opacity: 0.6,
+                    line: {
+                        color: 'rgb(8,48,107)',
+                        width: 1.5
+                    }
+                }
+            }
+        ];
+
+        var layout = {
+            title: 'Gráfica de ordenes por subdepartamento, mes : '+type+' #Ordenes : ' + json.length
+        };
+        $("#graphcontainer").fadeIn("slow")
+        Plotly.newPlot('divgraph', data, layout);
     }
 
 }
+
+function showPerfil()
+{
+    $("#contenido").empty()
+    sessionStorage.setItem("menuItem", "PERFDOC");
+    $("#contenido").append('<div class="fifteen wide column" id="divformperf" style="display: none;"><form class="ui form" style="padding:15px;" id="formPerf" method="post" enctype="multipart/form-data">' +
+        $("#registro").html()+
+        '</form></div>')
+    $("#headerFormReg").text("Datos de perfil")
+
+    $.ajax({
+        url : "{% url "tt:getUserInfo" %}",
+        data : {},
+        dataType : 'json',
+        success : function(data) {
+            console.log(data);
+            $("#id_idEmpleado").val(data.data[0].pk)
+            $("#id_idEmpleado").attr('readonly', true);
+            $("#id_email").val(data.data[0].email)
+            $("#id_contra").val(data.data[0].password)
+            $("#id_telefono").val(data.data[0].numero)
+            $("#id_extension").val((data.data[0].ext === null) ? "" : data.data[0].ext)
+            $("#id_depto").val(data.data[0].departamento__nombre)
+            $("#id_subdepto").val(data.data[0].subdepartamento__nombre)
+            $("#id_nombre").val(data.data[0].nombre)
+            $("#id_ap").val(data.data[0].ap)
+            $("#id_am").val(data.data[0].am)
+            $('.ui.checkbox')
+                .checkbox()
+                .checkbox({
+                    onChecked: function () {
+                        showPass()
+                    },
+                    onUnchecked: function () {
+                        showPass()
+                    }
+                })
+        },
+        error : function(xhr, status) {
+            console.log("error ");
+        },
+    });
+
+    $.ajax({
+            url: "{% url 'tt:getSubDepartments' %}",
+            type: 'GET',
+            data: {'depto':$('#id_depto').val()},
+            success: function (data) {
+                var json = JSON.parse(data)
+                var newOptions = {};
+                var index = 0;
+                json.forEach(function(element){
+                   newOptions[(index++).toString()] = element['fields']['nombre']
+                });
+                newOptions[(index++).toString()] = "Ninguno"
+
+                var $el = $("#id_subdepto");
+                $el.empty();
+                $.each(newOptions, function(key,value) {
+                  $el.append($("<option></option>")
+                     .attr("value", value).text(value));
+                });
+            }
+        });
+
+    $('#id_depto').on('change', function (e) {
+        var valueSelected = this.value;
+        // alert(valueSelected)
+        $.ajax({
+            url: "{% url 'tt:getSubDepartments' %}",
+            type: 'GET',
+            data: {'depto':valueSelected},
+            success: function (data) {
+                var json = JSON.parse(data)
+                var newOptions = {};
+                var index = 0;
+                json.forEach(function(element){
+                   newOptions[(index++).toString()] = element['fields']['nombre']
+                });
+                newOptions[(index++).toString()] = "Ninguno"
+
+                var $el = $("#id_subdepto");
+                $el.empty();
+                $.each(newOptions, function(key,value) {
+                  $el.append($("<option></option>")
+                     .attr("value", value).text(value));
+                });
+            }
+        });
+    });
+
+    $("#btncloseregmod").hide()
+    $("#btnRegistrar").val("Actualizar perfil")
+
+    $("#divformperf").fadeIn('slow')
+
+    $("form#formPerf").submit(function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        $.ajax({
+            url: "{% url 'tt:updateDoc' %}",
+            type: 'POST',
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                console.log(data)
+                if(data.code === 0)
+                {
+                    Lobibox.notify('error', {
+                            size: 'mini',
+                            rounded: true,
+                            delayIndicator: true,
+                            icon: true,
+                            title:"<center>Error al actualizar perfil</center>",
+                            iconSource:"fontAwesome",
+                            sound:false,
+                            msg: "Ocurrio un error, favor de intentar más tarde"
+                        });
+                }
+                else
+                {
+                    Lobibox.notify('success', {
+                            size: 'mini',
+                            rounded: true,
+                            delayIndicator: true,
+                            icon: true,
+                            title:"<center>Perfil actualizado</center>",
+                            iconSource:"fontAwesome",
+                            sound:false,
+                            msg: "Se actualizo su perfil, se cerrara sesión para aplicar los cambios, favor de iniciar sesión nuevamente."
+                        });
+                    setTimeout(function(){cerrarSesion()},1500)
+
+
+                }
+            }
+        });
+    })
+}
+
+function showPass()
+{
+    var x = document.getElementById("id_contra");
+      if (x.type === "password") {
+        x.type = "text";
+      } else {
+        x.type = "password";
+      }
+}
+
+function showRecPass()
+{
+    $('#RecPassMod').modal({
+                    selector    : {
+                    close    : '.close, #btncloserecpassmod'
+                }}).modal('show')
+}
+
+$("#RecupPass").on('click',function () {
+    $('#formRecPass').trigger("reset");
+    showRecPass()
+})
+
+$("form#formRecPass").submit(function(e) {
+    e.preventDefault();
+    var formData = new FormData(this);
+    $.ajax({
+            url: "{% url 'tt:recPass' %}",
+            type: 'POST',
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                console.log(data)
+                if(data.code === 0)
+                {
+                    Lobibox.notify('error', {
+                            size: 'mini',
+                            rounded: true,
+                            delayIndicator: true,
+                            icon: true,
+                            title:"<center>Error al recuperar la contraseña</center>",
+                            iconSource:"fontAwesome",
+                            sound:false,
+                            msg: "Ocurrio un error, favor de intentar más tarde"
+                        });
+                }
+                else
+                {
+                    Lobibox.notify('success', {
+                            size: 'mini',
+                            rounded: true,
+                            delayIndicator: true,
+                            icon: true,
+                            title:"<center>Correo enviado</center>",
+                            iconSource:"fontAwesome",
+                            sound:false,
+                            msg: "Se envio un correo a la dirección "+$("#id_emailrec").val()
+                        });
+                }
+            }
+        });
+})
 
 function isIpn(url)
 {

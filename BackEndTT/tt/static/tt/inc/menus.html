@@ -28,6 +28,7 @@
     <a class="item itemdocente" onclick="showOrderForm()" style="display:none;"><i class="fas fa-file-signature"></i>&nbsp;Levantar solicitud</a>
     <a class="item itemdocente" onclick="showEquipmentDoc()" style="display:none;"><i class="fas fa-desktop"></i>&nbsp;Mi Equipo</a>
     <a class="item itemdocente" onclick="showOrdersDoc()" style="display:none;"><i class="fas fa-file-invoice"></i>&nbsp;Mis Ordenes</a>
+    <a class="item itemdocente" onclick="showPerfil()" style="display:none;"><i class="fas fa-file-invoice"></i>&nbsp;Perfil</a>
     <!--TECNICO-->
     <a class="item itemtecnico" onclick="showOrdersTec()" style="display:none;"><i class="fas fa-briefcase"></i>&nbsp;Ver trabajos</a>
     <div class="right menu">
@@ -49,11 +50,14 @@
                                 <label>{{ forml.passs.label_tag }}</label>
                                 {{ forml.passs }}
                             </div>
-
                             <h4 class="ui dividing header"></h4>
+
                             <center><input class="ui inverted green button" type="submit" value="Iniciar Sesión"/>
                             </center>
                         </form>
+                        <br>
+                        <p>¿Olvidate tú contraseña?</p>
+                        <p style="color: #1e70bf; cursor: pointer;" id="RecupPass">Recuperar contraseña</p>
 
                     </div>
 

@@ -116,6 +116,10 @@
         <div class="field">
             <label>{{ form.contra.label_tag }}</label>
             {{ form.contra }}
+            <div class="ui slider checkbox showpass">
+              <input type="checkbox" tabindex="0" class="hidden">
+              <label>Mostrar contraseña</label>
+            </div>
         </div>
         <div class="field">
             <label>{{ form.telefono.label_tag }}</label>
@@ -413,6 +417,20 @@
        <button style="margin: 15px; display: none" id="btnclosesurveymod" class="ui inverted left floated red button" type="button">Cerrar</button>
        <input style="margin: 15px;"  class="ui inverted right floated green button" id="btnSendSurvey" type="submit" value="Enviar encuesta"/>
     </form>
+</div>
+
+<div class="ui modal" id="RecPassMod" style="padding:15px;">
+
+    <h4 class="ui dividing header" id="recPassHeader" >Introduce tú correo</h4>
+    <form class="ui form" id="formRecPass" style="padding:15px;" method="post" enctype="multipart/form-data">
+      <div class="field">
+        {{ formrecpass.emailrec }}
+      </div>
+        <h4 class="ui dividing header"></h4>
+        <button id="btncloserecpassmod" class="ui inverted left floated red button" type="button">Cerrar</button>
+        <input class="ui inverted right floated green button" id="btnRecPass" type="submit" value="Recuperar contraseña"/>
+    </form>
+
 </div>
 
 </body>

@@ -29,6 +29,13 @@ class Firebase:
             except Exception as e:
                 return None
 
+        def resetPass(self,email):
+            auth = self.reference.auth()
+            try:
+                return auth.send_password_reset_email(email)
+            except Exception as e:
+                return None
+
         def createuser(self,email,password):
             auth = self.reference.auth()
             try:
