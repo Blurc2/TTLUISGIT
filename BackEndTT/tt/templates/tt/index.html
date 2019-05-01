@@ -19,6 +19,114 @@
         background: url("{% static 'tt/img/loader2.gif' %}") 50% 50% no-repeat rgb(249, 249, 249);
     }
 
+     {box-sizing:border-box}
+
+/* Slideshow container */
+.slideshow-container {
+  max-width: 1000px;
+  position: relative;
+  margin: auto;
+}
+
+/* Hide the images by default */
+.mySlides {
+  display: none;
+}
+
+/* Next & previous buttons */
+.prev, .next {
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  width: auto;
+  margin-top: -22px;
+  padding: 16px;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  transition: 0.6s ease;
+  border-radius: 0 3px 3px 0;
+  user-select: none;
+}
+
+/* Position the "next button" to the right */
+.next {
+  right: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+/* On hover, add a black background color with a little bit see-through */
+.prev:hover, .next:hover {
+  background-color: rgba(0,0,0,0.8);
+}
+
+/* Caption text */
+.text {
+  color: #0f0f0f;
+  font-size: 15px;
+  padding: 8px 12px;
+  position: absolute;
+    font-style: oblique;
+  bottom: 8px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Number text (1/3 etc) */
+.numbertext {
+  color: #0f0f0f;
+  font-size: 12px;
+  padding: 8px 12px;
+  position: absolute;
+  top: 0;
+}
+
+/* The dots/bullets/indicators */
+.dot {
+  cursor: pointer;
+  height: 15px;
+  width: 15px;
+  margin: 0 2px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+  transition: background-color 0.6s ease;
+}
+
+.active, .dot:hover {
+  background-color: #717171;
+}
+
+/* Fading animation */
+.fade {
+  -webkit-animation-name: fade;
+  -webkit-animation-duration: 1.5s;
+  animation-name: fade;
+  animation-duration: 1.5s;
+}
+
+@-webkit-keyframes fade {
+  from {opacity: .4}
+  to {opacity: 1}
+}
+
+@keyframes fade {
+  from {opacity: .4}
+  to {opacity: 1}
+}
+
+ {
+    margin: 0;
+}
+html, body {
+    height: 100%;
+}
+.wrapper {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto; /* the bottom margin is the negative value of the footer's height */
+}
 
 </style>
 <body>
@@ -27,7 +135,7 @@
     Cargando...</p></div>
 <div id="menus">{% include "menus.html" %}</div>
 
-<div id="contenido" class="ui grid" style=" padding:20px;">
+<div id="contenido" class="ui grid wrapper" style=" padding:20px;">
 
     <div class="ui sixteen wide column" id="divformorder" style="display: none;">
         <form class="ui form" style="padding:15px;" id="OrdenForm" method="post" enctype="multipart/form-data">
@@ -94,8 +202,9 @@
     </div>
 
 
-
 </div>
+
+
 
 
 <div class="ui modal" id="regform">
@@ -163,6 +272,8 @@
             {{ form.observaciones }}
         </div>
 
+
+
         <div class="ui success message" id="okreg" style="display:none;">
             <div class="header">Registro Completado</div>
             <p id="okregmsg">Espera a que el administrador valide el registro, se te enviara un correo cuando
@@ -172,6 +283,12 @@
         <div class="ui error message" id="badreg" style="display:none;">
             <div class="header">Registro incompleto</div>
             <p id="registererror">Error, intenta de nuevo más tarde</p>
+        </div>
+        <h4 class="ui dividing header"></h4>
+        <div class="ui checkbox terms" id="divterms" style="display: none;">
+          <input id="id_terms" type="checkbox" >
+          <label for="id_terms">Acepto los términos y condiciones de uso de
+            datos personales</label>
         </div>
 
         <h4 class="ui dividing header"></h4>
@@ -232,79 +349,95 @@
             {{ formequipo.idequipo }}
         </div>
         <div class="field" id="generalfields">
-            <label>Datos generales</label>
+            <h3>Datos generales</h3>
             <div class="two fields">
                 <div class="field" id="modelofield">
+                    <label>{{ formequipo.fmodelo.label_tag }}</label>
                     {{formequipo.fmodelo}}
                 </div>
                 <div class="field" id="marcafield">
+                    <label>{{ formequipo.fmarca.label_tag }}</label>
                     {{formequipo.fmarca}}
                 </div>
             </div>
         </div>
         <div class="field" id="datafields">
-            <label>Datos del equipo</label>
+            <h3>Datos del equipo</h3>
             <div class="three fields">
                 <div class="field" id="macfield">
+                    <label>{{ formequipo.fmac.label_tag }}</label>
                     {{formequipo.fmac}}
                 </div>
                 <div class="field" id="nsfield">
+                    <label>{{ formequipo.fns.label_tag }}</label>
                     {{formequipo.fns}}
                 </div>
                 <div class="field" id="ipfield">
+                    <label>{{ formequipo.fip.label_tag }}</label>
                     {{formequipo.fip}}
                 </div>
             </div>
         </div>
         <div class="field" id="hardwaresection">
-            <label>Caracteristicas de hardware</label>
+            <h3>Caracteristicas de hardware</h3>
             <div class="four fields">
                 <div class="field">
+                    <label>{{ formequipo.fprocesador.label_tag }}</label>
                     {{formequipo.fprocesador}}
                 </div>
                 <div class="field">
+                    <label>{{ formequipo.fnum_puertos.label_tag }}</label>
                     {{formequipo.fnum_puertos}}
                 </div>
                 <div class="field">
+                    <label>{{ formequipo.fmemoria_ram.label_tag }}</label>
                     {{formequipo.fmemoria_ram}}
                 </div>
                 <div class="field">
+                    <label>{{ formequipo.fdisco_duro.label_tag }}</label>
                     {{formequipo.fdisco_duro}}
                 </div>
             </div>
         </div>
         <div class="field">
-            <label>Otros datos</label>
+            <h3>Otros datos</h3>
             <div class="three fields">
                 <div class="field" id="cambsfield">
+                    <label>{{ formequipo.fcambs.label_tag }}</label>
                     {{formequipo.fcambs}}
                 </div>
                 <div class="field" id="systemfield">
+                    <label>{{ formequipo.fsistema_operativo.label_tag }}</label>
                     {{formequipo.fsistema_operativo}}
                 </div>
                 <div class="field" id="idffield">
+                    <label>{{ formequipo.fidf.label_tag }}</label>
                     {{formequipo.fidf}}
                 </div>
             </div>
         </div>
         <div class="field">
-            <label>Ubicación</label>
+            <h3>Ubicación</h3>
             <div class="two fields">
                 <div class="field">
+                    <label>{{ formequipo.departamento.label_tag }}</label>
                     {{formequipo.departamento}}
                 </div>
                 <div class="field">
+                    <label>{{ formequipo.empleados.label_tag }}</label>
                     {{formequipo.empleados}}
                 </div>
             </div>
         </div>
         <div class="field">
-            <label>Comentarios del equipo</label>
+            <h3>Comentarios del equipo</h3>
             <div class="two fields">
                 <div class="field">
+                    <label>{{ formequipo.fcaracteristicas.label_tag }}</label>
                     {{formequipo.fcaracteristicas}}
                 </div>
                 <div class="field">
+                    <label>{{ formequipo.fobservaciones.label_tag }}</label>
                     {{formequipo.fobservaciones}}
                 </div>
             </div>
@@ -439,22 +572,39 @@
 
 </div>
 
+<div class="ui inverted vertical footer segment">
+    <div class="ui container">
+        <div class="six wide column">
+            <h3>DIRECCIÓN</h3><br>
+            <i class="home icon"></i>
+            Dirección: Av. Juan de Dios Bátiz esq. Av. Miguel Othón de Mendizábal, Col. Lindavista. Demarcación Territorial, Gustavo A. Madero. Ciudad de México<br>
+            C. P. 07738.<br>
+            <i class="envelope icon"></i> Correo Electrónico: udiescom2019@gmail.com<br>
+            <i class="phone icon"></i> Teléfono: 56072514
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
 
 <script>
     $(".loader").hide();
-//     <div class="ui sixteen wide column" id="divgraph">
-//     </div>
-// var data = [
-//   {
-//     x: ['giraffes', 'orangutans', 'monkeys'],
-//     y: [20, 14, 23],
-//     type: 'bar'
-//   }
-// ];
-//
-// Plotly.newPlot('divgraph', data);
+
+
+    // function plusSlides(n) {
+    //   showSlides(slideIndex += n);
+    // }
+    //
+    // // Thumbnail image controls
+    // function currentSlide(n) {
+    //   showSlides(slideIndex = n);
+    // }
+
+
+
+
+
     {%include "index.js" %}
 
 

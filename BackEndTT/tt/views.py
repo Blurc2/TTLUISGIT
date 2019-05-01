@@ -7,6 +7,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, render_to_response
+from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 import json
 import time
@@ -14,6 +15,8 @@ from django.core.mail import send_mail
 from .forms import *
 from .models import *
 from .firebase import Firebase
+from weasyprint import HTML, CSS
+from weasyprint.fonts import FontConfiguration
 
 firebase = Firebase()
 
@@ -41,7 +44,7 @@ def Index(request):
         deplist.append((dep['nombre'], dep['nombre']))
     for typework in TipoTrabajo.objects.all().values('nombre'):
         typeworklist.append((typework['nombre'], typework['nombre']))
-    for emp in Empleado.objects.all().values('nombre', 'pk'):
+    for emp in Empleado.objects.filter(tipo = 3).values('nombre', 'pk'):
         emplist.append(("Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre'],
                         "Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre']))
     for typeequipo in TipoEquipo.objects.all().values('nombre'):
@@ -384,7 +387,7 @@ def AddEquip(request):
         for dep in Departamento.objects.all().values('nombre'):
             print(dep)
             deplist.append((dep['nombre'], dep['nombre']))
-        for emp in Empleado.objects.all().values('nombre', 'pk'):
+        for emp in Empleado.objects.filter(tipo = 3).values('nombre', 'pk'):
             emplist.append(("Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre'],
                             "Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre']))
         for typeequipo in TipoEquipo.objects.all().values('nombre'):
@@ -404,7 +407,7 @@ def AddEquip(request):
                         return JsonResponse({"code": 2}, content_type="application/json", safe=False)
                     else:
                         if Marca.objects.filter(nombre=form.cleaned_data['fmarca']).exists():
-
+                            print("Marca exists")
                             equipo = Equipo.objects.create(idEquipo=form.cleaned_data['idequipo'],
                                                            modelo=form.cleaned_data['fmodelo'],
                                                            mac=form.cleaned_data['fmac'],
@@ -431,10 +434,12 @@ def AddEquip(request):
                                                            )
                             equipo.save()
                         else:
+                            print("Marca no exists")
                             marca = Marca.objects.create(
                                 nombre=form.cleaned_data['fmarca'])
                             marca.save()
-                            equipo = Equipo.objects.create(modelo=form.cleaned_data['fmodelo'],
+                            equipo = Equipo.objects.create(idEquipo=form.cleaned_data['idequipo'],
+                                                            modelo=form.cleaned_data['fmodelo'],
                                                            mac=form.cleaned_data['fmac'],
                                                            ns=form.cleaned_data['fns'],
                                                            ip=form.cleaned_data['fip'],
@@ -622,6 +627,10 @@ def AssignTec(request):
             emp = Empleado.objects.get(idEmpleado=id)
             emp.ordenes.add(Orden.objects.get(nofolio=request.GET.get('folio', None)))
             emp.save()
+
+            adm = Empleado.objects.get(idEmpleado=request.session['NombreUser']['pk'])
+            adm.ordenes.add(Orden.objects.get(nofolio=request.GET.get('folio', None)))
+            adm.save()
             orden = Orden.objects.filter(nofolio=request.GET.get('folio', None))
 
             desc = Descripcion.objects.get(orden=request.GET.get('folio', None))
@@ -751,7 +760,7 @@ def ShowOrdersAdmin(request):
                                                                                               'tipo__nombre')
     # return HttpResponse(json.dumps(list(query), cls=DjangoJSONEncoder), content_type="application/json")
     return HttpResponse(json.dumps(
-        {'orden': list(query), 'tecnicos': list(tecnicos)},
+        {'orden': list(query), 'tecnicos': list(tecnicos),'date':datetime.datetime.now().date()},
         cls=DjangoJSONEncoder), content_type="application/json")
 
 
@@ -887,7 +896,7 @@ def ShowSubDepartments(request):
 @csrf_exempt
 def ShowEquipment(request):
     print(request.GET.get('nombreDep', None))
-    query = Equipo.objects.all().values('modelo', 'pk',
+    query = Equipo.objects.all().order_by('tipo_equipo').values('modelo', 'pk',
                                         'mac',
                                         'ns',
                                         'ip',
@@ -1103,7 +1112,7 @@ def getOrder(request):
     # else:
     #     folio = Orden.objects.all().count() + 1
     print("Id Orden -> " + request.GET.get('idOrden', None))
-    query = Empleado.objects.filter(ordenes=request.GET.get('idOrden', None)).values('pk',
+    query = Empleado.objects.filter(Q(ordenes=request.GET.get('idOrden', None)) & ~Q(tipo=1)).values('pk',
                                                                                      'nombre',
                                                                                      'ap',
                                                                                      'am',
@@ -1218,16 +1227,17 @@ def updateDoc(request):
         form = formregistro(deplist, subdeplist, typeworklist, request.POST)
         if form.is_valid():
             emp = Empleado.objects.filter(idEmpleado=form.cleaned_data['idEmpleado'])
+            print(emp[0].email)
+            print(emp[0].password)
             uuid = emp[0].uuid
-
             user = firebase.instance.authuser(emp[0].email, emp[0].password)
 
-            print(user)
-            if (user is not None):
+
+            if user is not None:
 
                 firebase.instance.deleteuser(user['idToken'])
                 user2 = firebase.instance.createuser(form.cleaned_data['email'], form.cleaned_data['contra'])
-                if (user2 is not None):
+                if user2 is not None:
                     emp.update(
                         nombre=form.cleaned_data['nombre'],
                         ap=form.cleaned_data['ap'],
@@ -1351,6 +1361,53 @@ def getOrderByMonth(request):
         {'ordenes': list(orden)},
         cls=DjangoJSONEncoder), content_type="application/json")
 
+
+def reporteOrden(request, idOrden):
+    print("::. Reporte Orden .::")
+
+    print(idOrden)
+    orden = Orden.objects.get(nofolio = idOrden)
+    docente = Empleado.objects.get(ordenes = orden, tipo = 3)
+    tec = Empleado.objects.get(ordenes = orden, tipo = 2)
+    adm = Empleado.objects.get(ordenes = orden, tipo = 1)
+    descdoc = Descripcion.objects.get(orden = orden, who = 0)
+    desctec = Descripcion.objects.get(orden = orden, who = 1)
+    print(descdoc)
+    print(desctec)
+
+    # emps = Empleado.objects.filter(ordenes = orden)
+    print(docente)
+    print(tec)
+    print(adm)
+    # print(result["1"])
+    # print(childs)
+
+    params = {
+        'nofolio': idOrden,
+        'fecha': orden.start,
+        'depto': orden.depto,
+        'subdepto': orden.subdepto,
+        'solicitante': docente.nombre+" "+docente.ap+" "+docente.am,
+        'tecnico': tec.nombre+" "+tec.ap+" "+tec.am,
+        'admin': adm.nombre+" "+adm.ap+" "+adm.am,
+        'trabajo': orden.trabajo,
+        'equipo': orden.equipo,
+        'descdoc': descdoc,
+        'desctec': desctec
+    }
+    # Rendered
+    html_string = render_to_string("PdfOrden.html", params)
+    font_config = FontConfiguration()
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    result = html.write_pdf(
+        stylesheets=[CSS(string=render_to_string("semantic.min.css"))],
+        font_config=font_config)
+
+    # Creating http response
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'filename=Reporte_Orden' + str(idOrden) + '.pdf'
+
+    return HttpResponse(result, content_type='application/pdf')
 
 def months(argument):
     switcher = {

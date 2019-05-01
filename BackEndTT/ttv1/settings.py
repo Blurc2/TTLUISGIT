@@ -61,7 +61,7 @@ ROOT_URLCONF = 'ttv1.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates'),os.path.join(BASE_DIR, 'tt/static/tt/inc'),os.path.join(BASE_DIR, 'tt/static/tt/js')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'),os.path.join(BASE_DIR, 'tt/templates/tt'),os.path.join(BASE_DIR, 'tt/static/tt/css'),os.path.join(BASE_DIR, 'tt/static/tt/inc'),os.path.join(BASE_DIR, 'tt/static/tt/js')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

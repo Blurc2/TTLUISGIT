@@ -1,0 +1,218 @@
+{% load static %}
+<!--{% load app_filters %}-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- CSS -->
+    <!--<link rel="stylesheet" type="text/css" href="{% static 'sherlock/css/styles.css' %}">-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css"
+          integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/grid.css">
+    <style>
+        @page {
+            size: A4;
+        }
+    </style>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+    <title>PDF de Orden : {{ nofolio }}</title>
+</head>
+
+
+<body>
+<div class="ui grid">
+    <div class="row">
+        <div class="one wide column">
+            <center>
+                <img src="{% static 'tt/img/ipn.jpg' %}" style=" width: 50px; height: 50px;">
+            </center>
+        </div>
+        <div class="eleven wide column">
+            <center>
+                <h2 class="ui icon header">
+                    <div class="content" style="font-size: large; font-family: 'Times New Roman',serif;">
+                        INSTITUTO POLITÉCNICO NACIONAL
+                        <div class="sub header" style="font-size: medium; font-family: 'Times New Roman',serif;">
+                            ESCUELA SUPERIOR DE CÓMPUTO
+                            <br>
+                            Departamento de unidad de informatica
+                            <br>
+                            <br>
+
+                        </div>
+                        <p style="font-size: medium; font-family: 'Times New Roman',serif;">ORDEN DE SERVICIO</p>
+                    </div>
+                </h2>
+            </center>
+        </div>
+
+        <div class="one wide column">
+            <center>
+                <img src="{% static 'tt/img/escomlog.png' %}" style=" width: 50px; height: 50px;">
+            </center>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="four wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">
+            <strong>Fecha :</strong> {{ fecha }}
+        </div>
+        <div class="four wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">
+            <strong>Folio :</strong> {{ nofolio }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="three wide column">
+
+        </div>
+        <div class="six wide column">
+            <center>
+                <strong style="font-size: medium; font-family: 'Times New Roman',serif;">DEPARTAMENTO
+                    SOLICITANTE</strong>
+            </center>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="three wide column">
+
+        </div>
+        <div class="six wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">
+            <center>
+                <div class="ui segment">
+                    {{ depto }}
+                </div>
+            </center>
+
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="three wide column">
+
+        </div>
+        <div class="six wide column">
+            <center>
+                <strong style="font-size: medium; font-family: 'Times New Roman',serif;">SOLICITADO POR</strong>
+            </center>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="three wide column">
+
+        </div>
+        <div class="six wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">
+
+            <center>
+                <div class="ui segment">
+                    {{ solicitante }}
+                </div>
+
+            </center>
+
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="three wide column">
+
+        </div>
+        <div class="six wide column">
+            <center>
+                <strong style="font-size: medium; font-family: 'Times New Roman',serif;">TRABAJO A REALIZAR</strong>
+            </center>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="three wide column">
+
+        </div>
+        <div class="six wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">
+
+            <center>
+                <div class="ui segment">
+                    {{ trabajo }}
+                </div>
+
+            </center>
+
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="two wide column">
+
+        </div>
+        <div class="eight wide column">
+            <center>
+                <strong style="font-size: medium; font-family: 'Times New Roman',serif;">DESCRIPCIÓN DE EQUIPO</strong>
+            </center>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="two wide column"></div>
+        <div class="eight wide column">
+            <table class="ui striped celled  table" style="font-size: medium; font-family: 'Times New Roman',serif;">
+                <thead>
+                <tr>
+                    <th>Tipo de equipo</th>
+                    <th>Modelo</th>
+                    <th>Número de serie</th>
+                    <th>Marca</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{ equipo.tipo_equipo }}</td>
+                    <td>{{ equipo.modelo }}</td>
+                    <td>{{ equipo.ns }}</td>
+                    <td>{{ equipo.marca }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="sixteen wide column">
+            <table class="ui striped celled  table" style="font-size: smaller; font-family: 'Times New Roman',serif;">
+                <thead>
+                <tr>
+                    <th><center>Comentarios solicitante</center></th>
+                    <th><center>Comentarios Técnico</center></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{ descdoc.descripcion }}</td>
+                    <td>{{ desctec.descripcion }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="sixteen wide column">
+            <table class="ui celled  table" style="font-size: medium; font-family: 'Times New Roman',serif;">
+                <tbody>
+                <tr>
+                    <td><center>Autorizo<br><br>_________________<br>{{ admin }}</center></td>
+                    <td><center>Encargado de servicio<br><br>_________________<br>{{ tecnico }}</center></td>
+                    <td><center>Recibió servicio<br><br>_________________<br>{{ solicitante }}</center></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+
+</body>
+</html>

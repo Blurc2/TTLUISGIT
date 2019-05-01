@@ -11,6 +11,7 @@ var surveylength = 0
 var jsonsurvey = {}
 var jsonorder = {}
 var typeordergraph = ""
+var slideIndex = 0;
 
 function showRegisterModal()
 {
@@ -21,6 +22,7 @@ function showRegisterModal()
     $("#badreg").hide()
     $("#okreg").hide()
     $("#btncloseregmod").show()
+    $("#divterms").show()
     $('#id_idEmpleado').attr('readonly', false);
 //    $("#department").show()
     $('#regform').modal({
@@ -154,12 +156,70 @@ $("form#SurveyForm").submit(function(e) {
 
         })
 
+function home(){
+    sessionStorage.setItem("menuItem", "");
+    window.location.href = "{% url 'tt:Index'%}";
+}
+
+function showSlides() {
+      var i;
+      var slides = document.getElementsByClassName("mySlides");
+      for (i = 0; i < slides.length; i++) {
+        slides[i].style.display = "none";
+      }
+      slideIndex++;
+      if (slideIndex > slides.length) {slideIndex = 1}
+      slides[slideIndex-1].style.display = "block";
+      setTimeout(showSlides, 5000); // Change image every 2 seconds
+    }
+
 $(document).ready(function()
 {
 
     formorder = $("#divformorder").html()
     $("#contenido").empty()
-    $('.ui.checkbox')
+    if(sessionStorage.getItem("menuItem") === "")
+    {
+        var html = '<div class="row"><div class="one wide column"></div> <div class="fourteen wide column"><div class="slideshow-container" style="display: none;" >\n' +
+            '\n' +
+            '      <!-- Full-width images with number and caption text -->\n' +
+            '      <div class="mySlides fade">\n' +
+            '        <div class="numbertext">1 / 3</div>\n' +
+            '        <img src="{% static 'tt/img/fondos/ESCOMFrente.jpg' %}" style="width:100%">\n' +
+            // '        <div class="text">Caption Text</div>\n' +
+            '      </div>\n' +
+            '\n' +
+            '      <div class="mySlides fade">\n' +
+            '        <div class="numbertext">2 / 3</div>\n' +
+            '        <img src="{% static 'tt/img/fondos/mesaayu.jpg' %}" style="width:100%">\n' +
+            // '        <div class="text">Caption Two</div>\n' +
+            '      </div>\n' +
+            '\n' +
+            '      <div class="mySlides fade">\n' +
+            '        <div class="numbertext">3 / 3</div>\n' +
+            '        <img src="{% static 'tt/img/fondos/seguridad.jpg' %}" style="width:100%">\n' +
+            // '        <div class="text">Caption Three</div>\n' +
+            '      </div>\n' +
+            '\n' +
+            '    </div></div></div>';
+        html += '<div class="row"><div class="one wide column"></div><div class="fourteen wide column"> <p style="text-align: justify">La Unidad de Informática es un área de la Escuela Superior de Cómputo dependiente de la Dirección de Cómputo y Comunicaciones, es\n' +
+            'responsable de planear, regular, coordinar y evaluar las acciones para garantizar la disponibilidad, operación, confiabilidad y seguridad de\n' +
+            'los servicios informáticos y de telecomunicaciones, con el propósito de contribuir a la transformación y el mejor desarrollo de las funciones\n' +
+            'sustantivas, de apoyo, administrativas y académicas de la Escuela Superior de Cómputo.\n</p></div></div>'
+
+        html+='<div class="row"><div class="one wide column"></div><div class="fourteen wide column">' +
+            '<img src="{% static 'tt/img/mesa.png' %}">' +
+        '</div></div>'
+        $("#contenido").append(html)
+        $(".slideshow-container").fadeIn('slow')
+
+        showSlides();
+    }
+
+    // else
+    //     $("#contenido").empty()
+    $('.ui.checkbox').checkbox()
+    $('.ui.checkbox.showpass')
     .checkbox()
     .checkbox({
         onChecked: function () {
@@ -220,8 +280,11 @@ $(document).ready(function()
         $(".itemtecnico").show('slow')
         if(sessionStorage.getItem("menuItem") === "ORDERSTEC")
             showOrdersTec()
+        else if(sessionStorage.getItem("menuItem") === "EQUIPO")
+            showEquipment()
     {% endif %}
 {% else %}
+    $(".slideshow-container").fadeIn('slow')
     $(".sesionforms").show()
     $(".sesion").hide()
 {% endif %}
@@ -473,52 +536,69 @@ if($("#headerFormReg").text()=="Registrate")
 {
 
     formData.append('tipoEmpleado', "DOCENTE");
-    if(isIpn(formData.get('email')))
+    if($("#id_terms").is(':checked'))
     {
-        $("form#registro").addClass( "loading" )
-        $("#badreg").hide();
-        $("#okreg").hide();
-        $.ajax({
-        url: "{% url 'tt:Registrar' %}",
-        type: 'POST',
-        data: formData,
-        success: function (data) {
-        console.log(data.code)
-        $("form#registro").removeClass( "loading" )
-        if(data.code == 0)
+        if(isIpn(formData.get('email')))
+        {
+            $("form#registro").addClass( "loading" )
+            $("#badreg").hide();
+            $("#okreg").hide();
+            $.ajax({
+            url: "{% url 'tt:Registrar' %}",
+            type: 'POST',
+            data: formData,
+            success: function (data) {
+            console.log(data.code)
+            $("form#registro").removeClass( "loading" )
+            if(data.code == 0)
+                {
+                    $("#registererror").text("Error, intenta más tarde.")
+                    $("#badreg").fadeIn("slow");
+                }
+            else if(data.code == 2)
             {
-                $("#registererror").text("Error, intenta más tarde.")
+                $("#registererror").text("Este correo o id de empleado ya se encuentra registrado en el sistema.")
                 $("#badreg").fadeIn("slow");
             }
-        else if(data.code == 2)
-        {
-            $("#registererror").text("Este correo o id de empleado ya se encuentra registrado en el sistema.")
-            $("#badreg").fadeIn("slow");
+            else
+                {
+                    $("#okregmsg").text("Espera a que el administrador valide el registro, se te enviara un correo cuando suceda.")
+                    $("#okreg").fadeIn("slow");
+                }
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+        });
         }
         else
-            {
-                $("#okregmsg").text("Espera a que el administrador valide el registro, se te enviara un correo cuando suceda.")
-                $("#okreg").fadeIn("slow");
-            }
-        },
-        cache: false,
-        contentType: false,
-        processData: false
-    });
+        {
+        Lobibox.notify('error', {
+                            size: 'mini',
+                            rounded: true,
+                            delayIndicator: true,
+                            icon: true,
+                            title:"<center>CORREO NO VALIDO</center>",
+                            iconSource:"fontAwesome",
+                            sound:false,
+                            msg: "No se pudo validar el correo, el correo debe tener terminación ipn.mx"
+                            });
+        }
     }
     else
     {
-    Lobibox.notify('error', {
-                        size: 'mini',
-                        rounded: true,
-                        delayIndicator: true,
-                        icon: true,
-                        title:"<center>CORREO NO VALIDO</center>",
-                        iconSource:"fontAwesome",
-                        sound:false,
-                        msg: "No se pudo validar el correo, el correo debe tener terminación ipn.mx"
-                        });
+        Lobibox.notify('error', {
+                            size: 'mini',
+                            rounded: true,
+                            delayIndicator: true,
+                            icon: true,
+                            title:"<center>Términos y condiciones</center>",
+                            iconSource:"fontAwesome",
+                            sound:false,
+                            msg: "Debe aceptar los términos y condiciones de uso de datos personales para poder continuar."
+                            });
     }
+
 }
 else
 {
@@ -693,14 +773,17 @@ $.ajax({
     console.log(data.code)
     if(data.logincode == 2)
         {
-            $("#username").text("")
-            $(".itemadmin").hide('slow')
-            $(".itemdocente").hide('slow')
-            $(".itemtecnico").hide('slow')
-            $(".sesionforms").show('slow')
-            $(".sesion").hide('slow')
-            sessionStorage.removeItem("menuItem")
-            $("#contenido").empty()
+            // $("#username").text("")
+            // $(".itemadmin").hide('slow')
+            // $(".itemdocente").hide('slow')
+            // $(".itemtecnico").hide('slow')
+            // $(".sesionforms").show('slow')
+            // $(".sesion").hide('slow')
+            // sessionStorage.setItem("menuItem","")
+            // $("#contenido").empty()
+            sessionStorage.setItem("menuItem", "");
+            window.location.href = "{% url 'tt:Index'%}";
+
 
         }
     else if(data.logincode == 3)
@@ -740,6 +823,7 @@ function showTec()
 
               $(("#"+element['fields']['nombre']+element['fields']['ap']+element['fields']['am']+"update").replace(/\s+/g, '')).on('click',function()
               {
+                $("#divterms").hide()
                 $("#headerFormReg").text("Modificar Técnico")
                 $("#typetec").show()
                 $("#id_idEmpleado").val(element['pk'])
@@ -813,6 +897,7 @@ function showTec()
             $("#typetec").show()
             $("#badreg").hide()
             $("#okreg").hide()
+            $("#divterms").hide()
             $('#id_idEmpleado').attr('readonly', false);
             $("#btnRegistrar").val("Registrar")
 //            $("#department").hide()
@@ -1017,6 +1102,8 @@ function showEquipment()
     var json = data
     console.log(json)
     $("#contenido").append(createEquipmentTable(json))
+
+
     $("#tableequip").fadeIn('slow')
         $('#id_tipoequipo').on('change', function (e) {
                         var valueSelected = this.value;
@@ -1054,7 +1141,64 @@ function showEquipment()
     if(!$.isEmptyObject(json))
     {
 
-        json.forEach(function(element) {
+        var content = []
+        var types = []
+        json.forEach(function(element){
+            if(!types.includes(element['tipo_equipo__nombre']))
+            {
+                types.push(element['tipo_equipo__nombre'])
+            }
+        })
+
+        for(t in types)
+        {
+            content.push({'title' : types[t]})
+        }
+
+
+        $('.ui.search')
+          .search({
+            source: content,
+              onSelect: function (result,response) {
+                console.log(result);
+                // $("#contenido").empty()
+                  var newjson = $.grep(json, function(v) {
+                    return v['tipo_equipo__nombre'] === result.title;
+                    });
+                  // console.log(newjson)
+                  var cont = createEquipmentTable(newjson)
+                  var htm = cont.substring(cont.indexOf("<tbody id=\"equipbody\">")+22,cont.indexOf("</tbody>"))
+                  console.log(htm)
+                  $("#equipbody").empty()
+                  $("#equipbody").append(htm)
+                  $("#tableequip").fadeIn('slow')
+                  setClicksEquip(newjson)
+
+            return true;
+        },
+              onResultsClose: function(){
+                // console.log("Cerro")
+                  if($("#inputSearchEquip").val() === "")
+                  {
+                      var cont = createEquipmentTable(json)
+                      var htm = cont.substring(cont.indexOf("<tbody id=\"equipbody\">")+22,cont.indexOf("</tbody>"))
+                      console.log(htm)
+                      $("#equipbody").empty()
+                      $("#equipbody").append(htm)
+                      $("#tableequip").fadeIn('slow')
+                      setClicksEquip(json)
+                  }
+              }
+          })
+
+
+        setClicksEquip(json)
+
+    }
+
+function setClicksEquip(json)
+{
+    json.forEach(function(element) {
             var id  = ""
             if(element['ns']!=null)
                 id = element['ns']
@@ -1175,9 +1319,7 @@ function showEquipment()
               });
 
         });
-
-
-    }
+}
 
 $("#agregarequipo").on('click',function(){
 
@@ -1191,6 +1333,7 @@ $("#agregarequipo").on('click',function(){
                     close    : '.close, #btncloseequipomod'
                 }}).modal('show')
             $('#EquipoForm').trigger("reset");
+        $('#id_idequipo').attr('readonly', false)
         var value = $('#id_tipoequipo').val()
 
                     $("#generalfields").show()
@@ -1229,13 +1372,20 @@ function createEquipmentTable(json)
 
     var html ='<table id="tableequip" style="display:none;" class="ui orange celled table">'+
   '<thead>'+
-  '  <tr><th colspan="2">Identificador</th>'+
-    '  <th colspan="2">Tipo de Equipo</th>'+
+  '  <tr>' +
+        '<th colspan="2">Identificador</th>'+
+    '  <th colspan="3"><center>Tipo de Equipo<div class="ui search">\n' +
+        '  <div class="ui icon input">\n' +
+        '    <input id="inputSearchEquip" class="prompt" type="text" placeholder="Filtrar por tipo">\n' +
+        '    <i class="search icon"></i>\n' +
+        '  </div>\n' +
+        '  <div class="results"></div>\n' +
+        '</div></center></th>'+
     '  <th colspan="2">Estado del Equipo</th>'+
     '  <th colspan="2">Equipo asignado</th>'+
   '  <th colspan="1" style="text-align: center;">Opciones</th>'+
   '</tr></thead>'+
-  '<tbody>';
+  '<tbody id="equipbody">';
   if($.isEmptyObject(json))
   {
     html+='<tr><td class="collapsing"></td><td></td><td></td></tr>'
@@ -1248,28 +1398,28 @@ function createEquipmentTable(json)
         id = element['cambs']
       html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+id+"infoequipo").replace(/\s+/g, '')+'"><i class="fas fa-desktop"></i>'+
         id+
-          '<td colspan="2">'+
+          '<td colspan="3">'+
         element['tipo_equipo__nombre']+'</td>'+
            '<td colspan="2">'+
           ((element['estado']) ? "En mantenimiento" : "Buen Estado")+'</td>'+
           '<td colspan="2"><center>'+
           ((element['empleado__nombre'] === null) ? "NO" : "SI")+'</center></td>'
-        html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+id+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
+        html+='<td colspan="1" class="center aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+id+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
           '<div class="or" data-text="o"></div>'+
           '<button class="ui positive button" id="'+(element['pk']+id+"update").replace(/\s+/g, '')+'">Editar</button></div></td></tr>';
     });
 
-  html +='<tfoot class="full-width">'+
+  html +='</tbody><tfoot class="full-width">'+
     '<tr>'+
 
-      '<th colspan="9">'+
+      '<th colspan="10">'+
       '  <div class="ui right floated small primary labeled icon button" id="agregarequipo">'+
      '     <i class="fas fa-laptop"></i> Agregar Equipo'+
     '    </div>'+
    '   </th>'+
   '  </tr>'+
  ' </tfoot>'+
-'  </tbody>'+
+'  '+
 '</table>';
 
 return html;
@@ -1616,7 +1766,7 @@ function createRegistersTable(json)
   json.forEach(function(element) {
       html +='<tr><td colspan="1" class="collapsing"><i class="user icon"></i>'+
         element['pk']+
-        '</td><td colspan="2">'+element['fields']['nombre']+'</td>'+
+        '</td><td colspan="2">'+element['fields']['nombre']+' '+element['fields']['ap']+' '+element['fields']['am']+'</td>'+
         '</td><td colspan="3">'+element['fields']['email']+'</td>';
 
       if(element['fields']['estado'] === false)
@@ -1653,13 +1803,128 @@ function showOrdersAdmin()
     type: 'POST',
     data: {x:""},
     success: function (data) {
-    var json = data
-    console.log(json)
-    $("#contenido").append(createOrdersAdminTable(json))
-    $("#tableorder").fadeIn('slow')
-    if(!$.isEmptyObject(json))
-    {
+        var json = data
+        console.log(json)
+        var d1 = Date.parse(json['date']);
+        console.log("Hoy "+d1)
+        $("#contenido").append(createOrdersAdminTable(json['orden'],d1))
+        $("#tableorder").fadeIn('slow')
+        if(!$.isEmptyObject(json))
+        {
+
+            var contentstate = []
+            var typesstate = ["Sin asignar","Asignado, en espera de ser resuelto.","Resuelto"]
+            var typesstateids = [-1,0,1]
+
+            for(t in typesstate)
+            {
+                contentstate.push({'title' : typesstate[t], 'id' : typesstateids[t]})
+            }
+
+
+            $('.ui.search.state')
+              .search({
+                source: contentstate,
+                  onSelect: function (result,response) {
+                    console.log(result);
+                    // $("#contenido").empty()
+                      var newjson = $.grep(json['orden'], function(v) {
+                        return v['estado'] === result.id;
+                        });
+                      console.log(newjson)
+                      var cont = createOrdersAdminTable(newjson,d1)
+                      var htm = cont.substring(cont.indexOf("<tbody id=\"tbodyorderstable\">")+29,cont.indexOf("</tbody>"))
+                      console.log(htm)
+                      $("#tbodyorderstable").empty()
+                      $("#tbodyorderstable").append(htm)
+                      $("#tableequip").fadeIn('slow')
+                      setClicksOrders(newjson,json['tecnicos'])
+
+                return true;
+            },
+                  onResultsClose: function(){
+                    // console.log("Cerro")
+                      if($("#inputSearchStateOrder").val() === "")
+                      {
+                          var cont = createOrdersAdminTable(json['orden'],d1)
+                          var htm = cont.substring(cont.indexOf("<tbody id=\"tbodyorderstable\">")+29,cont.indexOf("</tbody>"))
+                          console.log(htm)
+                          $("#tbodyorderstable").empty()
+                          $("#tbodyorderstable").append(htm)
+                          $("#tableequip").fadeIn('slow')
+                          setClicksOrders(json['orden'],json['tecnicos'])
+                      }
+                  }
+              })
+
+
+
+
+        var content = []
+        var types = []
         json['orden'].forEach(function(element){
+            var emp = element['empleados'].find(function(e){
+                return e['tipo__nombre'] === "Docente"
+            })
+            if(!types.includes(emp['nombre']+" "+emp['ap']+" "+emp['am']))
+            {
+                types.push(emp['nombre']+" "+emp['ap']+" "+emp['am'])
+            }
+        })
+
+        for(t in types)
+        {
+            content.push({'title' : types[t]})
+        }
+
+
+         $('.ui.search.name')
+              .search({
+                source: content,
+                  onSelect: function (result,response) {
+                    console.log(result);
+                    // $("#contenido").empty()
+                      var newjson = $.grep(json['orden'], function(v) {
+                        return v['empleados'].find(function(e){
+                                return e['nombre'] === result.title.split(" ")[0] && e['ap'] === result.title.split(" ")[1] && e['am'] === result.title.split(" ")[2]
+                            }) !== undefined;
+                        });
+                      console.log(newjson)
+                      var cont = createOrdersAdminTable(newjson,d1)
+                      var htm = cont.substring(cont.indexOf("<tbody id=\"tbodyorderstable\">")+29,cont.indexOf("</tbody>"))
+                      console.log(htm)
+                      $("#tbodyorderstable").empty()
+                      $("#tbodyorderstable").append(htm)
+                      $("#tableequip").fadeIn('slow')
+                      setClicksOrders(newjson,json['tecnicos'])
+
+                return true;
+            },
+                  onResultsClose: function(){
+                    // console.log("Cerro")
+                      if($("#inputSearchNameOrder").val() === "")
+                      {
+                          var cont = createOrdersAdminTable(json['orden'],d1)
+                          var htm = cont.substring(cont.indexOf("<tbody id=\"tbodyorderstable\">")+29,cont.indexOf("</tbody>"))
+                          console.log(htm)
+                          $("#tbodyorderstable").empty()
+                          $("#tbodyorderstable").append(htm)
+                          $("#tableequip").fadeIn('slow')
+                          setClicksOrders(json['orden'],json['tecnicos'])
+                      }
+                  }
+              })
+
+            setClicksOrders(json['orden'],json['tecnicos'])
+
+        }
+    }
+    });
+}
+
+function setClicksOrders(json,tecnicos)
+{
+    json.forEach(function(element){
 
             $(("#"+(element['nofolio']+"ver")).replace(/\s+/g, '')).on('click',function(){
                 showOrderInfo(element['nofolio'],element['estado'])
@@ -1717,7 +1982,7 @@ function showOrdersAdmin()
                 $("#ordenassignHeader").text("Mostrando técnicos de "+element['trabajo__nombre'])
                 var newOptions = {};
                 var index = 0;
-                json['tecnicos'].forEach(function(tecnico){
+                tecnicos.forEach(function(tecnico){
                     if(tecnico['trabajos__nombre'] === element['trabajo__nombre'])
                         newOptions[(index++).toString()] = "Id Empleado: "+tecnico['pk']+", Nombre: "+tecnico['nombre']+" "+tecnico['ap']+" "+tecnico['am']
                 });
@@ -1771,30 +2036,54 @@ function showOrdersAdmin()
 
             })
         })
-
-        }
-    }
-    });
 }
 
-function createOrdersAdminTable(json)
+function createOrdersAdminTable(json,d1)
 {
 
     var html ='<table id="tableorder" style="display:none;" class="ui blue celled table">'+
   '<thead>'+
-  '  <tr><th colspan="1">No. Folio</th>'+
+  '  <tr><th colspan="2">No. Folio</th>'+
   '  <th colspan="2">Fecha de inicio</th>'+
   '  <th colspan="2">Fecha de fin</th>'+
-  '  <th colspan="1">Estado</th>'+
-  '  <th colspan="3">Solicitante</th>'+
+  '  <th colspan="1"><center>Estado<div class="ui search state">\n' +
+        '  <div class="ui icon input">\n' +
+        '    <input id="inputSearchStateOrder" class="prompt" type="text" placeholder="Filtrar por estado">\n' +
+        '    <i class="search icon"></i>\n' +
+        '  </div>\n' +
+        '  <div class="results"></div>\n' +
+        '</div></center></th>'+
+  '  <th colspan="3"><center>Solicitante<div class="ui search name">\n' +
+        '  <div class="ui icon input">\n' +
+        '    <input id="inputSearchNameOrder" class="prompt" type="text" placeholder="Filtrar por solicitante">\n' +
+        '    <i class="search icon"></i>\n' +
+        '  </div>\n' +
+        '  <div class="results"></div>\n' +
+        '</div></center></th>'+
   '  <th colspan="1" style="text-align: center;">Opciones</th>'+
   '</tr></thead>'+
-  '<tbody>';
+  '<tbody id="tbodyorderstable">';
   if($.isEmptyObject(json))
   {
     html+='<tr><td class="collapsing"></td><td></td><td></td></tr>'
   }
-  json['orden'].forEach(function(element) {
+  json.forEach(function(element) {
+      var d2 = Date.parse(element['start']);
+      var days = ((d1-d2)/1000/86400)
+      var img = ""
+      if(days <= 1)
+      {
+          img = '<img src="/static/tt/img/light-green.png" style="vertical-align: middle; width: 30px; height: 30px;">'
+      }
+      else if(days === 2 )
+      {
+          img = '<img src="/static/tt/img/light-yellow-flash.gif" style="vertical-align: middle; width: 30px; height: 30px;">'
+      }
+      else if(days >2)
+      {
+          img = '<img src="/static/tt/img/light-red-flash.gif" style="vertical-align: middle; width: 30px; height: 30px;">'
+      }
+        // console.log("Orden "+element['nofolio']+" -> "+((d1-d2)/1000/86400))
       var solicitante = element['empleados'].find(function(element){
         return element['tipo__nombre'] === "Docente"
         })
@@ -1810,8 +2099,11 @@ function createOrdersAdminTable(json)
               break;
           default:
       }
-      html +='<tr class="'+clase+'"><td colspan="1" class="collapsing"><i class="user icon"></i>'+
-        element['nofolio']+
+      html +='<tr class="'+clase+'"><td colspan="2" class="collapsing">';
+      if(element['estado'] < 1)
+          html+= img;
+      html+='<span style="vertical-align: middle;">&nbsp;&nbsp;'+
+        element['nofolio']+'</span>'+
         '</td><td colspan="2">'+element['start']+'</td>'+
         '</td><td colspan="2">'+((element['end']!=null) ? element['end'] : "Pendiente")+'</td>'+
         '</td><td colspan="1">'+estado+'</td>'+
@@ -1840,7 +2132,7 @@ function createOrdersAdminTable(json)
           // '<div class="or" data-text="o"></div>'+
           '<button class="ui orange button" id="'+(element['nofolio']+"ver").replace(/\s+/g, '')+'">Ver Detalles</button>'+
            '<div class="or" data-text="o"></div>'+
-          '<button class="ui positive button" id="'+(element['nofolio']+"pdf").replace(/\s+/g, '')+'">Generar PDF</button></div></td></tr>';
+          '<a href="/reporteOrden/'+element['nofolio']+'/" target="_blank" class="ui positive button" id="'+(element['nofolio']+"pdf").replace(/\s+/g, '')+'">Generar PDF</a></div></td></tr>';
 
       }
 
@@ -2748,10 +3040,15 @@ function showPerfil()
 {
     $("#contenido").empty()
     sessionStorage.setItem("menuItem", "PERFDOC");
+
     $("#contenido").append('<div class="fifteen wide column" id="divformperf" style="display: none;"><form class="ui form" style="padding:15px;" id="formPerf" method="post" enctype="multipart/form-data">' +
         $("#registro").html()+
         '</form></div>')
     $("#headerFormReg").text("Datos de perfil")
+    $("#badregequipo").hide()
+    $("#okregequipo").hide()
+    $("#divterms").hide()
+
 
     $.ajax({
         url : "{% url "tt:getUserInfo" %}",
@@ -2770,7 +3067,8 @@ function showPerfil()
             $("#id_nombre").val(data.data[0].nombre)
             $("#id_ap").val(data.data[0].ap)
             $("#id_am").val(data.data[0].am)
-            $('.ui.checkbox')
+            $('.ui.checkbox').checkbox()
+            $('.ui.checkbox.showpass')
                 .checkbox()
                 .checkbox({
                     onChecked: function () {

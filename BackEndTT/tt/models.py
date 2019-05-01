@@ -204,7 +204,7 @@ class Marca(models.Model):
 class Equipo(models.Model):
     idEquipo = models.IntegerField(primary_key=True)
     modelo = models.CharField(max_length=60,blank = True,null=True)
-    mac = models.CharField(max_length=60,blank = True,null=True)
+    mac = models.CharField(max_length=17,blank = True,null=True)
     ns = models.CharField(max_length=60,blank = True,null=True)
     ip = models.CharField(max_length=60,blank = True,null=True)
     cambs = models.CharField(max_length=60,blank = True,null=True)

@@ -27,7 +27,7 @@ class formEquipo(forms.Form):
     fmarca = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Marca del equipo'}), label="Marca",required=True)
     idequipo = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Id del equipo'}), label="Id Equipo",required=True)
     fmodelo = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Modelo del equipo'}), label="Modelo", max_length=100,required=False)
-    fmac = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Mac del equipo'}), label="Mac",required=False)
+    fmac = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Mac del equipo'}), label="Mac", max_length=17,required=False)
     fns = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Numero de serie del equipo'}), label="Numero de serie",required=True)
     fip = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Dirección ip del equipo'}), label="Dirección IP",required=False)
     fcambs = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Cambs del equipo'}), label="Cambs",required=False)
@@ -47,14 +47,18 @@ class formregistro(forms.Form):
         self.fields['depto'].choices = departamento_choices
         self.fields['subdepto'].choices = subdepartamentos_choices
         self.fields['tipotecnico'].choices = tecnico_choices
+    NGO_CHOICES = (
+        ('one', 'ONE'),
+        ('two', 'TWO'),
+        ('three', 'THREE'),)
     idEmpleado = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'ID Empleado','type':'number'}),label="idEmpleado",required=True)
     email = forms.CharField(widget=forms.EmailInput(attrs={'placeholder': 'Correo'}), label="Email", max_length=60,required=True)
     contra = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Contraseña'}), label="Contraseña", max_length=60,required=True)
     nombre = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Usuario'}), label="Nombre", max_length=60,required=True)
     ap = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Primer Apellido'}), label="Primer Apellido", max_length=60,required=True)
     am = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Segundo Apellido'}), label="Segundo Apellido", max_length=60,required=True)
-    telefono = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Teléfono','type':'number'}),max_length=10, label="Teléfono",required=True)
-    extension = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Extensión','type':'number'}),max_length=5, label="Extensión",required=False)
+    telefono = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Teléfono','type':'number','min':'1','max':'9999999999'}), label="Teléfono",required=True)
+    extension = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Extensión','type':'number','min':'1','max':'99999'}), label="Extensión",required=False)
     tipoEmpleado = forms.CharField(label="tipoEmpleado", max_length=60,required=False)
     tipotecnico = forms.ChoiceField(choices=(), label="Tipo de técnico")
     depto = forms.ChoiceField(choices=(), label="Departamento",required=True)

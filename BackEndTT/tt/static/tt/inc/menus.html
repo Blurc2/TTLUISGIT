@@ -4,7 +4,7 @@
 <div class="ui grid">
     <div class="sixteen wide column">
         <div>
-            <img src="{% static 'tt/img/udibanner.jpg' %}" style="width: 100%; height: 150px;">
+            <img src="{% static 'tt/img/banner.png' %}" style="width: 100%; height: 150px;">
         </div>
 
     </div>
@@ -16,13 +16,13 @@
     <div class="item active">
         <img src="{% static 'tt/img/logoescom.png' %}">
     </div>
-    <a href="{% url 'tt:Index'%}" class="item"><i class="home icon"></i>Inicio</a>
+    <a class="item" onclick="home()"><i class="home icon"></i>Inicio</a>
     <!--ADMINISTRADOR-->
     <a class="item itemadmin" onclick="showTec()" style="display:none;"><i class="fas fa-users"></i>&nbsp;Técnicos</a>
     <a class="item itemadmin" onclick="showDep()" style="display:none;"><i class="fas fa-building"></i>&nbsp;Departamentos</a>
     <a class="item itemadmin" onclick="showEquipment()" style="display:none;"><i class="fas fa-desktop"></i>&nbsp;Inventario</a>
     <a class="item itemadmin" onclick="showOrdersAdmin()" style="display:none;"><i class="fas fa-file-invoice"></i>&nbsp;Ordenes</a>
-    <a class="item itemadmin" onclick="showRegisters()" style="display:none;"><i class="fas fa-tv"></i>&nbsp;Validar registros</a>
+    <a class="item itemadmin" onclick="showRegisters()" style="display:none;"><i class="fas fa-tv"></i>&nbsp;Docentes/Validaciones</a>
     <a class="item itemadmin" onclick="showGraph()" style="display:none;"><i class="chart bar icon"></i>&nbsp;Ver gráficas</a>
     <!--DOCENTE-->
     <a class="item itemdocente" onclick="showOrderForm()" style="display:none;"><i class="fas fa-file-signature"></i>&nbsp;Levantar solicitud</a>
@@ -31,6 +31,7 @@
     <a class="item itemdocente" onclick="showPerfil()" style="display:none;"><i class="fas fa-file-invoice"></i>&nbsp;Perfil</a>
     <!--TECNICO-->
     <a class="item itemtecnico" onclick="showOrdersTec()" style="display:none;"><i class="fas fa-briefcase"></i>&nbsp;Ver trabajos</a>
+    <a class="item itemtecnico" onclick="showEquipment()" style="display:none;"><i class="fas fa-desktop"></i>&nbsp;Inventario</a>
     <div class="right menu">
 
             <a class="ui dropdown icon item sesionforms" style="display:none;">
