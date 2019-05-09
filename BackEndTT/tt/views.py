@@ -1,5 +1,6 @@
 import ast
 import datetime
+import os
 
 from django.contrib.auth import authenticate, login, logout
 from django.core import serializers
@@ -1014,11 +1015,20 @@ def DelSubDepartment(request):
 @csrf_exempt
 def getSubDepartments(request):
     print(request.GET.get('depto', None))
-    return JsonResponse(
-        serializers.serialize('json',
-                              SubDepartamento.objects.filter(depto__nombre=request.GET.get('depto', None))),
-        content_type="application/json", safe=False)
+    subdep = SubDepartamento.objects.filter(depto__nombre=request.GET.get('depto', None)).values('nombre',
+                                                                                                 'ubicacion__edificio',
+                                                                                                 'ubicacion__piso',
+                                                                                                 'ubicacion__sala'
+                                                                                                 )
 
+    return HttpResponse(json.dumps(
+        {'subdepto': list(subdep)},
+        cls=DjangoJSONEncoder), content_type="application/json")
+
+@csrf_exempt
+def showTerms(request):
+    pdf = open(os.path.join(os.path.dirname(__file__),"TERMINOS-Y-CONDICIONES.pdf"),encoding="unicode_escape").read()
+    return HttpResponse(pdf, mimetype="application/pdf")
 
 @csrf_exempt
 def getUserInfo(request):

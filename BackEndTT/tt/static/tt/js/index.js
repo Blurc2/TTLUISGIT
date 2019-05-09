@@ -12,6 +12,8 @@ var jsonsurvey = {}
 var jsonorder = {}
 var typeordergraph = ""
 var slideIndex = 0;
+var jsonuserfilter = {}
+var jsonstatusfilter = {}
 
 function showRegisterModal()
 {
@@ -38,11 +40,12 @@ function showRegisterModal()
             type: 'GET',
             data: {'depto':$('#id_depto').val()},
             success: function (data) {
-                var json = JSON.parse(data)
+                // var json = data
+                console.log(data.subdepto)
                 var newOptions = {};
                 var index = 0;
-                json.forEach(function(element){
-                   newOptions[(index++).toString()] = element['fields']['nombre']
+                data.subdepto.forEach(function(element){
+                   newOptions[(index++).toString()] = element['nombre']+", Edificio: "+element['ubicacion__edificio']+" Piso: "+element['ubicacion__piso']+" Sala: "+element['ubicacion__sala']
                 });
                 newOptions[(index++).toString()] = "Ninguno"
 
@@ -63,11 +66,11 @@ function showRegisterModal()
             type: 'GET',
             data: {'depto':valueSelected},
             success: function (data) {
-                var json = JSON.parse(data)
+                // var json = JSON.parse(data)
                 var newOptions = {};
                 var index = 0;
-                json.forEach(function(element){
-                   newOptions[(index++).toString()] = element['fields']['nombre']
+                data.subdepto.forEach(function(element){
+                   newOptions[(index++).toString()] = element['nombre']+", Edificio: "+element['ubicacion__edificio']+" Piso: "+element['ubicacion__piso']+" Sala: "+element['ubicacion__sala']
                 });
                 newOptions[(index++).toString()] = "Ninguno"
 
@@ -178,7 +181,7 @@ $(document).ready(function()
 
     formorder = $("#divformorder").html()
     $("#contenido").empty()
-    if(sessionStorage.getItem("menuItem") === "")
+    if(sessionStorage.getItem("menuItem") === "" || sessionStorage.getItem("menuItem") === null)
     {
         var html = '<div class="row"><div class="one wide column"></div> <div class="fourteen wide column"><div class="slideshow-container" style="display: none;" >\n' +
             '\n' +
@@ -739,7 +742,7 @@ var formData = new FormData(this);
                     title:"<center>USUARIO INVALIDO</center>",
                     iconSource:"fontAwesome",
                     sound:false,
-                    msg: "No se encontro el usuario"
+                    msg: "Usuario o contraseña incorrectos"
                     });
                     }
     else if(data.logincode == -1)
@@ -917,9 +920,9 @@ function createTecTable(json)
 {
     var html ='<table id="tablatecnico" style="display:none;" class="ui red celled table">'+
   '<thead>'+
-  '  <tr><th>Técnico</th>'+
-  '  <th>Correo</th>'+
-  '  <th style="text-align: center;">Opciones</th>'+
+  '  <tr><th><center>Técnico</center></th>'+
+  '  <th><center>Correo</center></th>'+
+  '  <th><center>Opciones</center></th>'+
   '</tr></thead>'+
   '<tbody>';
   if($.isEmptyObject(json))
@@ -1057,8 +1060,8 @@ function createDepTable(json)
 {
     var html ='<table id="tabledepart" style="display:none;" class="ui purple celled table">'+
   '<thead>'+
-  '  <tr><th colspan="2">Nombre</th>'+
-  '  <th colspan="1" style="text-align: center;">Opciones</th>'+
+  '  <tr><th colspan="2"><center>Nombre</center></th>'+
+  '  <th colspan="1"><center>Opciones</center></th>'+
   '</tr></thead>'+
   '<tbody>';
   if($.isEmptyObject(json))
@@ -1102,6 +1105,7 @@ function showEquipment()
     var json = data
     console.log(json)
     $("#contenido").append(createEquipmentTable(json))
+    $.fn.search.settings.templates.message = newHeader;
 
 
     $("#tableequip").fadeIn('slow')
@@ -1188,7 +1192,10 @@ function showEquipment()
                       $("#tableequip").fadeIn('slow')
                       setClicksEquip(json)
                   }
-              }
+              },
+                  error: {
+                    noResults: 'No se encontrarón resultados que coincidan con el criterio de búsqueda.'
+                  }
           })
 
 
@@ -1373,7 +1380,7 @@ function createEquipmentTable(json)
     var html ='<table id="tableequip" style="display:none;" class="ui orange celled table">'+
   '<thead>'+
   '  <tr>' +
-        '<th colspan="2">Identificador</th>'+
+        '<th colspan="2"><center>Identificador</center></th>'+
     '  <th colspan="3"><center>Tipo de Equipo<div class="ui search">\n' +
         '  <div class="ui icon input">\n' +
         '    <input id="inputSearchEquip" class="prompt" type="text" placeholder="Filtrar por tipo">\n' +
@@ -1381,9 +1388,9 @@ function createEquipmentTable(json)
         '  </div>\n' +
         '  <div class="results"></div>\n' +
         '</div></center></th>'+
-    '  <th colspan="2">Estado del Equipo</th>'+
-    '  <th colspan="2">Equipo asignado</th>'+
-  '  <th colspan="1" style="text-align: center;">Opciones</th>'+
+    '  <th colspan="2"><center>Estado del Equipo</center></th>'+
+    '  <th colspan="2"><center>Equipo asignado</center></th>'+
+  '  <th colspan="1"><center>Opciones</center></th>'+
   '</tr></thead>'+
   '<tbody id="equipbody">';
   if($.isEmptyObject(json))
@@ -1484,9 +1491,9 @@ function createEquipmentDocTable(json)
 
     var html ='<table id="tableequip" style="display:none;" class="ui orange celled table">'+
   '<thead>'+
-  '  <tr><th colspan="2">Identificador</th>'+
-    '  <th colspan="2">Tipo de Equipo</th>'+
-    '  <th colspan="2">Estado del Equipo</th>'+
+  '  <tr><th colspan="2"><center>Identificador</center></th>'+
+    '  <th colspan="2"><center>Tipo de Equipo</center></th>'+
+    '  <th colspan="2"><center>Estado del Equipo</center></th>'+
   '</tr></thead>'+
   '<tbody>';
   if($.isEmptyObject(json))
@@ -1753,10 +1760,10 @@ function createRegistersTable(json)
 {
     var html ='<table id="tableregisters" style="display:none;" class="ui blue celled table">'+
   '<thead>'+
-  '  <tr><th colspan="1">Id Empleado</th>'+
-  '  <th colspan="2">Nombre</th>'+
-  '  <th colspan="3">Correo</th>'+
-  '  <th colspan="1" style="text-align: center;">Opciones</th>'+
+  '  <tr><th colspan="1"><center>Id Empleado</center></th>'+
+  '  <th colspan="2"><center>Nombre</center></th>'+
+  '  <th colspan="3"><center>Correo</center></th>'+
+  '  <th colspan="1"><center>Opciones</center></th>'+
   '</tr></thead>'+
   '<tbody>';
   if($.isEmptyObject(json))
@@ -1798,6 +1805,8 @@ function showOrdersAdmin()
 {
     $("#contenido").empty()
     sessionStorage.setItem("menuItem", "ORDENESADMIN");
+    jsonuserfilter = {}
+    jsonstatusfilter = {}
     $.ajax({
     url: "{% url 'tt:ShowOrdersAdmin' %}",
     type: 'POST',
@@ -1808,6 +1817,7 @@ function showOrdersAdmin()
         var d1 = Date.parse(json['date']);
         console.log("Hoy "+d1)
         $("#contenido").append(createOrdersAdminTable(json['orden'],d1))
+        $.fn.search.settings.templates.message = newHeader;
         $("#tableorder").fadeIn('slow')
         if(!$.isEmptyObject(json))
         {
@@ -1829,7 +1839,14 @@ function showOrdersAdmin()
                     console.log(result);
                     // $("#contenido").empty()
                       var newjson = $.grep(json['orden'], function(v) {
-                        return v['estado'] === result.id;
+                          if($("#inputSearchNameOrder").val() === "")
+                            return v['estado'] === result.id;
+                          else {
+                              var searchname = $("#inputSearchNameOrder").val()
+                              return v['empleados'].find(function (e) {
+                                  return v['estado'] === result.id && e['nombre'] === searchname.split(" ")[0] && e['ap'] === searchname.split(" ")[1] && e['am'] === searchname.split(" ")[2];
+                              }) !== undefined;
+                          }
                         });
                       console.log(newjson)
                       var cont = createOrdersAdminTable(newjson,d1)
@@ -1846,14 +1863,40 @@ function showOrdersAdmin()
                     // console.log("Cerro")
                       if($("#inputSearchStateOrder").val() === "")
                       {
-                          var cont = createOrdersAdminTable(json['orden'],d1)
-                          var htm = cont.substring(cont.indexOf("<tbody id=\"tbodyorderstable\">")+29,cont.indexOf("</tbody>"))
-                          console.log(htm)
-                          $("#tbodyorderstable").empty()
-                          $("#tbodyorderstable").append(htm)
-                          $("#tableequip").fadeIn('slow')
-                          setClicksOrders(json['orden'],json['tecnicos'])
+                          if($("#inputSearchNameOrder").val() === "")
+                          {
+                              var cont = createOrdersAdminTable(json['orden'],d1)
+                              var htm = cont.substring(cont.indexOf("<tbody id=\"tbodyorderstable\">")+29,cont.indexOf("</tbody>"))
+                              console.log(htm)
+                              jsonstatusfilter = {}
+                              $("#tbodyorderstable").empty()
+                              $("#tbodyorderstable").append(htm)
+                              $("#tableequip").fadeIn('slow')
+
+                              setClicksOrders(json['orden'],json['tecnicos'])
+                          }
+                          else
+                          {
+                              var searchname = $("#inputSearchNameOrder").val()
+                              var newjson = $.grep(json['orden'], function(v) {
+                                return v['empleados'].find(function(e){
+                                        return e['nombre'] === searchname.split(" ")[0] && e['ap'] === searchname.split(" ")[1] && e['am'] === searchname.split(" ")[2]
+                                    }) !== undefined;
+                                });
+                              console.log(newjson)
+                              var cont = createOrdersAdminTable(newjson,d1)
+                              var htm = cont.substring(cont.indexOf("<tbody id=\"tbodyorderstable\">")+29,cont.indexOf("</tbody>"))
+                              console.log(htm)
+                              $("#tbodyorderstable").empty()
+                              $("#tbodyorderstable").append(htm)
+                              $("#tableequip").fadeIn('slow')
+                              setClicksOrders(newjson,json['tecnicos'])
+                          }
+
                       }
+                  },
+                  error: {
+                    noResults: 'No se encontrarón resultados que coincidan con el criterio de búsqueda.'
                   }
               })
 
@@ -1884,9 +1927,26 @@ function showOrdersAdmin()
                   onSelect: function (result,response) {
                     console.log(result);
                     // $("#contenido").empty()
+
                       var newjson = $.grep(json['orden'], function(v) {
                         return v['empleados'].find(function(e){
+                            if($("#inputSearchStateOrder").val() === "")
                                 return e['nombre'] === result.title.split(" ")[0] && e['ap'] === result.title.split(" ")[1] && e['am'] === result.title.split(" ")[2]
+                              else
+                              {
+                                   var searchstatus = $("#inputSearchStateOrder").val()
+                                  var id = -1
+                                  switch (searchstatus) {
+                                      case typesstate[0] : id = -1
+                                          break;
+                                      case typesstate[1] : id = 0
+                                          break;
+                                      case typesstate[2] : id = 1
+                                          break;
+                                  }
+                                  return v['estado'] === id && e['nombre'] === result.title.split(" ")[0] && e['ap'] === result.title.split(" ")[1] && e['am'] === result.title.split(" ")[2];
+                              }
+
                             }) !== undefined;
                         });
                       console.log(newjson)
@@ -1904,14 +1964,45 @@ function showOrdersAdmin()
                     // console.log("Cerro")
                       if($("#inputSearchNameOrder").val() === "")
                       {
-                          var cont = createOrdersAdminTable(json['orden'],d1)
-                          var htm = cont.substring(cont.indexOf("<tbody id=\"tbodyorderstable\">")+29,cont.indexOf("</tbody>"))
-                          console.log(htm)
-                          $("#tbodyorderstable").empty()
-                          $("#tbodyorderstable").append(htm)
-                          $("#tableequip").fadeIn('slow')
-                          setClicksOrders(json['orden'],json['tecnicos'])
+                          if($("#inputSearchStateOrder").val() === "")
+                          {
+
+                              var cont = createOrdersAdminTable(json['orden'],d1)
+                              var htm = cont.substring(cont.indexOf("<tbody id=\"tbodyorderstable\">")+29,cont.indexOf("</tbody>"))
+                              console.log(htm)
+                              $("#tbodyorderstable").empty()
+                              $("#tbodyorderstable").append(htm)
+                              $("#tableequip").fadeIn('slow')
+                              setClicksOrders(json['orden'],json['tecnicos'])
+                          }
+                          else
+                          {
+                              var searchstatus = $("#inputSearchStateOrder").val()
+                              var id = -1
+                              switch (searchstatus) {
+                                  case typesstate[0] : id = -1
+                                      break;
+                                  case typesstate[1] : id = 0
+                                      break;
+                                  case typesstate[2] : id = 1
+                                      break;
+                              }
+                              var newjson = $.grep(json['orden'], function(v) {
+                                return v['estado'] === id;
+                                });
+                              console.log(newjson)
+                              var cont = createOrdersAdminTable(newjson,d1)
+                              var htm = cont.substring(cont.indexOf("<tbody id=\"tbodyorderstable\">")+29,cont.indexOf("</tbody>"))
+                              console.log(htm)
+                              $("#tbodyorderstable").empty()
+                              $("#tbodyorderstable").append(htm)
+                              $("#tableequip").fadeIn('slow')
+                              setClicksOrders(newjson,json['tecnicos'])
+                          }
                       }
+                  },
+                  error: {
+                    noResults: 'No se encontrarón resultados que coincidan con el criterio de búsqueda.'
                   }
               })
 
@@ -2043,9 +2134,9 @@ function createOrdersAdminTable(json,d1)
 
     var html ='<table id="tableorder" style="display:none;" class="ui blue celled table">'+
   '<thead>'+
-  '  <tr><th colspan="2">No. Folio</th>'+
-  '  <th colspan="2">Fecha de inicio</th>'+
-  '  <th colspan="2">Fecha de fin</th>'+
+  '  <tr><th colspan="2"><center>No. Folio</center></th>'+
+  '  <th colspan="2"><center>Fecha de inicio</center></th>'+
+  '  <th colspan="2"><center>Fecha de fin</center></th>'+
   '  <th colspan="1"><center>Estado<div class="ui search state">\n' +
         '  <div class="ui icon input">\n' +
         '    <input id="inputSearchStateOrder" class="prompt" type="text" placeholder="Filtrar por estado">\n' +
@@ -2060,7 +2151,7 @@ function createOrdersAdminTable(json,d1)
         '  </div>\n' +
         '  <div class="results"></div>\n' +
         '</div></center></th>'+
-  '  <th colspan="1" style="text-align: center;">Opciones</th>'+
+  '  <th colspan="1"><center>Opciones</center></th>'+
   '</tr></thead>'+
   '<tbody id="tbodyorderstable">';
   if($.isEmptyObject(json))
@@ -2203,12 +2294,12 @@ function createOrdersDocTable(json,type)
     var typ = (type==="Doc") ? "Técnico asignado" : "Solicitante"
     var html ='<table id="tableorder" style="display:none;" class="ui blue celled table">'+
   '<thead>'+
-  '  <tr><th colspan="1">No. Folio</th>'+
-  '  <th colspan="2">Fecha de inicio</th>'+
-  '  <th colspan="2">Fecha de fin</th>'+
-  '  <th colspan="1">Estado</th>'+
-  '  <th colspan="3">'+typ+'</th>'+
-  '  <th colspan="1">opciones</th>'+
+  '  <tr><th colspan="1"><center>No. Folio</center></th>'+
+  '  <th colspan="2"><center>Fecha de inicio</center></th>'+
+  '  <th colspan="2"><center>Fecha de fin</center></th>'+
+  '  <th colspan="1"><center>Estado</center></th>'+
+  '  <th colspan="3"><center>'+typ+'</center></th>'+
+  '  <th colspan="1"><center>Opciones</center></th>'+
   '</tr></thead>'+
   '<tbody>';
   if($.isEmptyObject(json) || json['solicitante'][0]['ordenes__nofolio'] == null)
@@ -2234,7 +2325,7 @@ function createOrdersDocTable(json,type)
               break;
           default:
       }
-      var emp = (solicitante!==undefined) ? 'Id Empleado: '+solicitante["pk"]+', Nombre: '+solicitante["nombre"]+' '+solicitante["ap"]+' '+solicitante["am"] : "Sin asignar"
+      var emp = (solicitante!==undefined) ? solicitante["nombre"]+' '+solicitante["ap"]+' '+solicitante["am"] : "Sin asignar"
       html +='<tr class="'+clase+'"><td colspan="1" class="collapsing"><i class="user icon"></i>'+
         element['ordenes__nofolio']+
         '</td><td colspan="2">'+element['ordenes__start']+'</td>'+
@@ -2355,8 +2446,8 @@ function createSubDepTable(json,depto)
   '</div></center><br>'+
     '<table id="tablesupDep" style="display:none;" class="ui green celled table">'+
   '<thead>'+
-  '  <tr><th colspan="2">Nombre</th>'+
-  '  <th colspan="1" style="text-align: center;">Opciones</th>'+
+  '  <tr><th colspan="2"><center>Nombre</center></th>'+
+  '  <th colspan="1"><center>Opciones</center></th>'+
   '</tr></thead>'+
   '<tbody>';
   if($.isEmptyObject(json))
@@ -3365,3 +3456,21 @@ function isIpn(url)
  return url.endsWith("ipn.mx");
 
 }
+
+var standardHeader = $.fn.search.settings.templates.message;
+
+var newHeader = function (message, type) {
+    var
+    html = '';
+    if (message !== undefined && type !== undefined) {
+        html += '' + '<div class="message ' + type + '">';
+        // message type
+        if (type == 'empty') {
+            html += '' + '<div class="header">Sin resultados</div class="header">' + '<div class="description">' + message + '</div class="description">';
+        } else {
+            html += ' <div class="description">' + message + '</div>';
+        }
+        html += '</div>';
+    }
+    return html;
+};

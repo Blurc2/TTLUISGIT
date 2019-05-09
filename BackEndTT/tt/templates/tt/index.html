@@ -19,6 +19,18 @@
         background: url("{% static 'tt/img/loader2.gif' %}") 50% 50% no-repeat rgb(249, 249, 249);
     }
 
+    a:link.linksheaders {
+        color: black;
+    }
+
+    a:visited.linksheaders{
+      color: black;
+    }
+
+    a:hover.linksheaders{
+      color: gray;
+    }
+
      {box-sizing:border-box}
 
 /* Slideshow container */
@@ -289,6 +301,7 @@ html, body {
           <input id="id_terms" type="checkbox" >
           <label for="id_terms">Acepto los términos y condiciones de uso de
             datos personales</label>
+            <!--<input type="text"><a href="{% url 'tt:showTerms'%}" target="_blank">Ver términos y condiciones</a></input>-->
         </div>
 
         <h4 class="ui dividing header"></h4>
@@ -575,12 +588,13 @@ html, body {
 <div class="ui inverted vertical footer segment">
     <div class="ui container">
         <div class="six wide column">
-            <h3>DIRECCIÓN</h3><br>
+            <h3>DATOS DE CONTACTO</h3>
             <i class="home icon"></i>
             Dirección: Av. Juan de Dios Bátiz esq. Av. Miguel Othón de Mendizábal, Col. Lindavista. Demarcación Territorial, Gustavo A. Madero. Ciudad de México<br>
             C. P. 07738.<br>
+            <a href="https://www.facebook.com/UDIescomIPN/" target="_blank"> <i class="facebook icon"></i> Facebook: https://www.facebook.com/UDIescomIPN/</a><br>
             <i class="envelope icon"></i> Correo Electrónico: udiescom2019@gmail.com<br>
-            <i class="phone icon"></i> Teléfono: 56072514
+            <i class="phone icon"></i> Teléfono: 57296000 ext.52015
         </div>
     </div>
 </div>
