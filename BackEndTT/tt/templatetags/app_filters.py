@@ -39,6 +39,14 @@ def porcentajeVisitas(value, arg):
 def mayus(value):
     return value.upper()
 
+@register.filter(name='isDoc')
+def isDoc(value):
+    return value == "Docente"
+
+@register.filter(name='isTec')
+def isTec(value):
+    return value == "Tecnico"
+
 @register.filter(name='getyear')
 def getyear(value):
     now = datetime.datetime.now()

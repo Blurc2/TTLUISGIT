@@ -39,5 +39,6 @@ urlpatterns=[
     url(r'^ajax/recPass/$', views.recPass, name='recPass'),
     url(r'^ajax/updateDoc/$', views.updateDoc, name='updateDoc'),
     url(r'^ajax/getUserInfoById/$', views.getUserInfoById, name='getUserInfoById'),
+    url(r'^ajax/changeDocState/$', views.changeDocState, name='changeDocState'),
     url(r'^reporteOrden/(?P<idOrden>[0-9]+)/$', views.reporteOrden, name='reporteOrden'),
 ]

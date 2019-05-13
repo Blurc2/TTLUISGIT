@@ -140,6 +140,21 @@ html, body {
     margin: 0 auto; /* the bottom margin is the negative value of the footer's height */
 }
 
+    .star {
+        visibility: hidden;
+    }
+
+    .fadeIn {
+        -webkit-animation: animat_show 0.8s;
+        animation: animat_show 0.8s;
+        visibility: visible !important;
+    }
+
+    @-webkit-keyframes animat_show{
+        0%{opacity:0}
+        100%{opacity:1}
+    }
+
 </style>
 <body>
 <div class="loader" id="loader2"><p align="center"
@@ -301,7 +316,8 @@ html, body {
           <input id="id_terms" type="checkbox" >
           <label for="id_terms">Acepto los términos y condiciones de uso de
             datos personales</label>
-            <!--<input type="text"><a href="{% url 'tt:showTerms'%}" target="_blank">Ver términos y condiciones</a></input>-->
+            <br>
+            <input type="hidden"><a href="{% url 'tt:showTerms'%}" target="_blank">Ver términos y condiciones</a></input>
         </div>
 
         <h4 class="ui dividing header"></h4>

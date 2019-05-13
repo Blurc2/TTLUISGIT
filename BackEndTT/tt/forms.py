@@ -51,14 +51,14 @@ class formregistro(forms.Form):
         ('one', 'ONE'),
         ('two', 'TWO'),
         ('three', 'THREE'),)
-    idEmpleado = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'ID Empleado','type':'number'}),label="idEmpleado",required=True)
+    idEmpleado = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'No. Empleado','type':'number'}),label="No. Empleado",required=True)
     email = forms.CharField(widget=forms.EmailInput(attrs={'placeholder': 'Correo'}), label="Email", max_length=60,required=True)
     contra = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Contraseña'}), label="Contraseña", max_length=60,required=True)
     nombre = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Usuario'}), label="Nombre", max_length=60,required=True)
     ap = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Primer Apellido'}), label="Primer Apellido", max_length=60,required=True)
     am = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Segundo Apellido'}), label="Segundo Apellido", max_length=60,required=True)
-    telefono = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Teléfono','type':'number','min':'1','max':'9999999999'}), label="Teléfono",required=True)
-    extension = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Extensión','type':'number','min':'1','max':'99999'}), label="Extensión",required=False)
+    telefono = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Teléfono','type':'number','min':'0','max':'9999999999', 'maxlength':10 ,'oninput':'this.value=this.value.slice(0,this.maxLength||1);this.value=(this.value   < 0) ? \'\' : this.value;'}), label="Teléfono",required=True)
+    extension = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Extensión','type':'number','min':'0','max':'99999', 'maxlength':5 ,'oninput':'this.value=this.value.slice(0,this.maxLength||1);this.value=(this.value   < 0) ? \'\' : this.value;'}), label="Extensión",required=False)
     tipoEmpleado = forms.CharField(label="tipoEmpleado", max_length=60,required=False)
     tipotecnico = forms.ChoiceField(choices=(), label="Tipo de técnico")
     depto = forms.ChoiceField(choices=(), label="Departamento",required=True)

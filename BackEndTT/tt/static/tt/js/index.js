@@ -1,4 +1,5 @@
 {% load static %}
+{% load app_filters %}
 var update = false
 var idDepartamento = -1
 var deptoName = ""
@@ -14,6 +15,23 @@ var typeordergraph = ""
 var slideIndex = 0;
 var jsonuserfilter = {}
 var jsonstatusfilter = {}
+
+function showImages(el) {
+        var windowHeight = jQuery( window ).height();
+        $(el).each(function(){
+            var thisPos = $(this).offset().top;
+
+            var topOfWindow = $(window).scrollTop();
+            if (topOfWindow + windowHeight - 200 > thisPos ) {
+                $(this).addClass("fadeIn");
+            }
+        });
+    }
+
+    // if the image in the window of browser when scrolling the page, show that image
+    $(window).scroll(function() {
+            showImages('.star');
+    });
 
 function showRegisterModal()
 {
@@ -120,7 +138,16 @@ $("form#SurveyForm").submit(function(e) {
                 console.log(data.code)
                 if(data.code === 1)
                 {
-
+                    Lobibox.notify('success', {
+                            size: 'mini',
+                            rounded: true,
+                            delayIndicator: true,
+                            icon: true,
+                            title:"<center>ENCUESTA FINALIZADA</center>",
+                            iconSource:"fontAwesome",
+                            sound:false,
+                            msg: "Se ha enviado la encuesta, gracias por evaluar el servicio."
+                        });
                     $('#btnclosesurveymod' ).click()
                     indexsurvey++
                     showSurvey()
@@ -179,6 +206,7 @@ function showSlides() {
 $(document).ready(function()
 {
 
+
     formorder = $("#divformorder").html()
     $("#contenido").empty()
     if(sessionStorage.getItem("menuItem") === "" || sessionStorage.getItem("menuItem") === null)
@@ -205,18 +233,20 @@ $(document).ready(function()
             '      </div>\n' +
             '\n' +
             '    </div></div></div>';
-        html += '<div class="row"><div class="one wide column"></div><div class="fourteen wide column"> <p style="text-align: justify">La Unidad de Informática es un área de la Escuela Superior de Cómputo dependiente de la Dirección de Cómputo y Comunicaciones, es\n' +
+        html += '<div class="row star"><div class="one wide column"></div><div class="fourteen wide column"> <p style="text-align: justify">La Unidad de Informática es un área de la Escuela Superior de Cómputo dependiente de la Dirección de Cómputo y Comunicaciones, es\n' +
             'responsable de planear, regular, coordinar y evaluar las acciones para garantizar la disponibilidad, operación, confiabilidad y seguridad de\n' +
             'los servicios informáticos y de telecomunicaciones, con el propósito de contribuir a la transformación y el mejor desarrollo de las funciones\n' +
             'sustantivas, de apoyo, administrativas y académicas de la Escuela Superior de Cómputo.\n</p></div></div>'
 
         html+='<div class="row"><div class="one wide column"></div><div class="fourteen wide column">' +
-            '<img src="{% static 'tt/img/mesa.png' %}">' +
+            '<img class="star" src="{% static 'tt/img/mesa.png' %}">' +
         '</div></div>'
         $("#contenido").append(html)
         $(".slideshow-container").fadeIn('slow')
 
         showSlides();
+
+        showImages('.star');
     }
 
     // else
@@ -235,15 +265,21 @@ $(document).ready(function()
 
 
 {% if ordenes %}
-
     console.log(JSON.parse("{{ ordenes }}".split("&#39;").join('"')))
 
     var json = JSON.parse("{{ ordenes }}".split("&#39;").join('"'))
-    surveys = []
-    indexsurvey = 0
-    surveylength = json.length
-    jsonsurvey = json
-    showSurvey()
+    {% if usertype|isDoc %}
+
+        surveys = []
+        indexsurvey = 0
+        surveylength = json.length
+        jsonsurvey = json
+        showSurvey()
+    {% elif usertype|isTec %}
+        $("#tecitem").append('&nbsp;&nbsp;<i class="exclamation circle icon"></i>')
+    {% endif %}
+
+
 
 {% endif%}
 
@@ -603,6 +639,61 @@ if($("#headerFormReg").text()=="Registrate")
     }
 
 }
+else if($("#headerFormReg").text()=="Añadir Docente")
+{
+
+    formData.append('tipoEmpleado', "DOCENTEADMIN");
+
+    if(isIpn(formData.get('email')))
+    {
+        $("form#registro").addClass( "loading" )
+        $("#badreg").hide();
+        $("#okreg").hide();
+        $.ajax({
+        url: "{% url 'tt:Registrar' %}",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+        console.log(data.code)
+        $("form#registro").removeClass( "loading" )
+        if(data.code == 0)
+            {
+                $("#registererror").text("Error, intenta más tarde.")
+                $("#badreg").fadeIn("slow");
+            }
+        else if(data.code == 2)
+        {
+            $("#registererror").text("Este correo o id de empleado ya se encuentra registrado en el sistema.")
+            $("#badreg").fadeIn("slow");
+        }
+        else
+            {
+                $("#okregmsg").text("Docente registrado exitosamente.")
+                $("#okreg").fadeIn("slow");
+                setTimeout(function(){location.reload();},2500)
+            }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+    });
+    }
+    else
+    {
+    Lobibox.notify('error', {
+                        size: 'mini',
+                        rounded: true,
+                        delayIndicator: true,
+                        icon: true,
+                        title:"<center>CORREO NO VALIDO</center>",
+                        iconSource:"fontAwesome",
+                        sound:false,
+                        msg: "No se pudo validar el correo, el correo debe tener terminación ipn.mx"
+                        });
+    }
+
+
+}
 else
 {
     if(isIpn(formData.get('email')))
@@ -725,11 +816,19 @@ var formData = new FormData(this);
 
             if(data.ordenes.length > 0)
             {
-                surveys = []
-                indexsurvey = 0
-                surveylength = data.ordenes.length
-                jsonsurvey = data.ordenes
-                showSurvey()
+                if(data.usertype === "Docente")
+                {
+                    surveys = []
+                    indexsurvey = 0
+                    surveylength = data.ordenes.length
+                    jsonsurvey = data.ordenes
+                    showSurvey()
+                }
+                else if(data.usertype === "Tecnico")
+                {
+                    $("#tecitem").append('&nbsp;&nbsp;<i class="exclamation circle icon"></i>')
+                }
+
             }
         }
     else if(data.logincode == 1)
@@ -756,6 +855,20 @@ var formData = new FormData(this);
                     iconSource:"fontAwesome",
                     sound:false,
                     msg: "Esta cuenta esta en proceso de validación, cuando sea validada se te enviara un correo a la dirección registrada."
+                    });
+                    }
+
+    else if(data.logincode == -2)
+        {
+        Lobibox.notify('error', {
+                    size: 'normal',
+                    rounded: true,
+                    delayIndicator: true,
+                    icon: true,
+                    title:"<center>USUARIO NO VALIDADO</center>",
+                    iconSource:"fontAwesome",
+                    sound:false,
+                    msg: "Esta cuenta esta inactiva, comunicate con el administrador para activarla de nuevo."
                     });
                     }
     },
@@ -1069,7 +1182,7 @@ function createDepTable(json)
     html+='<tr><td class="collapsing"></td><td></td><td></td></tr>'
   }
   json.forEach(function(element) {
-      html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+element['nombre']+"infoDepto").replace(/\s+/g, '')+'"><i class="fas fa-building"></i>'+
+      html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+element['nombre']+"infoDepto").replace(/\s+/g, '')+'"><i class="building icon"></i>'+
         element['nombre']
         html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+element['nombre']+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
           '<div class="or" data-text="o"></div>'+
@@ -1081,7 +1194,7 @@ function createDepTable(json)
 
       '<th colspan="3">'+
       '  <div class="ui right floated small primary labeled icon button" id="agregardep">'+
-     '     <i class="fas fa-clinic-medical"></i> Agregar Departamento'+
+     '     <i class="building icon"></i> Agregar Departamento'+
     '    </div>'+
    '   </th>'+
   '  </tr>'+
@@ -1235,7 +1348,7 @@ function setClicksEquip(json)
                 $("#id_fobservaciones").val(element['observaciones'])
                 $("#id_tipoequipo").val(element['tipo_equipo__nombre'])
                 $("#id_departamento").val(element['depto__nombre'])
-                $("#id_empleados").val((element['empleado__pk']!= null) ? "Id Empleado: "+element['empleado__pk']+", Nombre: "+element['empleado__nombre'] : "Equipo Libre")
+                $("#id_empleados").val((element['empleado__pk']!= null) ? "No. Empleado: "+element['empleado__pk']+", Nombre: "+element['empleado__nombre'] : "Equipo Libre")
                 $("#id_fmarca").val(element['marca__nombre'])
                 // idDepartamento = element['pk']
 
@@ -1403,7 +1516,7 @@ function createEquipmentTable(json)
         id = element['ns']
     else if(element['cambs']!=null)
         id = element['cambs']
-      html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+id+"infoequipo").replace(/\s+/g, '')+'"><i class="fas fa-desktop"></i>'+
+      html +='<tr><td colspan="2" class="collapsing" style="cursor: pointer;" id="'+(element['pk']+id+"infoequipo").replace(/\s+/g, '')+'"><i class="desktop icon"></i>'+
         id+
           '<td colspan="3">'+
         element['tipo_equipo__nombre']+'</td>'+
@@ -1421,7 +1534,7 @@ function createEquipmentTable(json)
 
       '<th colspan="10">'+
       '  <div class="ui right floated small primary labeled icon button" id="agregarequipo">'+
-     '     <i class="fas fa-laptop"></i> Agregar Equipo'+
+     '     <i class="desktop icon"></i> Agregar Equipo'+
     '    </div>'+
    '   </th>'+
   '  </tr>'+
@@ -1548,7 +1661,7 @@ function showEquipmentInfo(json) {
         html+= '<p style="opacity: 0.5;"><i class="user icon"></i>&nbsp;Equipo perteneciente a : </p><p id="equipdatauser">Equipo sin asignar</p>\n'
     else
         html+=
-        '                <p style="opacity: 0.5;"><i class="user icon"></i>&nbsp;Equipo perteneciente a : </p><p id="equipdatauser">Id Empleado: '+json['empleado__pk']+', Nombre del empleado: '+json['empleado__nombre']+'</p>\n'
+        '                <p style="opacity: 0.5;"><i class="user icon"></i>&nbsp;Equipo perteneciente a : </p><p id="equipdatauser">No. Empleado: '+json['empleado__pk']+', Nombre del empleado: '+json['empleado__nombre']+'</p>\n'
     html+=
         '            </div>\n' +
         '            <div class="ui segment">\n' +
@@ -1750,8 +1863,156 @@ function showRegisters()
 
 
               });
+
+              $(("#"+(element['pk']+element['fields']['nombre']+"desactivar")).replace(/\s+/g, '')).on('click',function()
+              {
+                 $.ajax({
+                    url: "{% url 'tt:changeDocState' %}",
+                    type: 'GET',
+                    data: {'pk':element['pk'],'estado':false},
+                    success: function (data) {
+                        console.log(data)
+                        if(data.code === 1)
+                        {
+                            Lobibox.notify('success', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Cuenta desactivada</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "Cuenta desactivada correctamente."
+                                });
+                            setTimeout(function(){location.reload();},2500)
+                        }
+                        else
+                        {
+                            Lobibox.notify('error', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Error al desactivar</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "Error al desactivar cuenta."
+                                });
+                        }
+                    }
+                    });
+              });
+
+              $(("#"+(element['pk']+element['fields']['nombre']+"activar")).replace(/\s+/g, '')).on('click',function()
+              {
+                 $.ajax({
+                    url: "{% url 'tt:changeDocState' %}",
+                    type: 'GET',
+                    data: {'pk':element['pk'],'estado':true},
+                    success: function (data) {
+                        console.log(data)
+                      if(data.code === 1)
+                        {
+                            Lobibox.notify('success', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Cuenta activada</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "Cuenta activada correctamente."
+                                });
+                            setTimeout(function(){location.reload();},2500)
+                        }
+                        else
+                        {
+                            Lobibox.notify('error', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Error al activar</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "Error al activar cuenta."
+                                });
+                        }
+                    }
+                    });
+              });
         });
+
+
         }
+
+        $("#addDocAdmin").on('click',function(){
+            update = false
+            $("#headerFormReg").text("Añadir Docente")
+            $("#typetec").hide()
+            $("#badreg").hide()
+            $("#okreg").hide()
+            $("#divterms").hide()
+            $('#id_idEmpleado').attr('readonly', false);
+            $("#btnRegistrar").val("Registrar")
+//            $("#department").hide()
+            $('#regform').modal({
+                    selector    : {
+                    close    : '.close, #btncloseregmod'
+                }}).modal('show')
+            $("#deptochoices").show()
+            $("#taobs").hide()
+            $('#registro').trigger("reset");
+
+            $.ajax({
+            url: "{% url 'tt:getSubDepartments' %}",
+            type: 'GET',
+            data: {'depto':$('#id_depto').val()},
+            success: function (data) {
+                // var json = data
+                console.log(data.subdepto)
+                var newOptions = {};
+                var index = 0;
+                data.subdepto.forEach(function(element){
+                   newOptions[(index++).toString()] = element['nombre']+", Edificio: "+element['ubicacion__edificio']+" Piso: "+element['ubicacion__piso']+" Sala: "+element['ubicacion__sala']
+                });
+                newOptions[(index++).toString()] = "Ninguno"
+
+                var $el = $("#id_subdepto");
+                $el.empty();
+                $.each(newOptions, function(key,value) {
+                  $el.append($("<option></option>")
+                     .attr("value", value).text(value));
+                });
+            }
+        });
+
+    $('#id_depto').on('change', function (e) {
+        var valueSelected = this.value;
+        // alert(valueSelected)
+        $.ajax({
+            url: "{% url 'tt:getSubDepartments' %}",
+            type: 'GET',
+            data: {'depto':valueSelected},
+            success: function (data) {
+                // var json = JSON.parse(data)
+                var newOptions = {};
+                var index = 0;
+                data.subdepto.forEach(function(element){
+                   newOptions[(index++).toString()] = element['nombre']+", Edificio: "+element['ubicacion__edificio']+" Piso: "+element['ubicacion__piso']+" Sala: "+element['ubicacion__sala']
+                });
+                newOptions[(index++).toString()] = "Ninguno"
+
+                var $el = $("#id_subdepto");
+                $el.empty();
+                $.each(newOptions, function(key,value) {
+                  $el.append($("<option></option>")
+                     .attr("value", value).text(value));
+                });
+            }
+        });
+    });
+        });
     }
     });
 }
@@ -1760,7 +2021,7 @@ function createRegistersTable(json)
 {
     var html ='<table id="tableregisters" style="display:none;" class="ui blue celled table">'+
   '<thead>'+
-  '  <tr><th colspan="1"><center>Id Empleado</center></th>'+
+  '  <tr><th colspan="1"><center>No. Empleado</center></th>'+
   '  <th colspan="2"><center>Nombre</center></th>'+
   '  <th colspan="3"><center>Correo</center></th>'+
   '  <th colspan="1"><center>Opciones</center></th>'+
@@ -1787,13 +2048,28 @@ function createRegistersTable(json)
       }
       else
       {
-          html+='<td colspan="1" class="right aligned collapsing"><center>' +
-              '<button class="ui orange button" id="'+(element['pk']+element['fields']['nombre']+"details").replace(/\s+/g, '')+'">Ver detalles</button></center></td></tr>';
+          if(element['fields']['adminstate'] === false)
+              html+='<td colspan="1" class="right aligned collapsing"><center><div class="ui buttons"><button class="ui positive button" id="'+(element['pk']+element['fields']['nombre']+"activar").replace(/\s+/g, '')+'">Activar</button>'
+        else
+             html+='<td colspan="1" class="right aligned collapsing"><center><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+element['fields']['nombre']+"desactivar").replace(/\s+/g, '')+'">Desactivar</button>'
+
+          html+= '<div class="or" data-text="o"></div>'+
+           '<button class="ui orange button" id="'+(element['pk']+element['fields']['nombre']+"details").replace(/\s+/g, '')+'">Ver detalles</button>' +
+          '</div></center></td></tr>';
       }
 
     });
 
-  html +=
+  html +='<tfoot class="full-width">'+
+    '<tr>'+
+      '<th></th>'+
+      '<th colspan="7">'+
+      '  <div class="ui right floated small primary labeled icon button" id="addDocAdmin">'+
+     '     <i class="user icon"></i> Agregar Docente'+
+    '    </div>'+
+   '   </th>'+
+  '  </tr>'+
+ ' </tfoot>'+
 '  </tbody>'+
 '</table>';
 
@@ -2075,7 +2351,7 @@ function setClicksOrders(json,tecnicos)
                 var index = 0;
                 tecnicos.forEach(function(tecnico){
                     if(tecnico['trabajos__nombre'] === element['trabajo__nombre'])
-                        newOptions[(index++).toString()] = "Id Empleado: "+tecnico['pk']+", Nombre: "+tecnico['nombre']+" "+tecnico['ap']+" "+tecnico['am']
+                        newOptions[(index++).toString()] = "No. Empleado: "+tecnico['pk']+", Nombre: "+tecnico['nombre']+" "+tecnico['ap']+" "+tecnico['am']
                 });
 
                 var $el = $("#tecnicoOpts");
@@ -2199,7 +2475,7 @@ function createOrdersAdminTable(json,d1)
         '</td><td colspan="2">'+((element['end']!=null) ? element['end'] : "Pendiente")+'</td>'+
         '</td><td colspan="1">'+estado+'</td>'+
         // '</td><td colspan="1"><center><img style="width: 10%; height:10%;" src="{% static 'tt/img/red.png' %}"/></center></td>'+
-        '</td><td colspan="3">Id Empleado: '+solicitante['pk']+', Nombre: '+solicitante['nombre']+' '+solicitante['ap']+' '+solicitante['am']+'</td>';
+        '</td><td colspan="3">No. Empleado: '+solicitante['pk']+', Nombre: '+solicitante['nombre']+' '+solicitante['ap']+' '+solicitante['am']+'</td>';
       if(element['estado']==-1)
       {
           html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons">' +
@@ -2455,7 +2731,7 @@ function createSubDepTable(json,depto)
     html+='<tr><td class="collapsing"></td><td></td><td></td></tr>'
   }
   json.forEach(function(element) {
-      html +='<tr><td colspan="2" class="collapsing" id="'+(element['pk']+element['nombre']+"infoDepto").replace(/\s+/g, '')+'"><i class="fas fa-building"></i>'+
+      html +='<tr><td colspan="2" class="collapsing" id="'+(element['pk']+element['nombre']+"infoDepto").replace(/\s+/g, '')+'"><i class="fas fa-clinic-medical"></i>'+
         element['nombre']
         html+='<td colspan="1" class="right aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+element['nombre']+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
           '<div class="or" data-text="o"></div>'+
@@ -2668,7 +2944,7 @@ function showOrderForm()
                 $("#id_depto").val(data['data'][0]['departamento__nombre'])
                 $("#id_subdepto").val(data['data'][0]['subdepartamento__nombre'])
                 $("#id_folio").val(data['folio'])
-                $("#id_solicitante").val("Id Empleado: "+data['data'][0]['pk']+", Nombre: "+data['data'][0]['nombre']+" "+data['data'][0]['ap']+" "+data['data'][0]['am'])
+                $("#id_solicitante").val("No. Empleado: "+data['data'][0]['pk']+", Nombre: "+data['data'][0]['nombre']+" "+data['data'][0]['ap']+" "+data['data'][0]['am'])
 
 
 
@@ -3140,6 +3416,27 @@ function showPerfil()
     $("#okregequipo").hide()
     $("#divterms").hide()
 
+    $.ajax({
+            url: "{% url 'tt:getSubDepartments' %}",
+            type: 'GET',
+            data: {'depto':$('#id_depto').val()},
+            success: function (json) {
+                console.log(json)
+                var newOptions = {};
+                var index = 0;
+                json.subdepto.forEach(function(element){
+                   newOptions[(index++).toString()] = element['nombre']+", Edificio: "+element['ubicacion__edificio']+" Piso: "+element['ubicacion__piso']+" Sala: "+element['ubicacion__sala']
+                });
+                newOptions[(index++).toString()] = "Ninguno"
+
+                var $el = $("#id_subdepto");
+                $el.empty();
+                $.each(newOptions, function(key,value) {
+                  $el.append($("<option></option>")
+                     .attr("value", value).text(value));
+                });
+            }
+        });
 
     $.ajax({
         url : "{% url "tt:getUserInfo" %}",
@@ -3154,7 +3451,7 @@ function showPerfil()
             $("#id_telefono").val(data.data[0].numero)
             $("#id_extension").val((data.data[0].ext === null) ? "" : data.data[0].ext)
             $("#id_depto").val(data.data[0].departamento__nombre)
-            $("#id_subdepto").val(data.data[0].subdepartamento__nombre)
+            $("#id_subdepto").val(data.data[0].subdepartamento__nombre+", Edificio: "+data.data[0].subdepartamento__ubicacion__edificio+" Piso: "+data.data[0].subdepartamento__ubicacion__piso+" Sala: "+data.data[0].subdepartamento__ubicacion__sala)
             $("#id_nombre").val(data.data[0].nombre)
             $("#id_ap").val(data.data[0].ap)
             $("#id_am").val(data.data[0].am)
@@ -3175,28 +3472,6 @@ function showPerfil()
         },
     });
 
-    $.ajax({
-            url: "{% url 'tt:getSubDepartments' %}",
-            type: 'GET',
-            data: {'depto':$('#id_depto').val()},
-            success: function (data) {
-                var json = JSON.parse(data)
-                var newOptions = {};
-                var index = 0;
-                json.forEach(function(element){
-                   newOptions[(index++).toString()] = element['fields']['nombre']
-                });
-                newOptions[(index++).toString()] = "Ninguno"
-
-                var $el = $("#id_subdepto");
-                $el.empty();
-                $.each(newOptions, function(key,value) {
-                  $el.append($("<option></option>")
-                     .attr("value", value).text(value));
-                });
-            }
-        });
-
     $('#id_depto').on('change', function (e) {
         var valueSelected = this.value;
         // alert(valueSelected)
@@ -3204,12 +3479,12 @@ function showPerfil()
             url: "{% url 'tt:getSubDepartments' %}",
             type: 'GET',
             data: {'depto':valueSelected},
-            success: function (data) {
-                var json = JSON.parse(data)
+            success: function (json) {
+                console.log(json)
                 var newOptions = {};
                 var index = 0;
-                json.forEach(function(element){
-                   newOptions[(index++).toString()] = element['fields']['nombre']
+                json.subdepto.forEach(function(element){
+                   newOptions[(index++).toString()] = element['nombre']+", Edificio: "+element['ubicacion__edificio']+" Piso: "+element['ubicacion__piso']+" Sala: "+element['ubicacion__sala']
                 });
                 newOptions[(index++).toString()] = "Ninguno"
 
@@ -3357,7 +3632,7 @@ function showDocInfo(json)
         '              </div>\n' +
         '              <div class="ui segments">\n' +
         '                <div class="ui segment">\n' +
-        '                  <p>Id Empleado : '+json.data[0].pk+'</p>\n' +
+        '                  <p>No. Empleado : '+json.data[0].pk+'</p>\n' +
         '                </div>\n' +
         '                <div class="ui segment">\n' +
         '                  <p>Nombre : '+json.data[0].nombre+' '+json.data[0].ap+' '+json.data[0].am+'</p>\n' +

@@ -1,4 +1,5 @@
 import ast
+import codecs
 import datetime
 import os
 
@@ -13,6 +14,8 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import time
 from django.core.mail import send_mail
+from pdfkit import pdfkit
+
 from .forms import *
 from .models import *
 from .firebase import Firebase
@@ -64,6 +67,10 @@ def Index(request):
             emp = Empleado.objects.filter(pk=request.session['NombreUser']['pk']).values('ordenes__pk')
             print(emp)
             ordenes = Orden.objects.filter(estado=1, survey=None, pk__in=emp).values('pk')
+        if request.session['NombreUser']['tipo'] == "Tecnico":
+            emp = Empleado.objects.filter(pk=request.session['NombreUser']['pk']).values('ordenes__pk')
+            print(emp)
+            ordenes = Orden.objects.filter(estado=0, pk__in=emp).values('pk')
 
         return render(request, 'tt/index.html',
                       {'form': form, 'forml': forml, 'formdep': form2, 'formequipo': formequipo, 'formorden': formorden,
@@ -89,8 +96,12 @@ def Registrar(request):
         typeworklist = []
         for dep in Departamento.objects.all().values('nombre'):
             deplist.append((dep['nombre'], dep['nombre']))
-        for subdep in SubDepartamento.objects.all().values('nombre'):
-            subdeplist.append((subdep['nombre'], subdep['nombre']))
+        for subdep in SubDepartamento.objects.all().values('nombre', 'ubicacion__edificio', 'ubicacion__piso',
+                                                           'ubicacion__sala'):
+            subdeplist.append((subdep['nombre'] + ", Edificio: " + str(subdep['ubicacion__edificio']) + " Piso: " + str(
+                subdep['ubicacion__piso']) + " Sala: " + str(subdep['ubicacion__sala']),
+                               subdep['nombre'] + ", Edificio: " + str(subdep['ubicacion__edificio']) + " Piso: " + str(
+                                   subdep['ubicacion__piso']) + " Sala: " + str(subdep['ubicacion__sala'])))
         for typework in TipoTrabajo.objects.all().values('nombre'):
             typeworklist.append((typework['nombre'], typework['nombre']))
         subdeplist.append(("Ninguno", "Ninguno"))
@@ -116,30 +127,47 @@ def Registrar(request):
                                                   numero=form.cleaned_data['telefono'],
                                                   ext=form.cleaned_data['extension'],
                                                   estado=False,
+                                                  adminstate=False,
                                                   observaciones="",
                                                   departamento=Departamento.objects.get(
                                                       nombre=form.cleaned_data['depto']),
                                                   subdepartamento=None if (form.cleaned_data[
                                                                                'subdepto'] == "Ninguno") else SubDepartamento.objects.get(
-                                                      nombre=form.cleaned_data['subdepto']),
+                                                      nombre=form.cleaned_data['subdepto'].split(",")[0]),
                                                   tipo=TipoUsuario.objects.get(nombre='Docente'))
-                    # )
-                    # emp.empleado.ap = form.cleaned_data['ap']
-                    # emp.empleado.am = form.cleaned_data['am']
-                    # emp.empleado.numero = form.cleaned_data['telefono']
-                    # emp.empleado.ext = form.cleaned_data['extension']
-                    # emp.empleado.estado = False
-                    # emp.empleado.departamento = Departamento.objects.get(
-                    #                                   nombre=form.cleaned_data['depto'])
-                    # emp.empleado.subdepartamento = None if (form.cleaned_data[
-                    #                                                            'subdepto'] == "Ninguno") else SubDepartamento.objects.get(
-                    #                                   nombre=form.cleaned_data['subdepto'])
-                    # emp.empleado.tipo = TipoUsuario.objects.get(nombre='Docente')
-                    # user = User.objects.create_user(form.cleaned_data['email'], form.cleaned_data['email'],
-                    #                                 form.cleaned_data['contra'])
-                    # user.last_name = str(form.cleaned_data['idEmpleado'])
-                    # user.save()
                     emp.save()
+                elif (form.cleaned_data['tipoEmpleado'] == "DOCENTEADMIN"):
+                    if (Empleado.objects.filter(email=form.cleaned_data['email']).exists() or Empleado.objects.filter(
+                            idEmpleado=form.cleaned_data['idEmpleado']).exists()):
+                        return JsonResponse({"code": 2}, content_type="application/json", safe=False)
+
+                    user = firebase.instance.createuser(form.cleaned_data['email'], form.cleaned_data['contra'])
+                    print(user)
+                    if (user is not None):
+                        emp = Empleado.objects.create(idEmpleado=form.cleaned_data['idEmpleado'],
+                                                      nombre=form.cleaned_data['nombre'],
+                                                      ap=form.cleaned_data['ap'],
+                                                      am=form.cleaned_data['am'],
+                                                      email=form.cleaned_data['email'],
+                                                      uuid=user['localId'],
+                                                      password=form.cleaned_data['contra'],
+                                                      numero=form.cleaned_data['telefono'],
+                                                      ext=form.cleaned_data['extension'],
+                                                      estado=True,
+                                                      adminstate=True,
+                                                      observaciones="",
+                                                      departamento=Departamento.objects.get(
+                                                          nombre=form.cleaned_data['depto']),
+                                                      subdepartamento=None if (form.cleaned_data[
+                                                                                   'subdepto'] == "Ninguno") else SubDepartamento.objects.get(
+                                                          nombre=form.cleaned_data['subdepto'].split(",")[0]),
+                                                      tipo=TipoUsuario.objects.get(nombre='Docente'))
+
+                        emp2 = Empleado.objects.get(idEmpleado=form.cleaned_data['idEmpleado'])
+                        print(emp2.as_dict())
+                        firebase.instance.reference.database().child("users").child(user['localId']).set(
+                            emp2.as_dict())
+                        emp.save()
                 elif (form.cleaned_data['tipoEmpleado'] == "TECNICO"):
                     if (Empleado.objects.filter(email=form.cleaned_data['email']).exists() or Empleado.objects.filter(
                             idEmpleado=form.cleaned_data['idEmpleado']).exists()):
@@ -160,6 +188,7 @@ def Registrar(request):
                                                       uuid=user['localId'],
                                                       tipo=TipoUsuario.objects.get(nombre='Tecnico'),
                                                       estado=True,
+                                                      adminstate=True,
                                                       observaciones=form.cleaned_data['observaciones'],
                                                       departamento=None,
                                                       subdepartamento=None,
@@ -244,7 +273,7 @@ def ValidarDocente(request):
                 # empdata = serializers.serialize('json', emp)
                 # print(ast.literal_eval(empdata))
                 print(emp2.as_dict())
-                emp.update(estado=True, uuid=user['localId'])
+                emp.update(estado=True,adminstate=True, uuid=user['localId'])
                 firebase.instance.reference.database().child("users").child(emp[0].uuid).set(emp2.as_dict())
                 send_mail(
                     'UDI, Estado de solicitud de registro',
@@ -673,11 +702,18 @@ def IniciarSesion(request):
                 us = Empleado.objects.get(email=email, password=passs)
                 if (us.estado == False):
                     return JsonResponse({'logincode': -1}, content_type="application/json", safe=False)
+                if (us.adminstate == False):
+                    return JsonResponse({'logincode': -2}, content_type="application/json", safe=False)
                 ordenes = {}
                 if us.tipo.nombre == "Docente":
                     emp = Empleado.objects.filter(pk=us.pk).values('ordenes__pk')
                     print(emp)
                     ordenes = Orden.objects.filter(estado=1, survey=None, pk__in=emp).values('pk')
+                if us.tipo.nombre == "Tecnico":
+                    emp = Empleado.objects.filter(pk=us.pk).values('ordenes__pk')
+                    print(emp)
+                    ordenes = Orden.objects.filter(estado=0,pk__in=emp).values('pk')
+
                 request.session['NombreUser'] = {'email': us.email, 'pass': us.password,
                                                  'nombre': us.nombre, 'ap': us.ap, 'am': us.am
                     , 'tipo': us.tipo.nombre,
@@ -1027,8 +1063,11 @@ def getSubDepartments(request):
 
 @csrf_exempt
 def showTerms(request):
-    pdf = open(os.path.join(os.path.dirname(__file__),"TERMINOS-Y-CONDICIONES.pdf"),encoding="unicode_escape").read()
-    return HttpResponse(pdf, mimetype="application/pdf")
+    print(os.path.join(os.path.dirname(__file__),"TERMINOS-Y-CONDICIONES.pdf"))
+    with open(os.path.join(os.path.dirname(__file__),"TERMINOS-Y-CONDICIONES.pdf"), 'rb') as pdf:
+        response = HttpResponse(pdf.read(), content_type='application/pdf')
+        response['Content-Disposition'] = 'inline;filename=some_file.pdf'
+        return response
 
 @csrf_exempt
 def getUserInfo(request):
@@ -1047,7 +1086,11 @@ def getUserInfo(request):
                                                                                    'numero',
                                                                                    'ext',
                                                                                    'departamento__nombre',
-                                                                                   'subdepartamento__nombre')
+                                                                                   'subdepartamento__nombre',
+                                                                                   'subdepartamento__ubicacion__edificio',
+                                                                                   'subdepartamento__ubicacion__piso',
+                                                                                   'subdepartamento__ubicacion__sala'
+                                                                                   )
     equipo = Equipo.objects.filter(empleado=request.session['NombreUser']['pk']).values('modelo', 'pk',
                                                                                         'mac',
                                                                                         'ns',
@@ -1229,8 +1272,8 @@ def updateDoc(request):
         typeworklist = []
         for dep in Departamento.objects.all().values('nombre'):
             deplist.append((dep['nombre'], dep['nombre']))
-        for subdep in SubDepartamento.objects.all().values('nombre'):
-            subdeplist.append((subdep['nombre'], subdep['nombre']))
+        for subdep in SubDepartamento.objects.all().values('nombre','ubicacion__edificio','ubicacion__piso','ubicacion__sala'):
+            subdeplist.append((subdep['nombre']+", Edificio: "+str(subdep['ubicacion__edificio'])+" Piso: "+str(subdep['ubicacion__piso'])+" Sala: "+str(subdep['ubicacion__sala']), subdep['nombre']+", Edificio: "+str(subdep['ubicacion__edificio'])+" Piso: "+str(subdep['ubicacion__piso'])+" Sala: "+str(subdep['ubicacion__sala'])))
         for typework in TipoTrabajo.objects.all().values('nombre'):
             typeworklist.append((typework['nombre'], typework['nombre']))
         subdeplist.append(("Ninguno", "Ninguno"))
@@ -1241,6 +1284,7 @@ def updateDoc(request):
             print(emp[0].password)
             uuid = emp[0].uuid
             user = firebase.instance.authuser(emp[0].email, emp[0].password)
+            print(form.cleaned_data['subdepto'].split(",")[0])
 
 
             if user is not None:
@@ -1258,11 +1302,12 @@ def updateDoc(request):
                         numero=form.cleaned_data['telefono'],
                         ext=form.cleaned_data['extension'],
                         estado=True,
+                        adminstate=True,
                         departamento=Departamento.objects.get(
                             nombre=form.cleaned_data['depto']),
                         subdepartamento=None if (form.cleaned_data[
                                                      'subdepto'] == "Ninguno") else SubDepartamento.objects.get(
-                            nombre=form.cleaned_data['subdepto']))
+                            nombre=form.cleaned_data['subdepto'].split(",")[0]))
 
                     ordenes = firebase.instance.reference.database().child("users").child(uuid).child("ordenes").get()
                     firebase.instance.reference.database().child("users").child(uuid).remove()
@@ -1281,6 +1326,20 @@ def updateDoc(request):
             print(form.errors)
             return JsonResponse({"code": 0}, content_type="application/json", safe=False)
     else:
+        return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+
+@csrf_exempt
+def changeDocState(request):
+    try:
+        estado = False
+        if request.GET.get('estado', None) == u'true':
+            estado = True
+        else:
+            estado = False
+        Empleado.objects.filter(idEmpleado=request.GET.get('pk', None)).update(adminstate=estado)
+        return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+    except Exception as e:
+        print(e)
         return JsonResponse({"code": 0}, content_type="application/json", safe=False)
 
 @csrf_exempt
