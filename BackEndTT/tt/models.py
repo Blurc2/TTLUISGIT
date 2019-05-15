@@ -212,6 +212,7 @@ class Equipo(models.Model):
     num_puertos = models.CharField(max_length=60,blank = True,null=True)
     memoria_ram = models.CharField(max_length=60,blank = True,null=True)
     disco_duro = models.CharField(max_length=60,blank = True,null=True)
+    lastupdate = models.CharField(max_length=60,blank = True,null=True)
     idf = models.CharField(max_length=60,blank = True,null=True)
     caracteristicas = models.CharField(max_length=200,blank = True,null=True)
     observaciones = models.CharField(max_length=200,blank = True,null=True)

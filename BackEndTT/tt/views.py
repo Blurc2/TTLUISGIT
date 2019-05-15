@@ -14,7 +14,6 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import time
 from django.core.mail import send_mail
-from pdfkit import pdfkit
 
 from .forms import *
 from .models import *
@@ -408,6 +407,7 @@ def AddDepartment(request):
                                 sala=form.cleaned_data['sala'])
                         )
                     else:
+
                         ubi = Ubicacion.objects.create(
                             edificio=form.cleaned_data['edificio'],
                             piso=form.cleaned_data['piso'],
@@ -469,6 +469,7 @@ def AddEquip(request):
                                                            num_puertos=form.cleaned_data['fnum_puertos'],
                                                            memoria_ram=form.cleaned_data['fmemoria_ram'],
                                                            disco_duro=form.cleaned_data['fdisco_duro'],
+                                                           lastupdate=None,
                                                            idf=form.cleaned_data['fidf'],
                                                            caracteristicas=form.cleaned_data['fcaracteristicas'],
                                                            observaciones=form.cleaned_data['fobservaciones'],
@@ -503,6 +504,7 @@ def AddEquip(request):
                                                            caracteristicas=form.cleaned_data['fcaracteristicas'],
                                                            observaciones=form.cleaned_data['fobservaciones'],
                                                            marca=marca,
+                                                           lastupdate=None,
                                                            depto=Departamento.objects.get(
                                                                nombre=form.cleaned_data['departamento']),
                                                            empleado=Empleado.objects.get(
@@ -527,6 +529,7 @@ def AddEquip(request):
                             memoria_ram=form.cleaned_data['fmemoria_ram'],
                             disco_duro=form.cleaned_data['fdisco_duro'],
                             idf=form.cleaned_data['fidf'],
+                            lastupdate=request.session['NombreUser']['tipo']+" - "+request.session['NombreUser']['nombre']+" "+request.session['NombreUser']['ap']+" "+request.session['NombreUser']['am'],
                             caracteristicas=form.cleaned_data['fcaracteristicas'],
                             observaciones=form.cleaned_data['fobservaciones'],
                             marca=Marca.objects.get(nombre=form.cleaned_data['fmarca']),
@@ -554,6 +557,9 @@ def AddEquip(request):
                             memoria_ram=form.cleaned_data['fmemoria_ram'],
                             disco_duro=form.cleaned_data['fdisco_duro'],
                             idf=form.cleaned_data['fidf'],
+                            lastupdate=request.session['NombreUser']['tipo'] + " - " + request.session['NombreUser'][
+                                'nombre'] + " " + request.session['NombreUser']['ap'] + " " +
+                                       request.session['NombreUser']['am'],
                             caracteristicas=form.cleaned_data['fcaracteristicas'],
                             observaciones=form.cleaned_data['fobservaciones'],
                             marca=marca,
@@ -987,6 +993,7 @@ def ShowEquipment(request):
                                         'depto__nombre',
                                         'empleado__pk',
                                         'empleado__nombre',
+                                        'lastupdate',
                                         'marca__nombre')
 
     for eq in query:

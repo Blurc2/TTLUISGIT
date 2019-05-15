@@ -1555,7 +1555,8 @@ function createEquipmentTable(json)
         '  <div class="results"></div>\n' +
         '</div></center></th>'+
     '  <th colspan="2"><center>Estado del Equipo</center></th>'+
-    '  <th colspan="2"><center>Equipo asignado</center></th>'+
+    '  <th colspan="1"><center>Equipo asignado</center></th>'+
+    '  <th colspan="2"><center>Última modificación</center></th>'+
   '  <th colspan="1"><center>Opciones</center></th>'+
   '</tr></thead>'+
   '<tbody id="equipbody">';
@@ -1575,8 +1576,10 @@ function createEquipmentTable(json)
         element['tipo_equipo__nombre']+'</td>'+
            '<td colspan="2">'+
           ((element['estado']) ? "En mantenimiento" : "Buen Estado")+'</td>'+
+          '<td colspan="1"><center>'+
+          ((element['empleado__nombre'] === null) ? "NO" : "SI")+'</center></td>'+
           '<td colspan="2"><center>'+
-          ((element['empleado__nombre'] === null) ? "NO" : "SI")+'</center></td>'
+          ((element['lastupdate'] === null) ? "Sin cambios" : element['lastupdate'])+'</center></td>'
         html+='<td colspan="1" class="center aligned collapsing"><div class="ui buttons"><button class="ui negative button" id="'+(element['pk']+id+"delete").replace(/\s+/g, '')+'">Borrar</button>'+
           '<div class="or" data-text="o"></div>'+
           '<button class="ui positive button" id="'+(element['pk']+id+"update").replace(/\s+/g, '')+'">Editar</button></div></td></tr>';
@@ -1585,7 +1588,7 @@ function createEquipmentTable(json)
   html +='</tbody><tfoot class="full-width">'+
     '<tr>'+
 
-      '<th colspan="10">'+
+      '<th colspan="11">'+
       '  <div class="ui right floated small primary labeled icon button" id="agregarequipo">'+
      '     <i class="desktop icon"></i> Agregar Equipo'+
     '    </div>'+
@@ -2511,13 +2514,13 @@ function createOrdersAdminTable(json,d1)
       var clase = ""
       switch(element['estado'])
       {
-          case -1: estado = "Sin asignar"; clase = "negative";
+          case -1: estado = "Sin asignar"; clase = "unknown";
               break;
           case 0: estado = "Asignado, en espera de ser resuelto."; clase = "warning";
               break;
           case 1: estado = "Resuelto"; clase = "positive";
               break;
-          case 2: estado = "No se pudo resolver"; clase = "positive";
+          case 2: estado = "No se pudo resolver"; clase = "error";
               break;
           default:
       }
@@ -2648,13 +2651,13 @@ function createOrdersDocTable(json,type)
       var clase = ""
       switch(element['ordenes__estado'])
       {
-          case -1: estado = "Sin asignar"; clase = "negative";
+          case -1: estado = "Sin asignar"; clase = "unknown";
               break;
           case 0: estado = "Asignado, en espera de ser resuelto."; clase = "warning";
               break;
           case 1: estado = "Resuelto"; clase = "positive";
               break;
-          case 2: estado = "No se pudo resolver"; clase = "positive";
+          case 2: estado = "No se pudo resolver"; clase = "error";
               break;
           default:
       }
