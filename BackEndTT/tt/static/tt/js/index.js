@@ -206,7 +206,6 @@ function showSlides() {
 $(document).ready(function()
 {
 
-
     formorder = $("#divformorder").html()
     $("#contenido").empty()
     if(sessionStorage.getItem("menuItem") === "" || sessionStorage.getItem("menuItem") === null)
@@ -596,7 +595,7 @@ if($("#headerFormReg").text()=="Registrate")
                 }
             else if(data.code == 2)
             {
-                $("#registererror").text("Este correo o id de empleado ya se encuentra registrado en el sistema.")
+                $("#registererror").text("Este correo o No. de empleado ya se encuentra registrado en el sistema.")
                 $("#badreg").fadeIn("slow");
             }
             else
@@ -663,7 +662,7 @@ else if($("#headerFormReg").text()=="Añadir Docente")
             }
         else if(data.code == 2)
         {
-            $("#registererror").text("Este correo o id de empleado ya se encuentra registrado en el sistema.")
+            $("#registererror").text("Este correo o No. de empleado ya se encuentra registrado en el sistema.")
             $("#badreg").fadeIn("slow");
         }
         else
@@ -671,6 +670,60 @@ else if($("#headerFormReg").text()=="Añadir Docente")
                 $("#okregmsg").text("Docente registrado exitosamente.")
                 $("#okreg").fadeIn("slow");
                 setTimeout(function(){location.reload();},2500)
+            }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+    });
+    }
+    else
+    {
+    Lobibox.notify('error', {
+                        size: 'mini',
+                        rounded: true,
+                        delayIndicator: true,
+                        icon: true,
+                        title:"<center>CORREO NO VALIDO</center>",
+                        iconSource:"fontAwesome",
+                        sound:false,
+                        msg: "No se pudo validar el correo, el correo debe tener terminación ipn.mx"
+                        });
+    }
+
+
+}
+else if($("#headerFormReg").text()=="Añadir Administrador")
+{
+
+    formData.append('tipoEmpleado', "ADMIN");
+
+    if(isIpn(formData.get('email')))
+    {
+        $("form#registro").addClass( "loading" )
+        $("#badreg").hide();
+        $("#okreg").hide();
+        $.ajax({
+        url: "{% url 'tt:Registrar' %}",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+        console.log(data.code)
+        $("form#registro").removeClass( "loading" )
+        if(data.code == 0)
+            {
+                $("#registererror").text("Error, intenta más tarde.")
+                $("#badreg").fadeIn("slow");
+            }
+        else if(data.code == 2)
+        {
+            $("#registererror").text("Este correo o No. de empleado ya se encuentra registrado en el sistema.")
+            $("#badreg").fadeIn("slow");
+        }
+        else
+            {
+                $("#okregmsg").text("Administrador registrado exitosamente.")
+                $("#okreg").fadeIn("slow");
             }
         },
         cache: false,
@@ -2464,6 +2517,8 @@ function createOrdersAdminTable(json,d1)
               break;
           case 1: estado = "Resuelto"; clase = "positive";
               break;
+          case 2: estado = "No se pudo resolver"; clase = "positive";
+              break;
           default:
       }
       html +='<tr class="'+clase+'"><td colspan="2" class="collapsing">';
@@ -2598,6 +2653,8 @@ function createOrdersDocTable(json,type)
           case 0: estado = "Asignado, en espera de ser resuelto."; clase = "warning";
               break;
           case 1: estado = "Resuelto"; clase = "positive";
+              break;
+          case 2: estado = "No se pudo resolver"; clase = "positive";
               break;
           default:
       }
@@ -2770,10 +2827,56 @@ function showOrderInfo(id,estado)
                 {
                     $("#divbuttonfinishorder").show()
 
-                    $("#divbuttonfinishorder").on('click',function(){
+                    $("#finishorder").on('click',function(){
                          $.ajax({
                             url : "{% url "tt:finishOrder" %}",
-                            data : {"idOrden":id,"msg":$.trim($("#textareacommenttec").val())},
+                            data : {"idOrden":id,"msg":$.trim($("#textareacommenttec").val()),"status":1},
+                            dataType : 'json',
+                            success : function(data) {
+                                console.log(data);
+                                if(data.code == 1)
+                                {
+                                    Lobibox.notify('success', {
+                                    size: 'mini',
+                                    rounded: true,
+                                    delayIndicator: true,
+                                    icon: true,
+                                    title:"<center>Orden finalizada</center>",
+                                    iconSource:"fontAwesome",
+                                    sound:false,
+                                    msg: "Orden finalizada con exito"
+                                    });
+                                    setTimeout(function(){location.reload();},2500)
+
+                                }
+                                else
+                                {
+                                    Lobibox.notify('error', {
+                                    size: 'mini',
+                                    rounded: true,
+                                    delayIndicator: true,
+                                    icon: true,
+                                    title:"<center>Error al finalizar la orden</center>",
+                                    iconSource:"fontAwesome",
+                                    sound:false,
+                                    msg: "No se pudo finalizar la orden, intenta de nuevo más tarde"
+                                    });
+                                }
+
+                            },
+                            error : function(xhr, status) {
+                                console.log("error ");
+                            },
+                        });
+                    })
+
+
+
+
+                    $("#nofinishorder").on('click',function(){
+                         $.ajax({
+                            url : "{% url "tt:finishOrder" %}",
+                            data : {"idOrden":id,"msg":$.trim($("#textareacommenttec").val()),"status":2},
                             dataType : 'json',
                             success : function(data) {
                                 console.log(data);
@@ -2836,10 +2939,15 @@ function createorderinfotable(json) {
         clasestate = "warning"
         clasemsg = "Asignada, en espera de ser resuelta"
     }
-    else
+    else if(json['orden'][0]['estado'] == 1)
     {
         clasestate = "positive"
         clasemsg = "Orden finalizada"
+    }
+    else
+    {
+        clasestate = "positive"
+        clasemsg = "No se pudo finalizar"
     }
     html = '<div class="ui sixteen wide column" id="divorderinfo" style="display: none;">\n' +
         '        <center>\n' +
@@ -2920,7 +3028,8 @@ function createorderinfotable(json) {
         '                </div>\n' +
         '            </div>\n' +
         '            <div class="ui clearing segment" id="divbuttonfinishorder" style="display: none;">\n' +
-        '                <button class="ui inverted right floated blue button">Finalizar orden</button>\n' +
+        '                <button class="ui inverted left floated red button" id="nofinishorder">No se pudo finalizar orden</button>\n' +
+        '                <button class="ui inverted right floated blue button" id="finishorder">Finalizar orden</button>\n' +
         '            </div>\n' +
         '        </div>\n' +
         '    </div>'
@@ -2939,6 +3048,34 @@ function showOrderForm()
             success : function(data) {
                 console.log(data);
                 $("#contenido").append('<div class="ui sixteen wide column" id="divformorder" style="display: none;">'+formorder+'</div>')
+                $('.ui.dropdown.softw').dropdown({
+                    onChange: function(value, text, $selectedItem) {
+                        var txt =  $("#id_descripcion").val()
+                        var msg = txt.split("\n:::..Software a instalar ..:::")[0]
+                        if(value.length > 0)
+                        {
+                            $("#id_descripcion").val(msg+"\n:::..Software a instalar ..:::\n")
+
+                            value.forEach(function (e) {
+                                $("#id_descripcion").val(function() {
+                                return this.value + " -> "+ e +"\n";
+                            })
+                            })
+
+                        }
+
+                        else
+                        {
+                            $("#id_descripcion").val(msg)
+                        }
+                    }
+                })
+                data.instalacion.forEach(function (e) {
+                    $("#softwareopt").append('<option value="'+e.nombre.replace(/\s/g,'')+'">'+e.nombre+'</option>')
+                })
+
+
+
                 $("#divformorder").fadeIn()
                 $("#id_fecha").val(data['fecha'])
                 $("#id_depto").val(data['data'][0]['departamento__nombre'])
@@ -3013,6 +3150,26 @@ function showOrderForm()
                 console.log("error ");
             },
         });
+
+}
+
+function addAdmin() {
+    update = false
+            $("#headerFormReg").text("Añadir Administrador")
+            $("#typetec").hide()
+            $("#badreg").hide()
+            $("#okreg").hide()
+            $("#divterms").hide()
+            $('#id_idEmpleado').attr('readonly', false);
+            $("#btnRegistrar").val("Registrar")
+//            $("#department").hide()
+            $('#regform').modal({
+                    selector    : {
+                    close    : '.close, #btncloseregmod'
+                }}).modal('show')
+            $("#deptochoices").hide()
+            $("#taobs").hide()
+            $('#registro').trigger("reset");
 
 }
 
@@ -3201,57 +3358,185 @@ function createOrderGraph(json,type,typegraph)
                 '11': 0,
                 '12': 0
             }
+
+            var datos2 = {
+                '1': 0,
+                '2': 0,
+                '3': 0,
+                '4': 0,
+                '5': 0,
+                '6': 0,
+                '7': 0,
+                '8': 0,
+                '9': 0,
+                '10': 0,
+                '11': 0,
+                '12': 0
+            }
+
+            var datos3 = {
+                '1': 0,
+                '2': 0,
+                '3': 0,
+                '4': 0,
+                '5': 0,
+                '6': 0,
+                '7': 0,
+                '8': 0,
+                '9': 0,
+                '10': 0,
+                '11': 0,
+                '12': 0
+            }
+
             json.forEach(function (e) {
                 switch (e.start.split("-")[1]) {
                     case "01":
-                        datos['1'] += 1
+                        if(e.estado === 2)
+                            datos3['1'] +=1
+                        else if(e.estado === 1)
+                            datos2['1'] +=1
+                        else
+                            datos['1'] += 1
                         break;
                     case "02":
-                        datos['2'] += 1
+                        if(e.estado === 2)
+                            datos3['2'] +=1
+                        else if(e.estado === 1)
+                            datos2['2'] +=1
+                        else
+                            datos['2'] += 1
                         break;
                     case "03":
-                        datos['3'] += 1
+                        if(e.estado === 2)
+                            datos3['3'] +=1
+                        else if(e.estado === 1)
+                            datos2['3'] +=1
+                        else
+                            datos['3'] += 1
                         break;
                     case "04":
-                        datos['4'] += 1
+                        if(e.estado === 2)
+                            datos3['4'] +=1
+                        else if(e.estado === 1)
+                            datos2['4'] +=1
+                        else
+                            datos['4'] += 1
                         break;
                     case "05":
-                        datos['5'] += 1
+                        if(e.estado === 2)
+                            datos3['5'] +=1
+                        else if(e.estado === 1)
+                            datos2['5'] +=1
+                        else
+                            datos['5'] += 1
                         break;
                     case "06":
-                        datos['6'] += 1
+                        if(e.estado === 2)
+                            datos3['6'] +=1
+                        else if(e.estado === 1)
+                            datos2['6'] +=1
+                        else
+                            datos['6'] += 1
                         break;
                     case "07":
-                        datos['7'] += 1
+                        if(e.estado === 2)
+                            datos3['7'] +=1
+                        else if(e.estado === 1)
+                            datos2['7'] +=1
+                        else
+                            datos['7'] += 1
                         break;
                     case "08":
-                        datos['8'] += 1
+                        if(e.estado === 2)
+                            datos3['8'] +=1
+                        else if(e.estado === 1)
+                            datos2['8'] +=1
+                        else
+                            datos['8'] += 1
                         break;
                     case "09":
-                        datos['9'] += 1
+                        if(e.estado === 2)
+                            datos3['9'] +=1
+                        else if(e.estado === 1)
+                            datos2['9'] +=1
+                        else
+                            datos['9'] += 1
                         break;
                     case "10":
-                        datos['10'] += 1
+                        if(e.estado === 2)
+                            datos3['10'] +=1
+                        else if(e.estado === 1)
+                            datos2['10'] +=1
+                        else
+                            datos['10'] += 1
                         break;
                     case "11":
-                        datos['11'] += 1
+                        if(e.estado === 2)
+                            datos3['11'] +=1
+                        else if(e.estado === 1)
+                            datos2['11'] +=1
+                        else
+                            datos['11'] += 1
                         break;
                     case "12":
-                        datos['12'] += 1
+                        if(e.estado === 2)
+                            datos3['12'] +=1
+                        else if(e.estado === 1)
+                            datos2['12'] +=1
+                        else
+                            datos['12'] += 1
                         break;
                 }
             })
             var yValue = [datos['1'], datos['2'], datos['3'], datos['4'], datos['5'], datos['6'], datos['7'], datos['8'], datos['9'], datos['10'], datos['11'], datos['12']]
+            var yValue2 = [datos2['1'], datos2['2'], datos2['3'], datos2['4'], datos2['5'], datos2['6'], datos2['7'], datos2['8'], datos2['9'], datos2['10'], datos2['11'], datos2['12']]
+            var yValue3 = [datos3['1'], datos3['2'], datos3['3'], datos3['4'], datos3['5'], datos3['6'], datos3['7'], datos3['8'], datos3['9'], datos3['10'], datos3['11'], datos3['12']]
             var data = [
                 {
                     x: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
                     y: yValue,
                     type: 'bar',
+                    name: 'Ordenes activas',
                     text: yValue.map(String),
                     textposition: 'auto',
                     hoverinfo: 'none',
                     marker: {
-                        color: ['rgb(255,248,182)', 'rgb(255,228,163)', 'rgb(255,189,145)', 'rgb(255,141,113),rgb(255,112,126),rgb(231,201,144),rgb(217,234,157),rgb(133,229,188),rgb(126,185,240),rgb(195,150,234),rgb(255,158,27),rgb(255,123,8)'],
+                        // color: ['rgb(255,248,182)', 'rgb(255,228,163)', 'rgb(255,189,145)', 'rgb(255,141,113),rgb(255,112,126),rgb(231,201,144),rgb(217,234,157),rgb(133,229,188),rgb(126,185,240),rgb(195,150,234),rgb(255,158,27),rgb(255,123,8)'],
+                        opacity: 0.6,
+                        line: {
+                            color: 'rgb(8,48,107)',
+                            width: 1.5
+                        }
+                    }
+                },
+                {
+                    x: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                    y: yValue2,
+                    type: 'bar',
+                    name: 'Ordenes Finalizadas',
+                    text: yValue2.map(String),
+                    textposition: 'auto',
+                    hoverinfo: 'none',
+                    marker: {
+                        // color: ['rgb(255,248,182)', 'rgb(255,228,163)', 'rgb(255,189,145)', 'rgb(255,141,113),rgb(255,112,126),rgb(231,201,144),rgb(217,234,157),rgb(133,229,188),rgb(126,185,240),rgb(195,150,234),rgb(255,158,27),rgb(255,123,8)'],
+                        opacity: 0.6,
+                        line: {
+                            color: 'rgb(8,48,107)',
+                            width: 1.5
+                        }
+                    }
+                },
+                {
+                    x: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                    y: yValue3,
+                    type: 'bar',
+                    name: 'Ordenes no resueltas',
+                    text: yValue3.map(String),
+                    textposition: 'auto',
+                    hoverinfo: 'none',
+                    marker: {
+                        // color: ['rgb(255,248,182)', 'rgb(255,228,163)', 'rgb(255,189,145)', 'rgb(255,141,113),rgb(255,112,126),rgb(231,201,144),rgb(217,234,157),rgb(133,229,188),rgb(126,185,240),rgb(195,150,234),rgb(255,158,27),rgb(255,123,8)'],
                         opacity: 0.6,
                         line: {
                             color: 'rgb(8,48,107)',
@@ -3262,8 +3547,10 @@ function createOrderGraph(json,type,typegraph)
             ];
 
             var layout = {
-                title: 'Gráfica de ordenes anual #Ordenes : ' + json.length
+                title: 'Gráfica de ordenes anual #Ordenes : ' + json.length,
+                barmode: 'stack'
             };
+
             $("#graphcontainer").fadeIn("slow")
             Plotly.newPlot('divgraph', data, layout);
         } else {
@@ -3415,6 +3702,8 @@ function showPerfil()
     $("#badregequipo").hide()
     $("#okregequipo").hide()
     $("#divterms").hide()
+    var subdep = ""
+    var dept = ""
 
     $.ajax({
             url: "{% url 'tt:getSubDepartments' %}",
@@ -3438,40 +3727,6 @@ function showPerfil()
             }
         });
 
-    $.ajax({
-        url : "{% url "tt:getUserInfo" %}",
-        data : {},
-        dataType : 'json',
-        success : function(data) {
-            console.log(data);
-            $("#id_idEmpleado").val(data.data[0].pk)
-            $("#id_idEmpleado").attr('readonly', true);
-            $("#id_email").val(data.data[0].email)
-            $("#id_contra").val(data.data[0].password)
-            $("#id_telefono").val(data.data[0].numero)
-            $("#id_extension").val((data.data[0].ext === null) ? "" : data.data[0].ext)
-            $("#id_depto").val(data.data[0].departamento__nombre)
-            $("#id_subdepto").val(data.data[0].subdepartamento__nombre+", Edificio: "+data.data[0].subdepartamento__ubicacion__edificio+" Piso: "+data.data[0].subdepartamento__ubicacion__piso+" Sala: "+data.data[0].subdepartamento__ubicacion__sala)
-            $("#id_nombre").val(data.data[0].nombre)
-            $("#id_ap").val(data.data[0].ap)
-            $("#id_am").val(data.data[0].am)
-            $('.ui.checkbox').checkbox()
-            $('.ui.checkbox.showpass')
-                .checkbox()
-                .checkbox({
-                    onChecked: function () {
-                        showPass()
-                    },
-                    onUnchecked: function () {
-                        showPass()
-                    }
-                })
-        },
-        error : function(xhr, status) {
-            console.log("error ");
-        },
-    });
-
     $('#id_depto').on('change', function (e) {
         var valueSelected = this.value;
         // alert(valueSelected)
@@ -3494,9 +3749,54 @@ function showPerfil()
                   $el.append($("<option></option>")
                      .attr("value", value).text(value));
                 });
+
+                if(valueSelected === dept)
+                {
+                    $("#id_subdepto").val(subdep)
+                }
             }
         });
     });
+
+    $.ajax({
+        url : "{% url "tt:getUserInfo" %}",
+        data : {},
+        dataType : 'json',
+        success : function(data) {
+            console.log(data);
+            $("#id_idEmpleado").val(data.data[0].pk)
+            dept = data.data[0].departamento__nombre
+            subdep = data.data[0].subdepartamento__nombre+", Edificio: "+data.data[0].subdepartamento__ubicacion__edificio+" Piso: "+data.data[0].subdepartamento__ubicacion__piso+" Sala: "+data.data[0].subdepartamento__ubicacion__sala
+            $("#id_depto").val(data.data[0].departamento__nombre).trigger('change')
+            $("#id_idEmpleado").attr('readonly', true);
+            $("#id_email").val(data.data[0].email)
+            $("#id_contra").val(data.data[0].password)
+            $("#id_telefono").val(data.data[0].numero)
+            $("#id_extension").val((data.data[0].ext === null) ? "" : data.data[0].ext)
+
+            // console.log((data.data[0].subdepartamento__nombre+", Edificio: "+data.data[0].subdepartamento__ubicacion__edificio+" Piso: "+data.data[0].subdepartamento__ubicacion__piso+" Sala: "+data.data[0].subdepartamento__ubicacion__sala))
+
+            $("#id_nombre").val(data.data[0].nombre)
+            $("#id_ap").val(data.data[0].ap)
+            $("#id_am").val(data.data[0].am)
+            $('.ui.checkbox').checkbox()
+            $('.ui.checkbox.showpass')
+                .checkbox()
+                .checkbox({
+                    onChecked: function () {
+                        showPass()
+                    },
+                    onUnchecked: function () {
+                        showPass()
+                    }
+                })
+        },
+        error : function(xhr, status) {
+            console.log("error ");
+        },
+    });
+
+
 
     $("#btncloseregmod").hide()
     $("#btnRegistrar").val("Actualizar perfil")

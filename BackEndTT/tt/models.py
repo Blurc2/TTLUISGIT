@@ -110,7 +110,6 @@ class Orden(models.Model):
     subdepto = models.ForeignKey(SubDepartamento, on_delete=models.CASCADE, null=True, blank=True)
     trabajo = models.ForeignKey(TipoTrabajo, on_delete=models.CASCADE)
     incidencia = models.ForeignKey(Incidencia, on_delete=models.SET(None), null=True, blank=True)
-    instalacionsoft = models.ForeignKey(InstalacionSoft, on_delete=models.CASCADE, null=True, blank=True)
     survey = models.OneToOneField(
         Satisfaccion,
         on_delete=models.SET(None),
@@ -128,7 +127,6 @@ class Orden(models.Model):
             "subdepto": self.subdepto.as_dict() if self.subdepto is not None else None,
             "trabajo": str(self.trabajo),
             "incidencia": str(self.incidencia),
-            "instalacionsoft": self.instalacionsoft,
             "equipo": str(self.equipo),
             # other stuff
         }

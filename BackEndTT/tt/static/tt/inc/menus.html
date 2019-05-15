@@ -1,6 +1,21 @@
 {% load static %}
 {% load app_filters %}
 
+<style>
+    #bannerimg2{
+        display: none;
+    }
+
+    @media (max-width: 600px) {
+        #bannerimg1 {
+            display: none;
+        }
+        #bannerimg2{
+            display: block;
+        }
+    }
+</style>
+
 <div class="ui grid">
 
     <div class="sixteen wide column">
@@ -9,7 +24,8 @@
 
                     <a class="linksheaders" href="https://www.ipn.mx/directorio.html" target="_blank"> DIRECTORIO </a>| <a class="linksheaders" href="https://www.ipn.mx/correo-electronico.html" target="_blank">CORREO ELECTRÓNICO </a>| <a class="linksheaders" href="https://www.ipn.mx/calendario-academico.html" target="_blank">CALENDARIO </a>| <a class="linksheaders" href="https://www.ipn.mx/calendario-academico.html" target="_blank">BUZÓN</a>
             </div>
-            <img src="{% static 'tt/img/banner.png' %}" style="width: 100%; height: 150px;">
+            <img id="bannerimg1" src="{% static 'tt/img/banner.png' %}" style="width: 100%; height: 150px;">
+            <div id="bannerimg2"><br><br><center><img  src="{% static 'tt/img/logoescom.png' %}"  style="width: 50%; height: 75px;"></center></div>
         </div>
 
     </div>
@@ -29,9 +45,9 @@
     <a class="item itemadmin" onclick="showDep()" style="display:none;"><i class="fas fa-building"></i>&nbsp;Departamentos</a>
     <a class="item itemadmin" onclick="showEquipment()" style="display:none;"><i class="fas fa-desktop"></i>&nbsp;Inventario</a>
     <a class="item itemadmin" onclick="showOrdersAdmin()" style="display:none;"><i class="fas fa-file-invoice"></i>&nbsp;Ordenes</a>
-    <a class="item itemadmin" onclick="showRegisters()" style="display:none;"><i class="fas fa-tv"></i>&nbsp;Docentes/Validaciones</a>
+    <a class="item itemadmin" onclick="showRegisters()" style="display:none;"><i class="user circle icon"></i>Docentes</a>
     <a class="item itemadmin" onclick="showGraph()" style="display:none;"><i class="chart bar icon"></i>&nbsp;Ver gráficas</a>
-    <a class="item itemadmin" onclick="showGraph()" style="display:none;"><i class="chart bar icon"></i>&nbsp;Añadir Administrador</a>
+    <a class="item itemadmin addadmin" onclick="addAdmin()" style="display:none;"><i class="user plus icon"></i>Añadir Administrador</a>
     <!--DOCENTE-->
     <a class="item itemdocente" onclick="showOrderForm()" style="display:none;"><i class="fas fa-file-signature"></i>&nbsp;Levantar solicitud</a>
     <a class="item itemdocente" onclick="showEquipmentDoc()" style="display:none;"><i class="fas fa-desktop"></i>&nbsp;Mi Equipo</a>
@@ -93,7 +109,7 @@ $('.ui.dropdown')
 
  $('.ui.inverted.stackable.menu')
         .on('click', '.item', function() {
-          if(!$(this).hasClass('dropdown') && !$(this).hasClass("escomimg") && !$(this).hasClass("sesionforms") && !$(this).hasClass("sesion")) {
+          if(!$(this).hasClass('dropdown') && !$(this).hasClass("escomimg") && !$(this).hasClass("sesionforms") && !$(this).hasClass("sesion") && !$(this).hasClass("addadmin") ) {
             $(this)
               .addClass('active')
               .siblings('.item')

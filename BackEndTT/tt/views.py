@@ -49,8 +49,8 @@ def Index(request):
     for typework in TipoTrabajo.objects.all().values('nombre'):
         typeworklist.append((typework['nombre'], typework['nombre']))
     for emp in Empleado.objects.filter(tipo = 3).values('nombre', 'pk'):
-        emplist.append(("Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre'],
-                        "Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre']))
+        emplist.append(("No. Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre'],
+                        "No. Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre']))
     for typeequipo in TipoEquipo.objects.all().values('nombre'):
         typeequipolist.append((typeequipo['nombre'],
                                typeequipo['nombre']))
@@ -135,6 +135,26 @@ def Registrar(request):
                                                                                'subdepto'] == "Ninguno") else SubDepartamento.objects.get(
                                                       nombre=form.cleaned_data['subdepto'].split(",")[0]),
                                                   tipo=TipoUsuario.objects.get(nombre='Docente'))
+                    emp.save()
+                elif (form.cleaned_data['tipoEmpleado'] == "ADMIN"):
+                    if (Empleado.objects.filter(email=form.cleaned_data['email']).exists() or Empleado.objects.filter(
+                            idEmpleado=form.cleaned_data['idEmpleado']).exists()):
+                        return JsonResponse({"code": 2}, content_type="application/json", safe=False)
+                    emp = Empleado.objects.create(idEmpleado=form.cleaned_data['idEmpleado'],
+                                                  nombre=form.cleaned_data['nombre'],
+                                                  ap=form.cleaned_data['ap'],
+                                                  am=form.cleaned_data['am'],
+                                                  email=form.cleaned_data['email'],
+                                                  uuid="",
+                                                  password=form.cleaned_data['contra'],
+                                                  numero=form.cleaned_data['telefono'],
+                                                  ext=form.cleaned_data['extension'],
+                                                  estado=True,
+                                                  adminstate=True,
+                                                  observaciones="",
+                                                  departamento=None,
+                                                  subdepartamento=None,
+                                                  tipo=TipoUsuario.objects.get(nombre='Administrador'))
                     emp.save()
                 elif (form.cleaned_data['tipoEmpleado'] == "DOCENTEADMIN"):
                     if (Empleado.objects.filter(email=form.cleaned_data['email']).exists() or Empleado.objects.filter(
@@ -225,7 +245,7 @@ def Registrar(request):
                                 am=form.cleaned_data['am'],
                                 email=form.cleaned_data['email'],
                                 password=form.cleaned_data['contra'],
-                                uuid=user['localId'],
+                                uuid=user2['localId'],
                                 numero=form.cleaned_data['telefono'],
                                 ext=form.cleaned_data['extension'],
                                 observaciones=form.cleaned_data['observaciones'],
@@ -238,9 +258,9 @@ def Registrar(request):
                             firebase.instance.reference.database().child("users").child(uuid).remove()
                             emp2 = Empleado.objects.get(idEmpleado=form.cleaned_data['idEmpleado'])
                             print(ordenes.val())
-                            firebase.instance.reference.database().child("users").child(user['localId']).set(emp2.as_dict())
+                            firebase.instance.reference.database().child("users").child(user2['localId']).set(emp2.as_dict())
                             if ordenes.val() is not None:
-                                firebase.instance.reference.database().child("users").child(user['localId']).child("ordenes").set(ordenes.val())
+                                firebase.instance.reference.database().child("users").child(user2['localId']).child("ordenes").set(ordenes.val())
 
 
 
@@ -418,8 +438,8 @@ def AddEquip(request):
             print(dep)
             deplist.append((dep['nombre'], dep['nombre']))
         for emp in Empleado.objects.filter(tipo = 3).values('nombre', 'pk'):
-            emplist.append(("Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre'],
-                            "Id Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre']))
+            emplist.append(("No. Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre'],
+                            "No. Empleado: " + str(emp['pk']) + ", Nombre: " + emp['nombre']))
         for typeequipo in TipoEquipo.objects.all().values('nombre'):
             typeequipolist.append((typeequipo['nombre'],
                                    typeequipo['nombre']))
@@ -615,7 +635,6 @@ def AddOrder(request):
                                                  trabajo=TipoTrabajo.objects.get(
                                                      nombre=form.cleaned_data['tipo_trabajo']),
                                                  incidencia=None,
-                                                 instalacionsoft=None,
                                                  survey=None,
                                                  equipo=Equipo.objects.get(
                                                      Q(ns=form.cleaned_data['equipo'].split(":", 2)[2].strip()) | Q(
@@ -638,6 +657,15 @@ def AddOrder(request):
                     print(ordendict)
                     firebase.instance.reference.database().child("users").child(empleado.uuid).child("ordenes") \
                         .child(str(form.cleaned_data['folio'])).set(ordendict)
+                    firebase.instance.reference.database().child("users").child(empleado.uuid).child(
+                        "ordenes") \
+                        .child(str(form.cleaned_data['folio'])).child("start").set(
+                        datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+
+                    firebase.instance.reference.database().child("users").child(empleado.uuid).child("ordenes") \
+                        .child(str(form.cleaned_data['folio'])).child("docente").set(
+                        empleado.nombre + " " + empleado.ap + " " + empleado.am)
+
 
                 return JsonResponse({"code": 1}, content_type="application/json", safe=False)
             except Exception as e:
@@ -672,11 +700,21 @@ def AssignTec(request):
                 "ordenes") \
                 .child(str(request.GET.get('folio', None))).set(ordendict)
 
-            emp = Empleado.objects.filter(ordenes=request.GET.get('folio', None))
-            for e in emp:
-                firebase.instance.reference.database().child("users").child(e.uuid).child(
-                    "ordenes") \
-                    .child(str(request.GET.get('folio', None))).child('estado').set(0)
+            emp2 = Empleado.objects.filter(Q(ordenes=request.GET.get('folio', None)) & ~Q(tipo__nombre="Administrador"))
+            for e in emp2:
+
+                for e2 in emp2:
+                    if e2.tipo.nombre == "Tecnico":
+                        firebase.instance.reference.database().child("users").child(e.uuid).child(
+                            "ordenes") \
+                            .child(str(request.GET.get('folio', None))).child("tecnico").set(
+                            e2.nombre + " " + e2.ap + " " + e2.am)
+                    elif e2.tipo.nombre == "Docente":
+                        firebase.instance.reference.database().child("users").child(e.uuid).child(
+                            "ordenes") \
+                            .child(str(request.GET.get('folio', None))).child("docente").set(
+                            e2.nombre + " " + e2.ap + " " + e2.am)
+
             orden.update(estado=0)
             return JsonResponse({"code": 1}, content_type="application/json", safe=False)
         except Exception as e:
@@ -770,8 +808,7 @@ def ShowOrdersAdmin(request):
                                        'survey',
                                        'equipo__ns',
                                        'equipo__cambs',
-                                       'equipo__pk',
-                                       'instalacionsoft')
+                                       'equipo__pk')
 
     listpks = []
     for val in query:
@@ -833,18 +870,18 @@ def ShowOrdersDoc(request):
 @csrf_exempt
 def finishOrder(request):
     try:
-        orden = Orden.objects.filter(pk=request.GET.get('idOrden', None)).update(estado=1,
+        orden = Orden.objects.filter(pk=request.GET.get('idOrden', None)).update(estado=int(request.GET.get('status', None)),
                                                                                  end=datetime.datetime.now().date())
         print(orden)
         print(request.GET.get('msg', None))
         descripcion = Descripcion.objects.create(descripcion=request.GET.get('msg', None), who=1,
                                                  orden=Orden.objects.get(pk=request.GET.get('idOrden', None)))
         descripcion.save()
-        emp = Empleado.objects.filter(ordenes=request.GET.get('idOrden', None))
+        emp = Empleado.objects.filter(Q(ordenes=request.GET.get('idOrden', None)) & ~Q(tipo__nombre="Administrador"))
         for e in emp:
             firebase.instance.reference.database().child("users").child(e.uuid).child(
                 "ordenes") \
-                .child(str(request.GET.get('idOrden', None))).child("estado").set(1)
+                .child(str(request.GET.get('idOrden', None))).child("estado").set(int(request.GET.get('status', None)))
             firebase.instance.reference.database().child("users").child(e.uuid).child(
                 "ordenes") \
                 .child(str(request.GET.get('idOrden', None))).child("descripciones").child("1").set(
@@ -1091,6 +1128,8 @@ def getUserInfo(request):
                                                                                    'subdepartamento__ubicacion__piso',
                                                                                    'subdepartamento__ubicacion__sala'
                                                                                    )
+    instalacion = InstalacionSoft.objects.all().values('nombre')
+
     equipo = Equipo.objects.filter(empleado=request.session['NombreUser']['pk']).values('modelo', 'pk',
                                                                                         'mac',
                                                                                         'ns',
@@ -1110,7 +1149,7 @@ def getUserInfo(request):
                                                                                         'empleado__nombre',
                                                                                         'marca__nombre')
     return HttpResponse(json.dumps(
-        {'data': list(query), 'equipo': list(equipo), 'folio': folio, 'fecha': datetime.datetime.now().date()},
+        {'data': list(query), 'equipo': list(equipo), 'folio': folio, 'fecha': datetime.datetime.now().date(), 'instalacion': list(instalacion)},
         cls=DjangoJSONEncoder), content_type="application/json")
 
 
@@ -1187,7 +1226,6 @@ def getOrder(request):
                                                                              'subdepto__ubicacion__sala',
                                                                              'trabajo__nombre',
                                                                              'incidencia__tipoincidencia',
-                                                                             'instalacionsoft__nombre',
                                                                              'survey__confiabilidad',
                                                                              'survey__responsabilidad',
                                                                              'survey__seguridad',
@@ -1298,7 +1336,7 @@ def updateDoc(request):
                         am=form.cleaned_data['am'],
                         email=form.cleaned_data['email'],
                         password=form.cleaned_data['contra'],
-                        uuid=user['localId'],
+                        uuid=user2['localId'],
                         numero=form.cleaned_data['telefono'],
                         ext=form.cleaned_data['extension'],
                         estado=True,
@@ -1313,9 +1351,9 @@ def updateDoc(request):
                     firebase.instance.reference.database().child("users").child(uuid).remove()
                     emp2 = Empleado.objects.get(idEmpleado=form.cleaned_data['idEmpleado'])
                     print(ordenes.val())
-                    firebase.instance.reference.database().child("users").child(user['localId']).set(emp2.as_dict())
+                    firebase.instance.reference.database().child("users").child(user2['localId']).set(emp2.as_dict())
                     if ordenes.val() is not None:
-                        firebase.instance.reference.database().child("users").child(user['localId']).child(
+                        firebase.instance.reference.database().child("users").child(user2['localId']).child(
                             "ordenes").set(ordenes.val())
 
                 return JsonResponse({"code": 1}, content_type="application/json", safe=False)
@@ -1387,7 +1425,6 @@ def getOrderByMonth(request):
                                      'subdepto__ubicacion__sala',
                                      'trabajo__nombre',
                                      'incidencia__tipoincidencia',
-                                     'instalacionsoft__nombre',
                                      'survey__confiabilidad',
                                      'survey__responsabilidad',
                                      'survey__seguridad',
@@ -1417,7 +1454,6 @@ def getOrderByMonth(request):
                                    'subdepto__ubicacion__sala',
                                    'trabajo__nombre',
                                    'incidencia__tipoincidencia',
-                                   'instalacionsoft__nombre',
                                    'survey__confiabilidad',
                                    'survey__responsabilidad',
                                    'survey__seguridad',

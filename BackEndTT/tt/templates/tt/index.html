@@ -207,9 +207,17 @@ html, body {
                 {{ formorden.tipo_trabajo }}
             </div>
             <div class="field">
+                <label>Opciones de instalación</label>
+                <select multiple="" class="ui dropdown softw" id="softwareopt">
+                  <option value="">Selecciona software a instalar</option>
+                </select>
+            </div>
+
+            <div class="field">
                 <label>{{ formorden.descripcion.label_tag }}</label>
                 {{ formorden.descripcion }}
             </div>
+
 
             <div class="ui success message" id="okregorden" style="display:none;">
                 <div class="header">Solicitud creada</div>
