@@ -6,7 +6,7 @@ import os
 from django.contrib.auth import authenticate, login, logout
 from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Q
+from django.db.models import Q, Avg
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, render_to_response
 from django.template.loader import render_to_string
@@ -1418,19 +1418,36 @@ def AddSoftware(request):
     if request.method == 'POST':
         form = formSoft(request.POST)
         if form.is_valid():
-            if InstalacionSoft.objects.filter(nombre=form.cleaned_data['software']).exists():
-                return JsonResponse({"code": 2}, content_type="application/json", safe=False)
+            if form.cleaned_data['option'] == "create":
+                if InstalacionSoft.objects.filter(nombre=form.cleaned_data['software']).exists():
+                    return JsonResponse({"code": 2}, content_type="application/json", safe=False)
+                else:
+                    # print(form.cleaned_data['emailrec'])
+                    soft = InstalacionSoft.objects.create(nombre=form.cleaned_data['software'],
+                                                          descripcion=form.cleaned_data['descripcion'])
+                    soft.save()
+                    return JsonResponse({"code": 1}, content_type="application/json", safe=False)
             else:
                 # print(form.cleaned_data['emailrec'])
-                soft = InstalacionSoft.objects.create(nombre=form.cleaned_data['software'],
+                soft = InstalacionSoft.objects.filter(nombre=form.cleaned_data['software']).update(nombre=form.cleaned_data['software'],
                                                       descripcion=form.cleaned_data['descripcion'])
-                soft.save()
                 return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+
         else:
             print(form.errors)
             return JsonResponse({"code": 0}, content_type="application/json", safe=False)
     else:
         return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+
+@csrf_exempt
+def DelSoftware(request):
+    try:
+        print(request.GET.get('soft', None))
+        InstalacionSoft.objects.get(nombre=request.GET.get('soft', None)).delete()
+        return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+    except Exception as e:
+        print(e)
+        return JsonResponse({"code": 2}, content_type="application/json", safe=False)
 
 @csrf_exempt
 def ShowSoftware(request):
@@ -1538,12 +1555,55 @@ def reporteOrden(request, idOrden):
     font_config = FontConfiguration()
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
     result = html.write_pdf(
-        stylesheets=[CSS(string=render_to_string("semantic.min.css"))],
+        stylesheets=[CSS(string=render_to_string("semantic2.css"))],
         font_config=font_config)
 
     # Creating http response
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'filename=Reporte_Orden' + str(idOrden) + '.pdf'
+
+    return HttpResponse(result, content_type='application/pdf')
+
+def reporteServicios(request,mes):
+    print("::. Reporte Servicios .::")
+    print(mes)
+
+    orderok = Orden.objects.filter(estado = 1).count()
+    orderbad = Orden.objects.filter(estado = 2).count()
+    orderproc = Orden.objects.filter(estado__lte = 0).count()
+
+    equiposlibres = Equipo.objects.filter(empleado = None).count()
+    equiposok = Equipo.objects.all().count() - Orden.objects.filter(estado__lte = 0).count()
+    equiposbad = orderproc
+
+    confiabilidad = Satisfaccion.objects.aggregate(Avg('confiabilidad'))['confiabilidad__avg']
+    responsabilidad = Satisfaccion.objects.aggregate(Avg('responsabilidad'))['responsabilidad__avg']
+    seguridad = Satisfaccion.objects.aggregate(Avg('seguridad'))['seguridad__avg']
+    infrayservicios = Satisfaccion.objects.aggregate(Avg('infrayservicios'))['infrayservicios__avg']
+
+    params = {
+        'orderok':orderok,
+        'orderbad':orderbad,
+        'orderproc':orderproc,
+        'equiposlibres':equiposlibres,
+        'equiposok':equiposok,
+        'equiposbad':equiposbad,
+        'confiabilidad':confiabilidad,
+        'responsabilidad':responsabilidad,
+        'seguridad':seguridad,
+        'infrayservicios':infrayservicios,
+    }
+    # Rendered
+    html_string = render_to_string("PdfServicio.html", params)
+    font_config = FontConfiguration()
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    result = html.write_pdf(
+        stylesheets=[CSS(string=render_to_string("semantic2.css"))],
+        font_config=font_config)
+
+    # Creating http response
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'filename=Report_Servicios.pdf'
 
     return HttpResponse(result, content_type='application/pdf')
 

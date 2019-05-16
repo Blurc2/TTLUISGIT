@@ -1,0 +1,231 @@
+{% load static %}
+{% load i18n %}
+<!--{% load app_filters %}-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- CSS -->
+    <!--<link rel="stylesheet" type="text/css" href="{% static 'sherlock/css/styles.css' %}">-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css"
+          integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+    <style>
+        @page {
+            size: A4;
+        }
+
+        .spacer {
+            height: 50%;
+        }
+
+        .backup {
+            margin-top: -1em;
+        }
+
+        .start {
+            page-break-before: always;
+        }
+
+        .avoidBefore {
+            page-break-before: avoid;
+        }
+
+        .avoidAfter {
+            page-break-after: avoid;
+        }
+
+        .avoidInside {
+            page-break-inside: avoid;
+        }
+
+        .allowInside {
+            page-break-inside: auto;
+        }
+    </style>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+    <title>PDF de Servicios</title>
+</head>
+
+
+<body>
+<div class="ui grid">
+    <div class="sixteen column centered row">
+        <div class="two wide column">
+            <img src="{% static 'tt/img/logoipnpdf.jpg' %}" style=" width: 100%; height: 100%;">
+        </div>
+        <div class="eleven wide column">
+            <center>
+                <h2 class="ui icon header">
+                    <div class="content" style="font-size: large; font-family: 'Times New Roman',serif;">
+                        INSTITUTO POLITÉCNICO NACIONAL
+                        <div class="sub header" style="font-size: medium; font-family: 'Times New Roman',serif;">
+                            ESCUELA SUPERIOR DE CÓMPUTO
+                            <br>
+                            Departamento de unidad de informática
+                            <br>
+                            <br>
+
+                        </div>
+                        <p style="font-size: medium; font-family: 'Times New Roman',serif;"><u>REPORTE
+                            GENERAL DE SERVICIOS</u>
+                        </p>
+                    </div>
+                </h2>
+            </center>
+        </div>
+        <div class="two wide column">
+            <img src="{% static 'tt/img/logoescompdf.png' %}" style=" width: 100%; height: 100%;">
+        </div>
+    </div>
+
+
+    <!--<div class="row">-->
+    <!--<div class="six wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">-->
+    <!--{% language 'es' %}-->
+    <!--<strong>Fecha :</strong> {{ fecha }}-->
+    <!--{% endlanguage %}-->
+    <!--</div>-->
+    <!--</div>-->
+    <div class="sixteen column centered row">
+        <div class="sixteen wide column">
+            <p style="font-size: small; text-align: justify; font-family: Arial,sans-serif;">Este reporte tiene como
+                propósito el mostrar un resumen de los trabajos de mantenimiento al
+                equipo de cómputo realizados a profesores y personal de apoyo ofreciendo una herramienta
+                para la gestión y mejora del servicio que brinda esta unidad.</p>
+        </div>
+    </div>
+
+    <div class="sixteen column centered row">
+        <div class="sixteen wide column">
+            <p style="font-size: medium; color: #3176ff; text-align: justify; font-family: Arial,sans-serif;">
+                Atención a servicios
+            </p>
+            <p style="font-size: small; text-align: justify; font-family: Arial,sans-serif;">
+                Esta sección muestra una gráfica exponiendo el porcentaje de servicios que la unidad recibió
+                clasificando trabajos que se concluyeron de forma exitosa, los que quedaron en un estado
+                pendiente y por último casos que no se encontraban dentro del alcance de la UDI por lo que se
+                les dio un seguimiento particular.
+            </p>
+        </div>
+    </div>
+
+    <div class="twelve column centered row">
+        <div class="twelve wide column">
+            <table class="ui green celled table" style="text-align:center;">
+                <thead>
+                <tr>
+                    <th>Ordenes resueltas</th>
+                    <th>Ordenes no resueltas</th>
+                    <th>Ordenes pendientes</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{ orderok }}</td>
+                    <td>{{ orderbad }}</td>
+                    <td>{{ orderproc }}</td>
+                </tr>
+                </tbody>
+                <tfoot class="full-width">
+                <tr>
+                    <th colspan="3"><p style="font-size: small; text-align: justify; font-family: Arial,sans-serif;">
+                        <center>Tabla 1. Conteo de ordenes</center>
+                        </p></th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="sixteen column centered row">
+        <div class="sixteen wide column">
+            <p style="font-size: medium; color: #3176ff; text-align: justify; font-family: Arial,sans-serif;">
+                Gestión del Equipo de computo
+            </p>
+            <p style="font-size: small; text-align: justify; font-family: Arial,sans-serif;">
+                En este apartado se informa el estado del equipo de cómputo que la UDI ESCOM gestiona para
+                docentes y personal de apoyo mostrando la cantidad elementos que se encuentran activos, en
+                mantenimiento, así como dispositivos dados de baja y por ultimo equipo disponible en stock.
+            </p>
+        </div>
+    </div>
+
+    <div class="twelve column centered row">
+        <div class="twelve wide column">
+            <table class="ui red celled table" style="text-align:center;">
+                <thead>
+                <tr>
+                    <th>Equipo activo</th>
+                    <th>Equipo en mantenimiento</th>
+                    <th>Equipo libre</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{ equiposok }}</td>
+                    <td>{{ equiposbad }}</td>
+                    <td>{{ equiposlibres }}</td>
+                </tr>
+                </tbody>
+                <tfoot class="full-width">
+                <tr>
+                    <th colspan="3"><p style="font-size: small; text-align: justify; font-family: Arial,sans-serif;">
+                        <center>Tabla 2. Estado de los equipos</center>
+                        </p></th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <div class="sixteen column centered row">
+        <div class="sixteen wide column">
+            <p style="font-size: medium; color: #3176ff; text-align: justify; font-family: Arial,sans-serif;">
+                Satisfacción del cliente
+            </p>
+            <p style="font-size: small; text-align: justify; font-family: Arial,sans-serif;">
+                El objetivo de la unidad de informática de la escuela superior de computo es ofrecer un buen
+                servicio a la comunidad por lo que es esencial contar con una evaluación de satisfacción que
+                ofrezca información útil para implementar acciones de mejora. Las siguientes graficas muestran
+                los resultados obtenidos de los servicios atendidos.
+
+            </p>
+        </div>
+    </div>
+
+    <div class="twelve column centered row">
+        <div class="twelve wide column">
+            <table class="ui blue celled table" style="text-align:center;">
+                <thead>
+                <tr>
+                    <th>Confiabilidad</th>
+                    <th>Responsabilidad</th>
+                    <th>Seguridad</th>
+                    <th>Infraestructura y Servicios</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{ confiabilidad }}</td>
+                    <td>{{ responsabilidad }}</td>
+                    <td>{{ seguridad }}</td>
+                    <td>{{ infrayservicios }}</td>
+                </tr>
+                </tbody>
+                <tfoot class="full-width">
+                <tr>
+                    <th colspan="4"><p style="font-size: small; text-align: justify; font-family: Arial,sans-serif;">
+                        <center>Tabla 3. Promedio de satisfacción</center>
+                        </p></th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+
+</body>
+</html>

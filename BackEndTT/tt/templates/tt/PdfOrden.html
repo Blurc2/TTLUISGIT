@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!--{% load app_filters %}-->
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +9,6 @@
     <!--<link rel="stylesheet" type="text/css" href="{% static 'sherlock/css/styles.css' %}">-->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css"
           integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/grid.css">
     <style>
         @page {
             size: A4;
@@ -22,51 +22,45 @@
 
 <body>
 <div class="ui grid">
-    <div class="row">
-        <div class="one wide column">
-            <center>
-                <img src="{% static 'tt/img/ipn.jpg' %}" style=" width: 50px; height: 50px;">
-            </center>
+    <div class="sixteen column centered row">
+        <div class="two wide column">
+            <img src="{% static 'tt/img/logoipnpdf.jpg' %}" style=" width: 100%; height: 100%;">
         </div>
         <div class="eleven wide column">
             <center>
-                <h2 class="ui icon header">
-                    <div class="content" style="font-size: large; font-family: 'Times New Roman',serif;">
-                        INSTITUTO POLITÉCNICO NACIONAL
-                        <div class="sub header" style="font-size: medium; font-family: 'Times New Roman',serif;">
-                            ESCUELA SUPERIOR DE CÓMPUTO
-                            <br>
-                            Departamento de unidad de informatica
-                            <br>
-                            <br>
+            <h2 class="ui icon header">
+                <div class="content" style="font-size: large; font-family: 'Times New Roman',serif;">
+                    INSTITUTO POLITÉCNICO NACIONAL
+                    <div class="sub header" style="font-size: medium; font-family: 'Times New Roman',serif;">
+                        ESCUELA SUPERIOR DE CÓMPUTO
+                        <br>
+                        Departamento de unidad de informática
+                        <br>
+                        <br>
 
-                        </div>
-                        <p style="font-size: medium; font-family: 'Times New Roman',serif;">ORDEN DE SERVICIO</p>
                     </div>
-                </h2>
-            </center>
+                    <p style="font-size: medium; font-family: 'Times New Roman',serif;">ORDEN DE SERVICIO</p>
+                </div>
+            </h2>
+                </center>
         </div>
-
-        <div class="one wide column">
-            <center>
-                <img src="{% static 'tt/img/escomlog.png' %}" style=" width: 50px; height: 50px;">
-            </center>
+        <div class="two wide column">
+                <img src="{% static 'tt/img/logoescompdf.png' %}" style=" width: 100%; height: 100%;">
         </div>
     </div>
 
 
     <div class="row">
-        <div class="four wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">
+        <div class="six wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">
+            {% language 'es' %}
             <strong>Fecha :</strong> {{ fecha }}
+            {% endlanguage %}
         </div>
-        <div class="four wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">
+        <div class="six wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">
             <strong>Folio :</strong> {{ nofolio }}
         </div>
     </div>
-    <div class="row">
-        <div class="three wide column">
-
-        </div>
+    <div class="six column centered row">
         <div class="six wide column">
             <center>
                 <strong style="font-size: medium; font-family: 'Times New Roman',serif;">DEPARTAMENTO
@@ -75,10 +69,7 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="three wide column">
-
-        </div>
+    <div class="six column centered row">
         <div class="six wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">
             <center>
                 <div class="ui segment">
@@ -90,10 +81,7 @@
     </div>
 
 
-    <div class="row">
-        <div class="three wide column">
-
-        </div>
+    <div class="six column centered ownopadd">
         <div class="six wide column">
             <center>
                 <strong style="font-size: medium; font-family: 'Times New Roman',serif;">SOLICITADO POR</strong>
@@ -101,10 +89,7 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="three wide column">
-
-        </div>
+    <div class="six column centered row">
         <div class="six wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">
 
             <center>
@@ -117,10 +102,7 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="three wide column">
-
-        </div>
+    <div class="six column centered row">
         <div class="six wide column">
             <center>
                 <strong style="font-size: medium; font-family: 'Times New Roman',serif;">TRABAJO A REALIZAR</strong>
@@ -128,10 +110,7 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="three wide column">
-
-        </div>
+    <div class="six column centered row">
         <div class="six wide column" style="font-size: medium; font-family: 'Times New Roman',serif;">
 
             <center>
@@ -144,10 +123,7 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="two wide column">
-
-        </div>
+    <div class="eight column centered row">
         <div class="eight wide column">
             <center>
                 <strong style="font-size: medium; font-family: 'Times New Roman',serif;">DESCRIPCIÓN DE EQUIPO</strong>
@@ -155,16 +131,15 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="two wide column"></div>
-        <div class="eight wide column">
-            <table class="ui striped celled  table" style="font-size: medium; font-family: 'Times New Roman',serif;">
+    <div class="twelve column centered row">
+        <div class="twelve wide column">
+            <table class="ui striped celled table" style="font-size: medium; font-family: 'Times New Roman',serif;">
                 <thead>
                 <tr>
-                    <th>Tipo de equipo</th>
-                    <th>Modelo</th>
-                    <th>Número de serie</th>
-                    <th>Marca</th>
+                    <th><center>Tipo de equipo</center></th>
+                    <th><center>Modelo</center></th>
+                    <th><center>Número de serie</center></th>
+                    <th><center>Marca</center></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -178,7 +153,7 @@
             </table>
         </div>
     </div>
-    <div class="row">
+    <div class="sixteen column centered row">
         <div class="sixteen wide column">
             <table class="ui striped celled  table" style="font-size: smaller; font-family: 'Times New Roman',serif;">
                 <thead>
@@ -189,15 +164,15 @@
                 </thead>
                 <tbody>
                 <tr>
-                    <td>{{ descdoc.descripcion }}</td>
-                    <td>{{ desctec.descripcion }}</td>
+                    <td>{{ descdoc.descripcion|linebreaks }}</td>
+                    <td>{{ desctec.descripcion|linebreaks }}</td>
                 </tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <div class="row">
+    <div class="sixteen column centered row">
         <div class="sixteen wide column">
             <table class="ui celled  table" style="font-size: medium; font-family: 'Times New Roman',serif;">
                 <tbody>

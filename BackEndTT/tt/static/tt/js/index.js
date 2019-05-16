@@ -194,18 +194,23 @@ function home(){
 function showSlides() {
       var i;
       var slides = document.getElementsByClassName("mySlides");
-        $(".text").attr('class', '');
-      $("#cap1").addClass('text transition hidden')
-      $("#cap2").addClass('text transition hidden')
-      $("#cap3").addClass('text transition hidden')
+      var x = window.matchMedia("(max-width: 600px)")
+        if(!x.matches)
+        {
+            $(".textcap").attr('class', '');
+          $("#cap1").addClass('textcap transition hidden')
+          $("#cap2").addClass('textcap transition hidden')
+          $("#cap3").addClass('textcap transition hidden')
+        }
+
       for (i = 0; i < slides.length; i++) {
         slides[i].style.display = "none";
       }
       slideIndex++;
       if (slideIndex > slides.length) {slideIndex = 1}
       slides[slideIndex-1].style.display = "block";
-      if ($('.text').hasClass('hidden')) {
-            $('.text').transition({
+      if ($('.textcap').hasClass('hidden') && !x.matches) {
+            $('.textcap').transition({
             animation : 'fade right',
             duration  : 1000,
             interval  : 200
@@ -223,37 +228,37 @@ $(document).ready(function()
     $("#contenido").empty()
     if(sessionStorage.getItem("menuItem") === "" || sessionStorage.getItem("menuItem") === null)
     {
-        var html = '<div class="ten column centered row"><div class="ten wide column"><div class="slideshow-container" style="display: none;" >\n' +
+        var html = '<div class="twelve column centered row"><div class="twelve wide column"><div class="slideshow-container" style="display: none;" >\n' +
             '\n' +
             '      <!-- Full-width images with number and caption text -->\n' +
             '      <div class="mySlides fade">\n' +
             // '        <div class="numbertext">1 / 3</div>\n' +
             '        <div class="textup">Unidad Informática de la ESCOM</div>\n' +
             '        <img src="{% static 'tt/img/fondos/slider1.jpg' %}" style="width:100%">\n' +
-            '        <div class="text transition hidden" id="cap1"><div class="borderred">Sistematizar el procedimiento de atención a solicitudes de servicio que se brindan por la Unidad de Informática a los equipos otorgados por la Escuela Superior de Cómputo, con un control de la información asociada a los reportes tal como inventario, departamentos, servicios y los involucrados en el proceso, mediante una herramienta conjunta de apoyo que otorgue un mejor tratamiento a la gestión de solicitudes de servicio que esta atiende, con el fin de mejorar la calidad del servicio.</div></div>\n' +
+            '        <div class="textcap transition hidden" id="cap1"><div class="borderred">Sistematizar el procedimiento de atención a solicitudes de servicio que se brindan por la Unidad de Informática a los equipos otorgados por la Escuela Superior de Cómputo, con un control de la información asociada a los reportes tal como inventario, departamentos, servicios y los involucrados en el proceso, mediante una herramienta conjunta de apoyo que otorgue un mejor tratamiento a la gestión de solicitudes de servicio que esta atiende, con el fin de mejorar la calidad del servicio.</div></div>\n' +
             '      </div>\n' +
             '\n' +
             '      <div class="mySlides fade">\n' +
             // '        <div class="numbertext">2 / 3</div>\n' +
             '        <div class="textup">Unidad Informática de la ESCOM</div>\n' +
             '        <img src="{% static 'tt/img/fondos/slider2.jpg' %}" style="width:100%">\n' +
-            '        <div class="text transition hidden" id="cap2"><div class="borderred">Sistematizar el procedimiento de atención a solicitudes de servicio que se brindan por la Unidad de Informática a los equipos otorgados por la Escuela Superior de Cómputo, con un control de la información asociada a los reportes tal como inventario, departamentos, servicios y los involucrados en el proceso, mediante una herramienta conjunta de apoyo que otorgue un mejor tratamiento a la gestión de solicitudes de servicio que esta atiende, con el fin de mejorar la calidad del servicio.</div></div>\n' +
+            '        <div class="textcap transition hidden" id="cap2"><div class="borderred">Sistematizar el procedimiento de atención a solicitudes de servicio que se brindan por la Unidad de Informática a los equipos otorgados por la Escuela Superior de Cómputo, con un control de la información asociada a los reportes tal como inventario, departamentos, servicios y los involucrados en el proceso, mediante una herramienta conjunta de apoyo que otorgue un mejor tratamiento a la gestión de solicitudes de servicio que esta atiende, con el fin de mejorar la calidad del servicio.</div></div>\n' +
             '      </div>\n' +
             '\n' +
             '      <div class="mySlides fade">\n' +
             // '        <div class="numbertext">3 / 3</div>\n' +
             '        <div class="textup">Unidad Informática de la ESCOM</div>\n' +
             '        <img src="{% static 'tt/img/fondos/slider3.jpg' %}" style="width:100%">\n' +
-            '        <div class="text transition hidden" id="cap3"><div class="borderred">Sistematizar el procedimiento de atención a solicitudes de servicio que se brindan por la Unidad de Informática a los equipos otorgados por la Escuela Superior de Cómputo, con un control de la información asociada a los reportes tal como inventario, departamentos, servicios y los involucrados en el proceso, mediante una herramienta conjunta de apoyo que otorgue un mejor tratamiento a la gestión de solicitudes de servicio que esta atiende, con el fin de mejorar la calidad del servicio.</div></div>\n' +
+            '        <div class="textcap transition hidden" id="cap3"><div class="borderred">Sistematizar el procedimiento de atención a solicitudes de servicio que se brindan por la Unidad de Informática a los equipos otorgados por la Escuela Superior de Cómputo, con un control de la información asociada a los reportes tal como inventario, departamentos, servicios y los involucrados en el proceso, mediante una herramienta conjunta de apoyo que otorgue un mejor tratamiento a la gestión de solicitudes de servicio que esta atiende, con el fin de mejorar la calidad del servicio.</div></div>\n' +
             '      </div>\n' +
             '\n' +
             '    </div></div></div>';
-        html += '<div class="row star"><div class="one wide column"></div><div class="fourteen wide column"> <p style="text-align: justify">La Unidad de Informática es un área de la Escuela Superior de Cómputo dependiente de la Dirección de Cómputo y Comunicaciones, es\n' +
+        html += '<div class="fourteen column centered row star"><div class="fourteen wide column"> <p style="text-align: justify">La Unidad de Informática es un área de la Escuela Superior de Cómputo dependiente de la Dirección de Cómputo y Comunicaciones, es\n' +
             'responsable de planear, regular, coordinar y evaluar las acciones para garantizar la disponibilidad, operación, confiabilidad y seguridad de\n' +
             'los servicios informáticos y de telecomunicaciones, con el propósito de contribuir a la transformación y el mejor desarrollo de las funciones\n' +
             'sustantivas, de apoyo, administrativas y académicas de la Escuela Superior de Cómputo.\n</p></div></div>'
 
-        html+='<div class="row"><div class="one wide column"></div><div class="fourteen wide column">' +
+        html+='<div class="fourteen column centered row"><div class="fourteen wide column">' +
             '<img class="star" src="{% static 'tt/img/mesa.png' %}">' +
         '</div></div>'
         $("#contenido").append(html)
@@ -585,41 +590,76 @@ formData.append('option', "update");
 });
 
 $("form#formSoftware").submit(function(e){
-                    e.preventDefault();
-                    var formData = new FormData(this);
+    e.preventDefault();
+    var formData = new FormData(this);
+    if(!update)
+    {
+        formData.append('option', 'create')
+        $("form#formSoftware").addClass( "loading" )
+        $("#badregsoft").hide();
+        $("#okregsoft").hide();
 
-                    $("form#formSoftware").addClass( "loading" )
-                    $("#badregsoft").hide();
-                    $("#okregsoft").hide();
+        $.ajax({
+        url: "{% url 'tt:AddSoftware' %}",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+        console.log(data.code)
+        $("form#formSoftware").removeClass( "loading" )
+        if(data.code == 0)
+        {
+            $("#registererrorsoft").text("Error, intenta más tarde.")
+            $("#badregsoft").fadeIn("slow");
+        }
+        else if(data.code == 2)
+        {
+            $("#registererrorsoft").text("El software ya se encuentra registrado en el sistema")
+            $("#badregsoft").fadeIn("slow");
+        }
+        else
+            {
+                $("#okregmsgsoft").text("Software registrado exitosamente")
+                $("#okregsoft").fadeIn("slow");
+                setTimeout(function(){location.reload();},2500)
+            }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+        });
+    }
+    else {
+        formData.append('option', 'update')
+        $("form#formSoftware").addClass( "loading" )
+        $("#badregsoft").hide();
+        $("#okregsoft").hide();
 
-                    $.ajax({
-                    url: "{% url 'tt:AddSoftware' %}",
-                    type: 'POST',
-                    data: formData,
-                    success: function (data) {
-                    console.log(data.code)
-                    $("form#formSoftware").removeClass( "loading" )
-                    if(data.code == 0)
-                    {
-                        $("#registererrorsoft").text("Error, intenta más tarde.")
-                        $("#badregsoft").fadeIn("slow");
-                    }
-                    else if(data.code == 2)
-                    {
-                        $("#registererrorsoft").text("El software ya se encuentra registrado en el sistema")
-                        $("#badregsoft").fadeIn("slow");
-                    }
-                    else
-                        {
-                            $("#okregmsgsoft").text("Software registrado exitosamente")
-                            $("#okregsoft").fadeIn("slow");
-                            setTimeout(function(){location.reload();},2500)
-                        }
-                    },
-                    cache: false,
-                    contentType: false,
-                    processData: false
-                    });
+        $.ajax({
+        url: "{% url 'tt:AddSoftware' %}",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+        console.log(data.code)
+        $("form#formSoftware").removeClass( "loading" )
+        if(data.code == 0)
+        {
+            $("#registererrorsoft").text("Error, intenta más tarde.")
+            $("#badregsoft").fadeIn("slow");
+        }
+        else
+            {
+                $("#okregmsgsoft").text("Software actualizado exitosamente")
+                $("#okregsoft").fadeIn("slow");
+                setTimeout(function(){location.reload();},2500)
+            }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+        });
+    }
+
+
 
 
 });
@@ -1209,81 +1249,73 @@ function showSoftware()
     if(!$.isEmptyObject(json))
     {
 
-        // json.forEach(function(element) {
-        //
-        //       $(("#"+element['fields']['nombre']+element['fields']['ap']+element['fields']['am']+"update").replace(/\s+/g, '')).on('click',function()
-        //       {
-        //         $("#divterms").hide()
-        //         $("#headerFormReg").text("Modificar Técnico")
-        //         $("#typetec").show()
-        //         $("#id_idEmpleado").val(element['pk'])
-        //         $("#badreg").hide()
-        //         $("#okreg").hide()
-        //         $("#btnRegistrar").val("Actualizar")
-        //         update = true
-        //         $('#id_idEmpleado').attr('readonly', true);
-        //         $("#id_email").val(element['fields']['email'])
-        //         $("#id_tipotecnico").val((element['fields']['trabajos']==1) ? "Hardware" : "Software");
-        //         $("#id_contra").val(element['fields']['password'])
-        //         $("#id_nombre").val(element['fields']['nombre'])
-        //         $("#id_ap").val(element['fields']['ap'])
-        //         $("#id_am").val(element['fields']['am'])
-        //         $("#id_telefono").val(element['fields']['numero'])
-        //         $("#id_extension").val(element['fields']['ext'])
-        //         $("#id_observaciones").val(element['fields']['observaciones'])
-        //           $("#deptochoices").hide()
-        //           $("#taobs").show()
-        //         $('#regform').modal({
-        //             selector    : {
-        //             close    : '.close, #btncloseregmod'
-        //         }}).modal('show')
-        //       });
-        //
-        //       $(("#"+element['fields']['nombre']+element['fields']['ap']+element['fields']['am']+"delete").replace(/\s+/g, '')).on('click',function()
-        //       {
-        //         $.ajax({
-        //             url : "{% url "tt:DelTecnicos" %}",
-        //             data : {'idEmp':element['pk']},
-        //             dataType : 'json',
-        //             success : function(data) {
-        //                 console.log(data);
-        //                 if(data.code == 1)
-        //                     {Lobibox.notify('success', {
-        //                         size: 'mini',
-        //                         rounded: true,
-        //                         delayIndicator: true,
-        //                         icon: true,
-        //                         title:"<center>Borrado exitoso</center>",
-        //                         iconSource:"fontAwesome",
-        //                         sound:false,
-        //                         msg: "Técnico eliminado exitosamente"
-        //                         });
-        //                         setTimeout(function(){location.reload();},2500)
-        //                     }
-        //                 else if(data.code == 2)
-        //                     Lobibox.notify('error', {
-        //                         size: 'mini',
-        //                         rounded: true,
-        //                         delayIndicator: true,
-        //                         icon: true,
-        //                         title:"<center>Error al borrar</center>",
-        //                         iconSource:"fontAwesome",
-        //                         sound:false,
-        //                         msg: "No se pudo eliminar el técnico, intenta de nuevo más tarde"
-        //                         });
-        //             },
-        //             error : function(xhr, status) {
-        //                 console.log("error ");
-        //             },
-        //         });
-        //       });
-        // });
+        json.forEach(function(element) {
+
+              $(("#"+(element['fields']['nombre']+"update")).replace(/\s+/g, '')).on('click',function()
+              {
+               $("#badregsoft").hide()
+                $("#okregsoft").hide()
+                  $("#SoftwareHeader").text("Actualizar Software")
+                  $("#btnsoftware").text("Actualizar Software")
+                $('#SoftwareMod').modal({
+                        selector    : {
+                        close    : '.close, #btnclosesoftwaremod'
+                    }}).modal('show')
+                $('#formSoftware').trigger("reset");
+                update = true
+                $("#id_software").val(element['fields']['nombre'])
+                $("#id_descripcion").val(element['fields']['descripcion']);
+
+              });
+
+              $(("#"+(element['fields']['nombre']+"delete")).replace(/\s+/g, '')).on('click',function()
+              {
+                $.ajax({
+                    url : "{% url "tt:DelSoftware" %}",
+                    data : {'soft':element['fields']['nombre']},
+                    dataType : 'json',
+                    success : function(data) {
+                        console.log(data);
+                        if(data.code == 1)
+                            {Lobibox.notify('success', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Borrado exitoso</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "Software eliminado exitosamente"
+                                });
+                                setTimeout(function(){location.reload();},2500)
+                            }
+                        else if(data.code == 2)
+                            Lobibox.notify('error', {
+                                size: 'mini',
+                                rounded: true,
+                                delayIndicator: true,
+                                icon: true,
+                                title:"<center>Error al borrar</center>",
+                                iconSource:"fontAwesome",
+                                sound:false,
+                                msg: "No se pudo eliminar el software, intenta de nuevo más tarde"
+                                });
+                    },
+                    error : function(xhr, status) {
+                        console.log("error ");
+                    },
+                });
+              });
+        });
 
 
     }
     $("#addSoft").on('click',function(){
+                update = false
              $("#badregsoft").hide()
             $("#okregsoft").hide()
+            $("#SoftwareHeader").text("Añadir Software")
+                  $("#btnsoftware").text("Añadir Software")
             $('#SoftwareMod').modal({
                     selector    : {
                     close    : '.close, #btnclosesoftwaremod'
@@ -1421,6 +1453,7 @@ function showDep()
     }
 
 $("#agregardep").on('click',function(){
+    update = false
         $("#DepartmentHeader").text("Añadir Departamento")
             $("#badregdep").hide()
             $("#okregdep").hide()
@@ -1709,7 +1742,7 @@ function setClicksEquip(json)
 
 $("#agregarequipo").on('click',function(){
 
-
+        update = false
         $("#EquipoHeader").text("Añadir Equipo")
             $("#badregequipo").hide()
             $("#okregequipo").hide()
@@ -2297,7 +2330,7 @@ function addDoc(){
 
 function createRegistersTable(json)
 {
-    var html ='<table id="tableregisters" style="display:none;" class="ui blue celled table">'+
+    var html ='<table id="tableregisters" style="display:none;" class="ui yellow celled table">'+
   '<thead>'+
   '  <tr><th colspan="1"><center>No. Empleado</center></th>'+
   '  <th colspan="2"><center>Nombre</center></th>'+
@@ -2983,6 +3016,7 @@ $("#contenido").empty()
         }
 
         $("#agregarSubDep").on('click',function(){
+            update = false
         $("#DepartmentHeader").text("Añadir SubDepartamento")
             $("#badregdep").hide()
             $("#okregdep").hide()
@@ -3026,7 +3060,7 @@ function createSubDepTable(json,depto)
 
       '<th colspan="3">'+
       '  <div class="ui right floated small primary labeled icon button" id="agregarSubDep">'+
-     '     <i class="fas fa-clinic-medical"></i> Agregar SubDepartamento'+
+     '     <i class="warehouse icon"></i> Agregar SubDepartamento'+
     '    </div>'+
    '   </th>'+
   '  </tr>'+
@@ -3418,7 +3452,7 @@ function showGraph()
                 console.log(json);
                 $("#contenido").append('<div class="ui fifteen wide column" style="display: none;" id="graphcontainer"> ' +
                     '<div class="row"><div class="ui clearing segment"> ' +
-                    '<div class="ui right floated teal buttons">\n' +
+                    '<div class="ui right floated yellow buttons">\n' +
                     '  <div class="ui right floated button">Tipo de gráfica</div>\n' +
                     '  <div class="ui right floated dropdown graphs icon button">\n' +
                     '    <i class="dropdown icon"></i>\n' +
@@ -3428,7 +3462,10 @@ function showGraph()
                     '    </div>\n' +
                     '  </div>\n' +
                     '</div>' +
-                    '<div class="ui left floated yellow buttons" style="display: none;" id="months">\n' +
+                     '<div class="ui right floated orange buttons">\n' +
+                     '<a href="/reporteServicios/99999/" target="_blank" class="ui right labeled icon floated button" style="margin-right: 10px;"><i class="file pdf icon"></i>Reporte de servicios</a>\n' +
+                    '</div>'+
+                    '<div class="ui left floated purple buttons" style="display: none;" id="months">\n' +
                     '  <div class="ui right floated button">Mes</div>\n' +
                     '  <div class="ui right floated dropdown graphsmonth icon button">\n' +
                     '    <i class="dropdown icon"></i>\n' +
@@ -3449,7 +3486,7 @@ function showGraph()
                     '    </div>\n' +
                     '  </div>\n' +
                     '</div>' +
-                    '<div class="ui left floated orange buttons" style="display: none; margin-left: 10px;" id="typeordergraph">\n' +
+                    '<div class="ui left floated red buttons" style="display: none; margin-left: 10px;" id="typeordergraph">\n' +
                     '  <div class="ui right floated button">Tipo de gráfica de ordenes</div>\n' +
                     '  <div class="ui right floated dropdown graphorder icon button">\n' +
                     '    <i class="dropdown icon"></i>\n' +

@@ -15,6 +15,21 @@
         opacity: .8;
     }
 
+    @media (max-width: 600px) {
+        .textup {
+            display: none;
+        }
+        #cap1{
+            display: none;
+        }
+        #cap2{
+            display: none;
+        }
+        #cap3{
+            display: none;
+        }
+    }
+
     #loader2 {
         background: url("{% static 'tt/img/loader2.gif' %}") 50% 50% no-repeat rgb(249, 249, 249);
     }
@@ -73,7 +88,7 @@
 }
 
 /* Caption text */
-.text {
+.textcap {
   color: #FFF;
   font-size: 18px;
   padding: 8px 12px;

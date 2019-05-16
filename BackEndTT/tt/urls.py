@@ -28,6 +28,7 @@ urlpatterns=[
     url(r'^ajax/AddOrder/$', views.AddOrder, name='AddOrder'),
     url(r'^ajax/AssignTec/$', views.AssignTec, name='AssignTec'),
     url(r'^ajax/DelDepartment/$', views.DelDepartment, name='DelDepartment'),
+    url(r'^ajax/DelSoftware/$', views.DelSoftware, name='DelSoftware'),
     url(r'^ajax/DelSubDepartment/$', views.DelSubDepartment, name='DelSubDepartment'),
     url(r'^ajax/ValidarDocente/$', views.ValidarDocente, name='ValidarDocente'),
     url(r'^ajax/getSubDepartments/$', views.getSubDepartments, name='getSubDepartments'),
@@ -43,4 +44,5 @@ urlpatterns=[
     url(r'^ajax/getUserInfoById/$', views.getUserInfoById, name='getUserInfoById'),
     url(r'^ajax/changeDocState/$', views.changeDocState, name='changeDocState'),
     url(r'^reporteOrden/(?P<idOrden>[0-9]+)/$', views.reporteOrden, name='reporteOrden'),
+    url(r'^reporteServicios/(?P<mes>[0-9]+)/$', views.reporteServicios, name='reporteServicios'),
 ]

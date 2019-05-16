@@ -96,6 +96,7 @@ class formSoft(forms.Form):
                             required=True)
     descripcion = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Descripcion'}), label="Descripcion", max_length=200,
                                required=True)
+    option = forms.CharField(label="option", max_length=60, required=False)
 
 class formOrden(forms.Form):
     def __init__(self, typework_choices,equipo_choices, *args, **kwargs):
