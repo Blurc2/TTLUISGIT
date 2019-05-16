@@ -91,6 +91,11 @@ class formRecPass(forms.Form):
     emailrec = forms.CharField(widget=forms.EmailInput(attrs={'placeholder': 'Correo'}), label="Email", max_length=60,
                             required=True)
 
+class formSoft(forms.Form):
+    software = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Software'}), label="Software", max_length=60,
+                            required=True)
+    descripcion = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Descripcion'}), label="Descripcion", max_length=200,
+                               required=True)
 
 class formOrden(forms.Form):
     def __init__(self, typework_choices,equipo_choices, *args, **kwargs):

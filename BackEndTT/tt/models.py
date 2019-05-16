@@ -82,11 +82,9 @@ class SubDepartamento(models.Model):
 class InstalacionSoft(models.Model):
     nombre = models.CharField(max_length=60)
     descripcion = models.CharField(max_length=200)
-    estado = models.CharField(max_length=20)
 
     def __str__(self):
-        return self.nombre + " - " + self.estado
-
+        return self.nombre
 
 
 class Incidencia(models.Model):

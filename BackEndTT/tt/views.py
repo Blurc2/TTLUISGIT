@@ -30,6 +30,7 @@ def Index(request):
     form2 = formDepartamento()
     formrecpass = formRecPass()
     formsurvey = formSurvey()
+    formsoft = formSoft()
     deplist = []
     emplist = []
     typeequipolist = []
@@ -80,11 +81,12 @@ def Index(request):
                                    request.session['NombreUser']['am'],
                        'usertype': request.session['NombreUser']['tipo'],
                        'ordenes': list(ordenes),
-                       'formrecpass':formrecpass})
+                       'formrecpass':formrecpass,
+                       'formsoft':formsoft})
     else:
         return render(request, 'tt/index.html',
                       {'form': form, 'forml': forml, 'formdep': form2, 'formequipo': formequipo,
-                       'formorden': formorden, 'formsurvey': formsurvey,'formrecpass':formrecpass })
+                       'formorden': formorden, 'formsurvey': formsurvey,'formrecpass':formrecpass,'formsoft':formsoft })
 
 
 @csrf_exempt
@@ -1411,7 +1413,31 @@ def recPass(request):
     else:
         return JsonResponse({"code": 0}, content_type="application/json", safe=False)
 
+@csrf_exempt
+def AddSoftware(request):
+    if request.method == 'POST':
+        form = formSoft(request.POST)
+        if form.is_valid():
+            if InstalacionSoft.objects.filter(nombre=form.cleaned_data['software']).exists():
+                return JsonResponse({"code": 2}, content_type="application/json", safe=False)
+            else:
+                # print(form.cleaned_data['emailrec'])
+                soft = InstalacionSoft.objects.create(nombre=form.cleaned_data['software'],
+                                                      descripcion=form.cleaned_data['descripcion'])
+                soft.save()
+                return JsonResponse({"code": 1}, content_type="application/json", safe=False)
+        else:
+            print(form.errors)
+            return JsonResponse({"code": 0}, content_type="application/json", safe=False)
+    else:
+        return JsonResponse({"code": 0}, content_type="application/json", safe=False)
 
+@csrf_exempt
+def ShowSoftware(request):
+    return JsonResponse(
+        serializers.serialize('json',
+                              InstalacionSoft.objects.all()),
+        content_type="application/json", safe=False)
 
 @csrf_exempt
 def getOrderByMonth(request):
