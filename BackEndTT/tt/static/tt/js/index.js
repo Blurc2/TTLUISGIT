@@ -195,13 +195,10 @@ function showSlides() {
       var i;
       var slides = document.getElementsByClassName("mySlides");
       var x = window.innerWidth;
-        if(x>600)
-        {
             $(".textcap").attr('class', '');
           $("#cap1").addClass('textcap transition hidden')
           $("#cap2").addClass('textcap transition hidden')
           $("#cap3").addClass('textcap transition hidden')
-        }
 
       for (i = 0; i < slides.length; i++) {
         slides[i].style.display = "none";
