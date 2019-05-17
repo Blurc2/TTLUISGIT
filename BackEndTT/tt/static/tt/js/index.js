@@ -194,8 +194,8 @@ function home(){
 function showSlides() {
       var i;
       var slides = document.getElementsByClassName("mySlides");
-      var x = window.matchMedia("(max-width: 600px)")
-        if(!x.matches)
+      var x = window.innerWidth;
+        if(x>600)
         {
             $(".textcap").attr('class', '');
           $("#cap1").addClass('textcap transition hidden')
@@ -209,7 +209,7 @@ function showSlides() {
       slideIndex++;
       if (slideIndex > slides.length) {slideIndex = 1}
       slides[slideIndex-1].style.display = "block";
-      if ($('.textcap').hasClass('hidden') && !x.matches) {
+      if ($('.textcap').hasClass('hidden') && x>600) {
             $('.textcap').transition({
             animation : 'fade right',
             duration  : 1000,
@@ -220,6 +220,17 @@ function showSlides() {
 
       setTimeout(showSlides, 5000); // Change image every 5 seconds
     }
+
+function hidecaps(x){
+
+    if(!x.matches)
+    {
+        $(".textcap").attr('class', '');
+      $("#cap1").addClass('textcap transition hidden')
+      $("#cap2").addClass('textcap transition hidden')
+      $("#cap3").addClass('textcap transition hidden')
+    }
+}
 
 $(document).ready(function()
 {
@@ -267,6 +278,8 @@ $(document).ready(function()
         showSlides();
 
         showImages('.star');
+        var x = window.matchMedia("(max-width: 600px)")
+        x.addListener(hidecaps)
     }
 
     // else
@@ -3458,7 +3471,8 @@ function showGraph()
                     '    <i class="dropdown icon"></i>\n' +
                     '    <div class="menu">\n' +
                     '      <div class="item active"><i class="pencil alternate icon"></i>Satisfacción</div>\n' +
-                    '      <div class="item"><i class="fas fa-file-invoice"></i> Ordenes</div>\n' +
+                    '      <div class="item"><i class="file alternate icon"></i>Ordenes</div>\n' +
+                    '      <div class="item"><i class="desktop icon"></i>Equipo</div>\n' +
                     '    </div>\n' +
                     '  </div>\n' +
                     '</div>' +
@@ -3508,7 +3522,7 @@ function showGraph()
                             $("#typeordergraph").fadeOut('slow')
                             createSatisGraph(json)
                         }
-                        else
+                        else if(text.endsWith("Ordenes"))
                         {
                             $("#months").fadeIn('slow')
                             $("#typeordergraph").fadeIn('slow')
@@ -3522,6 +3536,25 @@ function showGraph()
                                     jsonorder = json
                                     typeordergraph = "Todos"
                                     createOrderGraph(json,"Todos","General")
+
+                                },
+                                error : function(xhr, status) {
+                                    console.log("error ");
+                                },
+                            });
+                        }
+                        else {
+                            $("#months").fadeOut('slow')
+                            $("#typeordergraph").fadeOut('slow')
+                            $.ajax({
+                                url : "{% url "tt:getEquipInfo" %}",
+                                data : {'x':""},
+                                dataType : 'json',
+                                success : function(json) {
+                                    console.log(json);
+                                    // jsonorder = json
+                                    // typeordergraph = "Todos"
+                                    createEquipGraph(json.equiposlibres,json.equiposok,json.equiposbad)
 
                                 },
                                 error : function(xhr, status) {
@@ -3591,7 +3624,7 @@ function createSatisGraph(json)
           textposition: 'auto',
           hoverinfo: 'none',
           marker: {
-            color: ['rgb(213, 172, 78,1)', 'rgba(139, 98, 32,1)', 'rgba(114, 14, 7,1)', 'rgba(69, 5, 12,1)'],
+            color: ['rgb(213, 172, 78,1)', 'rgb(139, 98, 32,1)', 'rgb(114, 14, 7,1)', 'rgb(69, 5, 12,1)'],
             opacity: 0.6,
             line: {
               color: 'rgb(8,48,107)',
@@ -3606,6 +3639,29 @@ function createSatisGraph(json)
     };
     $("#graphcontainer").fadeIn("slow")
     Plotly.newPlot('divgraph', data,layout);
+}
+
+function createEquipGraph(equipolibre,equipook,equipobad)
+{
+    var data = [{
+      values: [equipolibre, equipook, equipobad],
+      labels: ['Equipos Libres', 'Equipo activo', 'Equipo en mantenimiento'],
+      type: 'pie',
+     marker: {
+         'colors': ['rgb(92, 138, 138)', 'rgb(46, 184, 46)', 'rgb(179, 0, 0)'],
+         opacity: 0.6,
+         line: {
+              color: 'rgb(8,48,107)',
+              width: 1.5
+            }
+     }
+    }];
+
+    var layout = {
+      title : 'Gráfica de Equipos'
+    };
+
+    Plotly.newPlot('divgraph', data, layout);
 }
 
 function createOrderGraph(json,type,typegraph)
