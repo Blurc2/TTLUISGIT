@@ -1517,6 +1517,14 @@ def getOrderByMonth(request):
         cls=DjangoJSONEncoder), content_type="application/json")
 
 
+def getEquipInfo(request):
+    equiposlibres = Equipo.objects.filter(empleado=None).count()
+    equiposok = Equipo.objects.all().count() - Orden.objects.filter(estado__lte=0).count()
+    equiposbad = Orden.objects.filter(estado__lte = 0).count()
+    return HttpResponse(json.dumps(
+        {'equiposlibres': equiposlibres,'equiposok':equiposok,'equiposbad':equiposbad},
+        cls=DjangoJSONEncoder), content_type="application/json")
+
 def reporteOrden(request, idOrden):
     print("::. Reporte Orden .::")
 

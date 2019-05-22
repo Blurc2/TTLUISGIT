@@ -41,7 +41,7 @@ class Ubicacion(models.Model):
 
 class Departamento(models.Model):
     nombre = models.CharField(max_length=60)
-    grupoTrabajo = models.ManyToManyField(GruposTrabajo,blank=True,null=True)
+    grupoTrabajo = models.ManyToManyField(GruposTrabajo,blank=True)
     ubicacion = models.ForeignKey(Ubicacion,on_delete=models.SET(None))
 
     def as_dict(self):
