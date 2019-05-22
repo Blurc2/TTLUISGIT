@@ -25,7 +25,7 @@ class formEquipo(forms.Form):
     departamento = forms.ChoiceField(choices=(),label="Departamento",required=True)
     empleados = forms.ChoiceField(choices=(),label="Empleados",required=True)
     fmarca = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Marca del equipo'}), label="Marca",required=True)
-    idequipo = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Id del equipo'}), label="Id Equipo",required=True)
+    idequipo = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'Id del equipo','type':'number','min':'0','max':'999999999999', 'maxlength':12 ,'oninput':'this.value=this.value.slice(0,this.maxLength||1);this.value=(this.value   < 0) ? \'\' : this.value;'}), label="Id Equipo",required=True)
     fmodelo = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Modelo del equipo'}), label="Modelo", max_length=100,required=False)
     fmac = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Mac del equipo'}), label="Mac", max_length=17,required=False)
     fns = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Numero de serie del equipo'}), label="Numero de serie",required=True)
@@ -51,12 +51,12 @@ class formregistro(forms.Form):
         ('one', 'ONE'),
         ('two', 'TWO'),
         ('three', 'THREE'),)
-    idEmpleado = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'No. Empleado','type':'number'}),label="No. Empleado",required=True)
+    idEmpleado = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder': 'No. Empleado','type':'number','min':'0','max':'999999999999', 'maxlength':12 ,'oninput':'this.value=this.value.slice(0,this.maxLength||1);this.value=(this.value   < 0) ? \'\' : this.value;'}),label="No. Empleado",required=True)
     email = forms.CharField(widget=forms.EmailInput(attrs={'placeholder': 'Correo'}), label="Email", max_length=60,required=True)
     contra = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Contraseña'}), label="Contraseña", max_length=60,required=True)
     nombre = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Usuario'}), label="Nombre", max_length=60,required=True)
     ap = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Primer Apellido'}), label="Primer Apellido", max_length=60,required=True)
-    am = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Segundo Apellido'}), label="Segundo Apellido", max_length=60,required=True)
+    am = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Segundo Apellido'}), label="Segundo Apellido", max_length=60,required=False)
     telefono = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Teléfono','type':'number','min':'0','max':'9999999999', 'maxlength':10 ,'oninput':'this.value=this.value.slice(0,this.maxLength||1);this.value=(this.value   < 0) ? \'\' : this.value;'}), label="Teléfono",required=True)
     extension = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Extensión','type':'number','min':'0','max':'99999', 'maxlength':5 ,'oninput':'this.value=this.value.slice(0,this.maxLength||1);this.value=(this.value   < 0) ? \'\' : this.value;'}), label="Extensión",required=False)
     tipoEmpleado = forms.CharField(label="tipoEmpleado", max_length=60,required=False)
@@ -94,7 +94,7 @@ class formRecPass(forms.Form):
 class formSoft(forms.Form):
     software = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Software'}), label="Software", max_length=60,
                             required=True)
-    descripcion = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Descripcion'}), label="Descripcion", max_length=200,
+    descripcion = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Descripcion'}), label="Descripcion", max_length=300,
                                required=True)
     option = forms.CharField(label="option", max_length=60, required=False)
 
@@ -110,4 +110,4 @@ class formOrden(forms.Form):
     solicitante = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Solicitante', 'readonly': True}), label="Solicitante",required=True)
     tipo_trabajo = forms.ChoiceField(choices=(),label="Tipo de trabajo",required=True)
     equipo = forms.ChoiceField(choices=(),label="Equipo involucrado",required=True)
-    descripcion = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Descripcion'}), max_length=200,label="Descripcion", required=False)
+    descripcion = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Descripcion'}), max_length=200,label="Descripcion", required=True)

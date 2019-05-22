@@ -81,7 +81,7 @@ class SubDepartamento(models.Model):
 
 class InstalacionSoft(models.Model):
     nombre = models.CharField(max_length=60)
-    descripcion = models.TextField(max_length=200)
+    descripcion = models.TextField(max_length=300)
 
     def __str__(self):
         return self.nombre
@@ -145,7 +145,7 @@ class Empleado(models.Model):
     idEmpleado = models.IntegerField(primary_key=True)
     nombre = models.CharField(max_length=60)
     ap = models.CharField(max_length=60)
-    am = models.CharField(max_length=60)
+    am = models.CharField(max_length=60,null=True, blank=True)
     email = models.CharField(max_length=60)
     password = models.CharField(max_length=60)
     numero = models.CharField(max_length=10)
@@ -165,7 +165,7 @@ class Empleado(models.Model):
             "idEmpleado": self.idEmpleado,
             "nombre": self.nombre,
             "ap": self.ap,
-            "am": self.am,
+            "am": self.am if self.am is not None else "",
             "email": self.email,
             "password": self.password,
             "numero": self.numero,

@@ -194,6 +194,8 @@ html, body {
         100%{opacity:1}
     }
 
+
+
 </style>
 <body>
 <div class="loader" id="loader2"><p align="center"
@@ -237,11 +239,11 @@ html, body {
                 <label>{{ formorden.solicitante.label_tag }}</label>
                 {{ formorden.solicitante }}
             </div>
-            <div class="field">
+            <div class="field required">
                 <label>{{ formorden.equipo.label_tag }}</label>
                 {{ formorden.equipo }}
             </div>
-            <div class="field">
+            <div class="field required">
                 <label>{{ formorden.tipo_trabajo.label_tag }}</label>
                 {{ formorden.tipo_trabajo }}
             </div>
@@ -252,7 +254,7 @@ html, body {
                 </select>
             </div>
 
-            <div class="field">
+            <div class="field required">
                 <label>{{ formorden.descripcion.label_tag }}</label>
                 {{ formorden.descripcion }}
             </div>
@@ -286,27 +288,30 @@ html, body {
     <form class="ui form" style="padding:15px;" id="registro" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <h4 class="ui dividing header" id="headerFormReg">Registrate</h4>
-        <div class="field">
+        <div class="field required">
             <label>{{ form.idEmpleado.label_tag }}</label>
             {{ form.idEmpleado }}
         </div>
-        <div class="field">
+        <div class="field required">
             <label>{{ form.email.label_tag }}</label>
             {{ form.email }}
         </div>
-        <div class="field" id="typetec" style="display:none;">
+        <div class="field required" id="typetec" style="display:none;">
             <label>{{ form.tipotecnico.label_tag }}</label>
             {{ form.tipotecnico }}
         </div>
-        <div class="field">
+        <div class="field required">
             <label>{{ form.contra.label_tag }}</label>
             {{ form.contra }}
+
+        </div>
+        <div class="field">
             <div class="ui slider checkbox showpass">
               <input type="checkbox" tabindex="0" class="hidden">
               <label>Mostrar contraseña</label>
             </div>
         </div>
-        <div class="field">
+        <div class="field required">
             <label>{{ form.telefono.label_tag }}</label>
             {{ form.telefono }}
         </div>
@@ -317,17 +322,17 @@ html, body {
         <div class="field" id="deptochoices">
             <!--<label>Departamento perteneciente</label>-->
             <div class="two fields">
-                <div class="field">
+                <div class="field required">
                     <label>{{ form.depto.label_tag }}</label>
                     {{form.depto}}
                 </div>
-                <div class="field">
+                <div class="field required">
                     <label>{{ form.subdepto.label_tag }}</label>
                     {{form.subdepto}}
                 </div>
             </div>
         </div>
-        <div class="field">
+        <div class="field required">
             <label>Nombre</label>
             <div class="three fields">
                 <div class="field">
@@ -378,19 +383,19 @@ html, body {
     <form class="ui form" style="padding:15px;" id="DepartmentForm" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <h4 class="ui dividing header" id="DepartmentHeader">Añadir Departamento</h4>
-        <div class="field">
+        <div class="field required">
             <label>{{ formdep.nombredep.label_tag }}</label>
             {{ formdep.nombredep }}
         </div>
-        <div class="field">
+        <div class="field required">
             <label>{{ formdep.edificio.label_tag }}</label>
             {{ formdep.edificio }}
         </div>
-        <div class="field">
+        <div class="field required">
             <label>{{ formdep.piso.label_tag }}</label>
             {{ formdep.piso }}
         </div>
-        <div class="field">
+        <div class="field required">
             <label>{{ formdep.sala.label_tag }}</label>
             {{ formdep.sala }}
         </div>
@@ -416,11 +421,11 @@ html, body {
     <form class="ui form" style="padding:15px;" id="EquipoForm" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <h4 class="ui dividing header" id="EquipoHeader">Añadir Equipo</h4>
-        <div class="field">
+        <div class="field required">
             <label>{{ formequipo.tipoequipo.label_tag }}</label>
             {{ formequipo.tipoequipo }}
         </div>
-        <div class="field">
+        <div class="field required">
             <label>{{ formequipo.idequipo.label_tag }}</label>
             {{ formequipo.idequipo }}
         </div>
@@ -431,7 +436,7 @@ html, body {
                     <label>{{ formequipo.fmodelo.label_tag }}</label>
                     {{formequipo.fmodelo}}
                 </div>
-                <div class="field" id="marcafield">
+                <div class="field required" id="marcafield">
                     <label>{{ formequipo.fmarca.label_tag }}</label>
                     {{formequipo.fmarca}}
                 </div>
@@ -444,7 +449,7 @@ html, body {
                     <label>{{ formequipo.fmac.label_tag }}</label>
                     {{formequipo.fmac}}
                 </div>
-                <div class="field" id="nsfield">
+                <div class="field required" id="nsfield">
                     <label>{{ formequipo.fns.label_tag }}</label>
                     {{formequipo.fns}}
                 </div>
@@ -495,11 +500,11 @@ html, body {
         <div class="field">
             <h3>Ubicación</h3>
             <div class="two fields">
-                <div class="field">
+                <div class="field required">
                     <label>{{ formequipo.departamento.label_tag }}</label>
                     {{formequipo.departamento}}
                 </div>
-                <div class="field">
+                <div class="field required">
                     <label>{{ formequipo.empleados.label_tag }}</label>
                     {{formequipo.empleados}}
                 </div>
@@ -652,11 +657,11 @@ html, body {
 
     <h4 class="ui dividing header" id="SoftwareHeader" >Añadir Software</h4>
     <form class="ui form" id="formSoftware" style="padding:15px;" method="post" enctype="multipart/form-data">
-      <div class="field">
+      <div class="field required">
           <label>{{ formsoft.software.label_tag }}</label>
         {{ formsoft.software }}
       </div>
-        <div class="field">
+        <div class="field required">
             <label>{{ formsoft.descripcion.label_tag }}</label>
         {{ formsoft.descripcion }}
       </div>

@@ -1528,7 +1528,7 @@ function showEquipment()
                         $("#id_tipoequipo").val(valueSelected)
                         $("#generalfields").show()
                         $("#datafields").show()
-                        if(valueSelected === "Computo")
+                        if(valueSelected === "Cómputo")
                         {
                             $("#hardwaresection").show()
                             $("#macfield").show()
@@ -1655,7 +1655,7 @@ function setClicksEquip(json)
 
                     $("#generalfields").show()
                     $("#datafields").show()
-                    if(value === "Computo")
+                    if(value === "Cómputo")
                     {
                         $("#hardwaresection").show()
                         $("#macfield").show()
@@ -1757,7 +1757,7 @@ $("#agregarequipo").on('click',function(){
 
                     $("#generalfields").show()
                     $("#datafields").show()
-                    if(value === "Computo")
+                    if(value === "Cómputo")
                     {
                         $("#hardwaresection").show()
                         $("#macfield").show()
@@ -1945,7 +1945,7 @@ function showEquipmentInfo(json) {
     else if(json['cambs']!=null)
         id = json['cambs']
 
-    var type = json['tipo_equipo__nombre'] === 'Computo' || json['tipo_equipo__nombre'] === 'Monitor' || json['tipo_equipo__nombre'] === 'Teclado' || json['tipo_equipo__nombre'] === 'Mouse'
+    var type = json['tipo_equipo__nombre'] === 'Cómputo' || json['tipo_equipo__nombre'] === 'Monitor' || json['tipo_equipo__nombre'] === 'Teclado' || json['tipo_equipo__nombre'] === 'Mouse'
 
     var html='<div class="ui sixteen wide column placeholder segments">\n' +
         '        <center>\n' +
@@ -1992,7 +1992,7 @@ function showEquipmentInfo(json) {
         '                <p style="opacity: 0.5;">Cambs: </p><p id="equipdatacambs">' + json['cambs'] + '</p>\n' +
         '            </div>\n';
     }
-    if(json['tipo_equipo__nombre'] === 'Computo') {
+    if(json['tipo_equipo__nombre'] === 'Cómputo') {
         html +=
             '            <div class="ui segment equipcomputer">\n' +
             '                <p style="opacity: 0.5;">MAC: </p><p id="equipdatamac">'+json['mac']+'</p>\n' +
@@ -2005,10 +2005,10 @@ function showEquipmentInfo(json) {
         html+=
         '        </div>\n' +
         '\n' ;
-    if(json['tipo_equipo__nombre'] === 'Computo') {
+    if(json['tipo_equipo__nombre'] === 'Cómputo') {
         html +=
             '        <div class="ui segment equipcomputer">\n' +
-            '            <p><i class="fas fa-cogs"></i>&nbsp;Caracteristicas del equipo de computo</p>\n' +
+            '            <p><i class="fas fa-cogs"></i>&nbsp;Caracteristicas del equipo de cómputo</p>\n' +
             '        </div>\n' +
             '        <div class="ui horizontal segments">\n' +
             '            <div class="ui segment equipcomputer" >\n' +
