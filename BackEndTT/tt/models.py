@@ -99,6 +99,7 @@ class Satisfaccion(models.Model):
     seguridad = models.IntegerField()
     infrayservicios = models.IntegerField()
 
+
 class Orden(models.Model):
     nofolio = models.CharField(max_length=30, primary_key=True)
     estado = models.IntegerField()
