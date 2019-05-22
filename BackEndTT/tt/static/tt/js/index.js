@@ -191,6 +191,7 @@ function home(){
     window.location.href = "{% url 'tt:Index'%}";
 }
 
+
 function showSlides() {
       var i;
       var slides = document.getElementsByClassName("mySlides");
