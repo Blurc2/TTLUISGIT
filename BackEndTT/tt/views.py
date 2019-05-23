@@ -284,6 +284,13 @@ def ValidarDocente(request):
     # print(request.GET.get('correo', None))
     try:
         if (request.GET.get('action', None) == "OK"):
+            send_mail(
+                'UDI, Estado de solicitud de registro',
+                'Saludos.\nLa verificación de registro fue exitosa, ya puedes iniciar sesión.\nURL: 127.0.0.1:8000/index.',
+                'from@example.com',
+                [request.GET.get('correo', None)],
+                fail_silently=False,
+            )
 
             emp = Empleado.objects.filter(idEmpleado=request.GET.get('idEmp', None))
             emp2 = Empleado.objects.get(idEmpleado=request.GET.get('idEmp', None))
@@ -296,13 +303,7 @@ def ValidarDocente(request):
                 print(emp2.as_dict())
                 emp.update(estado=True,adminstate=True, uuid=user['localId'])
                 firebase.instance.reference.database().child("users").child(emp[0].uuid).set(emp2.as_dict())
-                send_mail(
-                    'UDI, Estado de solicitud de registro',
-                    'Saludos.\nLa verificación de registro fue exitosa, ya puedes iniciar sesión.\nURL: 127.0.0.1:8000/index.',
-                    'from@example.com',
-                    [request.GET.get('correo', None)],
-                    fail_silently=False,
-                )
+
         elif (request.GET.get('action', None) == "ERROR"):
 
             send_mail(
@@ -717,11 +718,17 @@ def AssignTec(request):
                             "ordenes") \
                             .child(str(request.GET.get('folio', None))).child("tecnico").set(
                             e2.nombre + " " + e2.ap + " " + e2.am)
+                        firebase.instance.reference.database().child("users").child(e.uuid).child(
+                            "ordenes") \
+                            .child(str(request.GET.get('folio', None))).child("estado").set(0)
                     elif e2.tipo.nombre == "Docente":
                         firebase.instance.reference.database().child("users").child(e.uuid).child(
                             "ordenes") \
                             .child(str(request.GET.get('folio', None))).child("docente").set(
                             e2.nombre + " " + e2.ap + " " + e2.am)
+                        firebase.instance.reference.database().child("users").child(e.uuid).child(
+                            "ordenes") \
+                            .child(str(request.GET.get('folio', None))).child("estado").set(0)
 
             orden.update(estado=0)
             return JsonResponse({"code": 1}, content_type="application/json", safe=False)

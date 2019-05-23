@@ -560,74 +560,74 @@ html, body {
             </div>
     </center>
 
-   <form class="ui form" style="padding:15px;" id="SurveyForm" method="post" enctype="multipart/form-data">
+   <form class="ui form survey" style="padding:15px;" id="SurveyForm" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <h4 class="ui dividing header">ENCUESTA DE SERVICIO</h4>
        <div class="scrolling content">
        <div class="field">
            <h4 class="ui dividing header">CONFIABILIDAD</h4>
-            <div class="field">
+            <div class="field required">
                 <label>{{ formsurvey.choice11.label_tag }}</label>
                 {{ formsurvey.choice11 }}
             </div>
-           <div class="field">
+           <div class="field required">
                 <label>{{ formsurvey.choice12.label_tag }}</label>
                 {{ formsurvey.choice12 }}
             </div>
-           <div class="field">
+           <div class="field required">
                 <label>{{ formsurvey.choice13.label_tag }}</label>
                 {{ formsurvey.choice13 }}
             </div>
        </div>
        <div class="field">
            <h4 class="ui dividing header">RESPONSABILIDAD</h4>
-            <div class="field">
+            <div class="field required">
                 <label>{{ formsurvey.choice21.label_tag }}</label>
                 {{ formsurvey.choice21 }}
             </div>
-           <div class="field">
+           <div class="field required">
                 <label>{{ formsurvey.choice22.label_tag }}</label>
                 {{ formsurvey.choice22 }}
             </div>
-           <div class="field">
+           <div class="field required">
                 <label>{{ formsurvey.choice23.label_tag }}</label>
                 {{ formsurvey.choice23 }}
             </div>
-           <div class="field">
+           <div class="field required">
                 <label>{{ formsurvey.choice24.label_tag }}</label>
                 {{ formsurvey.choice24 }}
             </div>
        </div>
        <div class="field">
            <h4 class="ui dividing header">SEGURIDAD Y EMPATIA</h4>
-            <div class="field">
+            <div class="field required">
                 <label>{{ formsurvey.choice31.label_tag }}</label>
                 {{ formsurvey.choice31 }}
             </div>
-           <div class="field">
+           <div class="field required">
                 <label>{{ formsurvey.choice32.label_tag }}</label>
                 {{ formsurvey.choice32 }}
             </div>
-           <div class="field">
+           <div class="field required">
                 <label>{{ formsurvey.choice33.label_tag }}</label>
                 {{ formsurvey.choice33 }}
             </div>
        </div>
        <div class="field">
            <h4 class="ui dividing header">INFRAESTRUCTURA Y SERVICIOS GENERALES</h4>
-            <div class="field">
+            <div class="field required">
                 <label>{{ formsurvey.choice41.label_tag }}</label>
                 {{ formsurvey.choice41 }}
             </div>
-           <div class="field">
+           <div class="field required">
                 <label>{{ formsurvey.choice42.label_tag }}</label>
                 {{ formsurvey.choice42 }}
             </div>
-           <div class="field">
+           <div class="field required">
                 <label>{{ formsurvey.choice43.label_tag }}</label>
                 {{ formsurvey.choice43 }}
             </div>
-           <div class="field">
+           <div class="field required">
                 <label>{{ formsurvey.choice44.label_tag }}</label>
                 {{ formsurvey.choice44 }}
             </div>

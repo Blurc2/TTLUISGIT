@@ -119,6 +119,7 @@ function showSurvey()
                     close    : '.close, #btnclosesurveymod'
                 }
         }).modal('show')
+
         $("#pOrdenFolio").text("Tu Orden con No. Folio :"+jsonsurvey[indexsurvey]['pk'])
 
     }
@@ -126,8 +127,20 @@ function showSurvey()
         return
 }
 
+$("#btnSendSurvey").on('click',function(){
+    var $inputs = $('#SurveyForm :input');
+
+    $inputs.each(function() {
+        if($(this).val() === "")
+            $(this).parent(".field").addClass("error")
+        else
+            $(this).parent(".field").removeClass("error")
+    });
+})
+
 $("form#SurveyForm").submit(function(e) {
             e.preventDefault();
+
             var formData = new FormData(this);
             formData.append('idOrder', jsonsurvey[indexsurvey]['pk'])
             $.ajax({
@@ -1958,7 +1971,17 @@ function showEquipmentInfo(json) {
 
     var type = json['tipo_equipo__nombre'] === 'Cómputo' || json['tipo_equipo__nombre'] === 'Monitor' || json['tipo_equipo__nombre'] === 'Teclado' || json['tipo_equipo__nombre'] === 'Mouse'
 
+    var arrow = ""
+    if($("#username").text().includes("Docente"))
+        arrow = '<div class="ui floated left segment" style="cursor: pointer;" onclick="showEquipmentDoc()"><i class="arrow circle left icon"></i></div>'
+    else if($("#username").text().includes("Administrador"))
+        arrow = '<div class="ui floated left segment" style="cursor: pointer;" onclick="showEquipment()"><i class="arrow circle left icon"></i></div>'
+    else
+        arrow = '<div class="ui floated left segment" style="cursor: pointer;" onclick="showEquipment()"><i class="arrow circle left icon"></i></div>'
+
+
     var html='<div class="ui sixteen wide column placeholder segments">\n' +
+        arrow+
         '        <center>\n' +
         '            <div class="ui icon header">\n' +
         '                <i class="tv icon"></i>\n' +
@@ -3044,10 +3067,16 @@ $("#contenido").empty()
 
 function createSubDepTable(json,depto)
 {
-    var html ='<div class="sixteen wide column"><div class="ui placeholder segment"><center>'+
-  '<div class="ui icon header"><i class="warehouse icon"></i>'+
-   'Departamento: '+depto+
-  '</div></center><br>'+
+    var html='<div class="ui sixteen wide column placeholder segments">\n' +
+        '<div class="ui floated left segment" style="cursor: pointer;" onclick="showDep()"><i class="arrow circle left icon"></i></div>'+
+        '        <center>\n' +
+        '            <div class="ui icon header">\n' +
+        '                <i class="warehouse icon"></i>\n' +
+        'Departamento: '+depto+
+        '            </div>\n' +
+        '        </center>\n' +
+        '        <div class="ui segment">\n' +
+        '        </div>\n' +
     '<table id="tablesupDep" style="display:none;" class="ui green celled table">'+
   '<thead>'+
   '  <tr><th colspan="2"><center>Nombre</center></th>'+
@@ -3220,13 +3249,24 @@ function createorderinfotable(json) {
         clasestate = "positive"
         clasemsg = "No se pudo finalizar"
     }
-    html = '<div class="ui sixteen wide column" id="divorderinfo" style="display: none;">\n' +
+
+    var arrow = ""
+    if($("#username").text().includes("Docente"))
+        arrow = '<div class="ui floated left segment" style="cursor: pointer;" onclick="showOrdersDoc()"><i class="arrow circle left icon"></i></div>'
+    else if($("#username").text().includes("Administrador"))
+        arrow = '<div class="ui floated left segment" style="cursor: pointer;" onclick="showOrdersAdmin()"><i class="arrow circle left icon"></i></div>'
+    else
+        arrow = '<div class="ui floated left segment" style="cursor: pointer;" onclick="showOrdersTec()"><i class="arrow circle left icon"></i></div>'
+    html='<div class="ui sixteen wide column placeholder segments" id="divorderinfo" style="display: none;">\n' +
+        arrow+
         '        <center>\n' +
         '            <div class="ui icon header">\n' +
         '                <i class="clipboard outline icon"></i>\n' +
         '                Detalles de la orden No. Folio : '+json['orden'][0]['pk']+'\n' +
         '            </div>\n' +
         '        </center>\n' +
+        '        <div class="ui segment">\n' +
+        '        </div>\n' +
         '        <div class="ui segments">\n' +
         '            <div class="ui segment">\n' +
         '                <h3>Datos generales</h3>\n' +
@@ -3291,11 +3331,11 @@ function createorderinfotable(json) {
         '            <div class="ui horizontal segments">\n' +
         '                <div class="ui segment">\n' +
         '                    <p>Comentarios del solicitante</p>\n' +
-        '                    <textarea style="width: 75%;" readonly>'+json['desc'].find(function(element){return element['who'] === 0})['descripcion']+'</textarea>\n' +
+        '                    <textarea style="width: 75%; min-height: 200px;" readonly>'+json['desc'].find(function(element){return element['who'] === 0})['descripcion']+'</textarea>\n' +
         '                </div>\n' +
         '                <div class="ui segment">\n' +
         '                    <p>Comentarios del técnico</p>\n' +
-        '                    <textarea style="width: 75%;" id="textareacommenttec">'+((json['desc'].find(function(element){return element['who'] === 1}) !== undefined) ? json['desc'].find(function(element){return element['who'] === 1})['descripcion'] : "")+'</textarea>\n' +
+        '                    <textarea style="width: 75%; min-height: 200px;" id="textareacommenttec">'+((json['desc'].find(function(element){return element['who'] === 1}) !== undefined) ? json['desc'].find(function(element){return element['who'] === 1})['descripcion'] : "")+'</textarea>\n' +
         '                </div>\n' +
         '            </div>\n' +
         '            <div class="ui clearing segment" id="divbuttonfinishorder" style="display: none;">\n' +
@@ -4242,15 +4282,16 @@ $("form#formRecPass").submit(function(e) {
 function showDocInfo(json)
 {
     console.log(json)
-    var html ='<div class="ui sixteen wide column" id="detailDoc" style="display: none;">\n' +
-        '        <div class="ui placeholder segment">\n' +
-        '            <center>\n' +
-        '              <div class="ui icon header">\n' +
+    var   html='<div class="ui sixteen wide column placeholder segments" id="detailDoc" style="display: none;">\n' +
+        '<div class="ui floated left segment" style="cursor: pointer;" onclick="showRegisters()"><i class="arrow circle left icon"></i></div>'+
+        '        <center>\n' +
+        '            <div class="ui icon header">\n' +
         '                <i class="user icon"></i>\n' +
         '                Detalles del docente : '+json.data[0].nombre+' '+json.data[0].ap+' '+json.data[0].am+'\n' +
-        '              </div>\n' +
-        '            </center>\n' +
-        '\n' +
+        '            </div>\n' +
+        '        </center>\n' +
+        '        <div class="ui segment">\n' +
+        '        </div>\n' +
         '            <div class="ui segments">\n' +
         '              <div class="ui segment">\n' +
         '                <strong>Datos generales</strong>\n' +
