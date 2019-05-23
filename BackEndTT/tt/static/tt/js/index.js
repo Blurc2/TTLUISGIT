@@ -368,6 +368,8 @@ $(document).ready(function()
             showOrdersTec()
         else if(sessionStorage.getItem("menuItem") === "EQUIPO")
             showEquipment()
+        else if(sessionStorage.getItem("menuItem") === "SOFTWARE")
+            showSoftware()
     {% endif %}
 {% else %}
     $(".slideshow-container").fadeIn('slow')

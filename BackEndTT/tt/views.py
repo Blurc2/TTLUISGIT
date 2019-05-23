@@ -66,7 +66,7 @@ def Index(request):
         if request.session['NombreUser']['tipo'] == "Docente":
             emp = Empleado.objects.filter(pk=request.session['NombreUser']['pk']).values('ordenes__pk')
             print(emp)
-            ordenes = Orden.objects.filter(estado=1, survey=None, pk__in=emp).values('pk')
+            ordenes = Orden.objects.filter(estado__gte=1, survey=None, pk__in=emp).values('pk')
         if request.session['NombreUser']['tipo'] == "Tecnico":
             emp = Empleado.objects.filter(pk=request.session['NombreUser']['pk']).values('ordenes__pk')
             print(emp)
@@ -761,7 +761,7 @@ def IniciarSesion(request):
                 if us.tipo.nombre == "Docente":
                     emp = Empleado.objects.filter(pk=us.pk).values('ordenes__pk')
                     print(emp)
-                    ordenes = Orden.objects.filter(estado=1, survey=None, pk__in=emp).values('pk')
+                    ordenes = Orden.objects.filter(estado__gte=1, survey=None, pk__in=emp).values('pk')
                 if us.tipo.nombre == "Tecnico":
                     emp = Empleado.objects.filter(pk=us.pk).values('ordenes__pk')
                     print(emp)
