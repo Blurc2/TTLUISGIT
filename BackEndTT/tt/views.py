@@ -713,7 +713,7 @@ def AssignTec(request):
             for e in emp2:
 
                 for e2 in emp2:
-                    if e2.tipo.nombre == "Tecnico":
+                    if e2.tipo.nombre == "Técnico":
                         firebase.instance.reference.database().child("users").child(e.uuid).child(
                             "ordenes") \
                             .child(str(request.GET.get('folio', None))).child("tecnico").set(
@@ -762,7 +762,7 @@ def IniciarSesion(request):
                     emp = Empleado.objects.filter(pk=us.pk).values('ordenes__pk')
                     print(emp)
                     ordenes = Orden.objects.filter(estado__gte=1, survey=None, pk__in=emp).values('pk')
-                if us.tipo.nombre == "Tecnico":
+                if us.tipo.nombre == "Técnico":
                     emp = Empleado.objects.filter(pk=us.pk).values('ordenes__pk')
                     print(emp)
                     ordenes = Orden.objects.filter(estado=0,pk__in=emp).values('pk')
@@ -1621,6 +1621,7 @@ def reporteServicios(request,mes):
     response['Content-Disposition'] = 'filename=Report_Servicios.pdf'
 
     return HttpResponse(result, content_type='application/pdf')
+
 
 def months(argument):
     switcher = {

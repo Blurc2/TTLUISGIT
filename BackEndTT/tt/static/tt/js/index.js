@@ -362,7 +362,7 @@ $(document).ready(function()
         else if(sessionStorage.getItem("menuItem") === "PERFDOC")
             showPerfil()
 
-    {% elif usertype == "Tecnico" %}
+    {% elif usertype == "Técnico" %}
         $(".itemtecnico").show('slow')
         if(sessionStorage.getItem("menuItem") === "ORDERSTEC")
             showOrdersTec()
@@ -989,7 +989,7 @@ var formData = new FormData(this);
             }
             else if(data.usertype === "Docente")
                 $(".itemdocente").show('slow')
-            else if(data.usertype === "Tecnico")
+            else if(data.usertype === "Técnico")
                 $(".itemtecnico").show('slow')
             $(".sesionforms").hide('slow')
             $(".sesion").show('slow')
@@ -1005,7 +1005,7 @@ var formData = new FormData(this);
                     jsonsurvey = data.ordenes
                     showSurvey()
                 }
-                else if(data.usertype === "Tecnico")
+                else if(data.usertype === "Técnico")
                 {
                     $("#tecitem").append('&nbsp;&nbsp;<i class="exclamation circle icon"></i>')
                 }
@@ -3125,7 +3125,7 @@ function showOrderInfo(id,estado)
             success : function(data) {
                 console.log(data);
                 $("#contenido").append(createorderinfotable(data))
-                if(tipouser === "Tecnico" && estado === 0)
+                if(tipouser === "Técnico" && estado === 0)
                 {
                     $("#divbuttonfinishorder").show()
 
