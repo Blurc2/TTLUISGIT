@@ -395,6 +395,8 @@ def AddDepartment(request):
                         ubi.save()
 
                         dep = SubDepartamento.objects.create(nombre=form.cleaned_data['nombredep'],
+                                                             depto=Departamento.objects.get(
+                                                                 nombre=form.cleaned_data['depname']),
                                                              ubicacion=ubi)
                     dep.save()
                 elif (form.cleaned_data['option'] == "updatesub"):
