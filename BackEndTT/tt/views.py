@@ -67,7 +67,7 @@ def Index(request):
             emp = Empleado.objects.filter(pk=request.session['NombreUser']['pk']).values('ordenes__pk')
             print(emp)
             ordenes = Orden.objects.filter(estado__gte=1, survey=None, pk__in=emp).values('pk')
-        if request.session['NombreUser']['tipo'] == "Tecnico":
+        if request.session['NombreUser']['tipo'] == "Técnico":
             emp = Empleado.objects.filter(pk=request.session['NombreUser']['pk']).values('ordenes__pk')
             print(emp)
             ordenes = Orden.objects.filter(estado=0, pk__in=emp).values('pk')
@@ -207,7 +207,7 @@ def Registrar(request):
                                                       numero=form.cleaned_data['telefono'],
                                                       ext=form.cleaned_data['extension'],
                                                       uuid=user['localId'],
-                                                      tipo=TipoUsuario.objects.get(nombre='Tecnico'),
+                                                      tipo=TipoUsuario.objects.get(nombre='Técnico'),
                                                       estado=True,
                                                       adminstate=True,
                                                       observaciones=form.cleaned_data['observaciones'],
@@ -799,7 +799,7 @@ def CerrarSesion(request):
 @csrf_exempt
 def ShowTecnicos(request):
     return JsonResponse(
-        serializers.serialize('json', Empleado.objects.filter(tipo=TipoUsuario.objects.get(nombre='Tecnico'))),
+        serializers.serialize('json', Empleado.objects.filter(tipo=TipoUsuario.objects.get(nombre='Técnico'))),
         content_type="application/json", safe=False)
 
 
@@ -841,7 +841,7 @@ def ShowOrdersAdmin(request):
                                                                                'tipo__nombre'
                                                                                )
         order['empleados'] = list(solicitante)
-    tecnicos = Empleado.objects.filter(tipo=TipoUsuario.objects.get(nombre="Tecnico")).values('nombre',
+    tecnicos = Empleado.objects.filter(tipo=TipoUsuario.objects.get(nombre="Técnico")).values('nombre',
                                                                                               'ap',
                                                                                               'am',
                                                                                               'pk',
@@ -869,7 +869,7 @@ def ShowOrdersDoc(request):
     solicitudes = list(solicitante)
     for sol in solicitudes:
         print(sol['ordenes__nofolio'])
-        tecnico = Empleado.objects.filter(Q(ordenes=sol['ordenes__nofolio']) & Q(tipo__nombre="Tecnico")).values(
+        tecnico = Empleado.objects.filter(Q(ordenes=sol['ordenes__nofolio']) & Q(tipo__nombre="Técnico")).values(
             'nombre',
             'ap',
             'am',
