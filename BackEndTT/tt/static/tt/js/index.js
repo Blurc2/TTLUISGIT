@@ -2732,6 +2732,7 @@ function setClicksOrders(json,tecnicos)
                             }
                             else
                             {
+
                             Lobibox.notify('error', {
                                         size: 'mini',
                                         rounded: true,
